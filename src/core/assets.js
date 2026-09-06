@@ -80,46 +80,46 @@ export const ICONS = {
   chart: 'M4 20V4h2v14h14v2zm3-3V9h3v8zm5 0V5h3v12zm5 0v-6h3v6z'
 };
 
-const UI_ICON_PATHS = {
-  undo: '<path d="M4 8h9a5 5 0 0 1 0 10H8v-2h5a3 3 0 0 0 0-6H4l3.5 3.5L6.1 14.9 1.2 10l4.9-4.9 1.4 1.4z"/>',
-  redo: '<path d="M20 8h-9a5 5 0 0 0 0 10h5v-2h-5a3 3 0 0 1 0-6h9l-3.5 3.5 1.4 1.4L22.8 10l-4.9-4.9-1.4 1.4z"/>',
-  'zoom-in': '<path d="M10 3a7 7 0 1 1-4.4 12.4l-4 4L.2 18l4-4A7 7 0 0 1 10 3zm0 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm1 2v2h2v2h-2v2H9v-2H7V9h2V7z"/>',
-  'zoom-out': '<path d="M10 3a7 7 0 1 1-4.4 12.4l-4 4L.2 18l4-4A7 7 0 0 1 10 3zm0 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zM7 9h6v2H7z"/>',
-  fit: '<path d="M4 4h6v2H6v4H4zm10 0h6v6h-2V6h-4zM4 14h2v4h4v2H4zm14 0h2v6h-6v-2h4z"/>',
-  download: '<path d="M11 3h2v9l3-3 1.4 1.4L12 15.8 6.6 10.4 8 9l3 3zM4 18h16v3H4z"/>',
-  trash: '<path d="M9 3h6l1 2h4v2H4V5h4zM5 8h14l-1 13H6z"/>',
-  copy: '<path d="M8 2h12v14h-4V6H8zm-4 4h12v14H4z" fill-rule="evenodd"/>',
-  lock: '<path d="M6 10V7a6 6 0 0 1 12 0v3h1.5v12h-15V10zm3 0h6V7a3 3 0 0 0-6 0z"/>',
-  unlock: '<path d="M6 10V7a6 6 0 0 1 11.7-2l-1.9.6A4 4 0 0 0 8 7v3h11.5v12h-15V10z"/>',
-  eye: '<path d="M12 5c5 0 9.3 3 11 7-1.7 4-6 7-11 7S2.7 16 1 12c1.7-4 6-7 11-7zm0 3a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm0 2a2 2 0 1 1-2 2 2 2 0 0 1 2-2z"/>',
-  'eye-off': '<path d="M2 3.3 3.3 2l18.7 18.7-1.3 1.3-3.5-3.5A12.6 12.6 0 0 1 12 19C7 19 2.7 16 1 12a13 13 0 0 1 4.5-5.2zM12 5c5 0 9.3 3 11 7a13.4 13.4 0 0 1-3.4 4.4L16 12.8A4 4 0 0 0 11.2 8L9.5 6.3A12 12 0 0 1 12 5z"/>',
-  front: '<path d="M4 4h10v10H4zm6 12h6v-6h2v8h-8zm-6 6v-2h2v2zm4 0v-2h2v2zm4 0v-2h2v2zm4 0v-2h2v2zm2-4h2v2h-2zm0-4h2v2h-2zm-2-2h-2v-2h2z" fill-rule="evenodd"/>',
-  back: '<path d="M20 20H10V10h10zm-6-12H8v6H6V6h8zm-6 6H4v-4h2zm-2 4v-2h2v2zm4 4v-2h2v2z" fill-rule="evenodd"/>',
-  plus: '<path d="M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7z"/>',
-  close: '<path d="M5.7 4.3 12 10.6l6.3-6.3 1.4 1.4L13.4 12l6.3 6.3-1.4 1.4L12 13.4l-6.3 6.3-1.4-1.4L10.6 12 4.3 5.7z"/>',
-  chevron: '<path d="M7 10l5 5 5-5z"/>',
-  image: '<path d="M4 4h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm1 12v2h14v-5l-4-4-6 6-2-2zm3-8.5A2.5 2.5 0 1 0 10.5 10 2.5 2.5 0 0 0 8 7.5z"/>',
-  layers: '<path d="M12 2 2 8l10 6 10-6zm-8.5 9.7L12 17l8.5-5.3L22 12.7l-10 6.3-10-6.3z"/>',
-  text: '<path d="M5 4h14v4h-2V6h-4v13h2.5v2h-7v-2H11V6H7v2H5z"/>',
-  shapes: '<path d="M9 2a7 7 0 0 1 7 7c0 .3 0 .7-.1 1H17a6 6 0 1 1-6 6v-1.1A7 7 0 0 1 9 2zm0 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm7 9a1 1 0 1 1-1 1 1 1 0 0 1 1-1z" fill-rule="evenodd"/>',
-  templates: '<path d="M3 3h8v8H3zm10 0h8v5h-8zm0 7h8v11h-8zM3 13h8v8H3z"/>',
-  upload: '<path d="M12 3l5.4 5.4-1.4 1.4L13 6.8V16h-2V6.8L8 9.8 6.6 8.4zM4 18h16v3H4z"/>',
-  palette: '<path d="M12 2a10 10 0 0 0 0 20 2.5 2.5 0 0 0 1.8-4.2c-.4-.5-.5-.8-.5-1.3a2 2 0 0 1 2-2H18a4 4 0 0 0 4-4c0-4.7-4.5-8.5-10-8.5zM6.5 12a1.5 1.5 0 1 1 1.5-1.5A1.5 1.5 0 0 1 6.5 12zM10 7.5A1.5 1.5 0 1 1 11.5 6 1.5 1.5 0 0 1 10 7.5zm5.5.5A1.5 1.5 0 1 1 17 6.5 1.5 1.5 0 0 1 15.5 8z"/>',
-  alignLeft: '<path d="M3 4h18v2H3zm0 5h12v2H3zm0 5h18v2H3zm0 5h12v2H3z"/>',
-  alignCenter: '<path d="M3 4h18v2H3zm3 5h12v2H6zm-3 5h18v2H3zm3 5h12v2H6z"/>',
-  alignRight: '<path d="M3 4h18v2H3zm6 5h12v2H9zm-6 5h18v2H3zm6 5h12v2H9z"/>',
-  bold: '<path d="M6 3h7a4.5 4.5 0 0 1 3.2 7.7A5 5 0 0 1 14 20.5H6zm3 3v4h4a2 2 0 0 0 0-4zm0 7v4.5h4.5a2.25 2.25 0 0 0 0-4.5z"/>',
-  italic: '<path d="M10 3h9v2.5h-3.2l-4 13H15V21H6v-2.5h3.2l4-13H10z"/>',
-  underline: '<path d="M6 3h2.5v8a3.5 3.5 0 0 0 7 0V3H18v8a6 6 0 0 1-12 0zM4 19h16v2H4z"/>',
-  grid: '<path d="M3 3h5v5H3zm6.5 0h5v5h-5zM16 3h5v5h-5zM3 9.5h5v5H3zm6.5 0h5v5h-5zm6.5 0h5v5h-5zM3 16h5v5H3zm6.5 0h5v5h-5zm6.5 0h5v5h-5z"/>',
-  duplicate: '<path d="M8 2h12v14h-4V6H8zm-4 4h12v14H4zm2 2v10h8V8z" fill-rule="evenodd"/>'
+// UI icons: Lucide (https://lucide.dev) - ISC License
+const UI_ICON_PATHS = {"undo": '<path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11" />',
+  "redo": '<path d="m15 14 5-5-5-5" /><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13" />',
+  "zoom-in": '<circle cx="11" cy="11" r="8" /><line x1="21" x2="16.65" y1="21" y2="16.65" /><line x1="11" x2="11" y1="8" y2="14" /><line x1="8" x2="14" y1="11" y2="11" />',
+  "zoom-out": '<circle cx="11" cy="11" r="8" /><line x1="21" x2="16.65" y1="21" y2="16.65" /><line x1="8" x2="14" y1="11" y2="11" />',
+  "fit": '<path d="M8 3H5a2 2 0 0 0-2 2v3" /><path d="M21 8V5a2 2 0 0 0-2-2h-3" /><path d="M3 16v3a2 2 0 0 0 2 2h3" /><path d="M16 21h3a2 2 0 0 0 2-2v-3" />',
+  "download": '<path d="M12 15V3" /><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="m7 10 5 5 5-5" />',
+  "trash": '<path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />',
+  "copy": '<rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />',
+  "lock": '<rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />',
+  "unlock": '<rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 9.9-1" />',
+  "eye": '<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" /><circle cx="12" cy="12" r="3" />',
+  "eye-off": '<path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" /><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" /><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" /><path d="m2 2 20 20" />',
+  "front": '<rect x="8" y="8" width="8" height="8" rx="2" /><path d="M4 10a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" /><path d="M14 20a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2" />',
+  "back": '<rect x="14" y="14" width="8" height="8" rx="2" /><rect x="2" y="2" width="8" height="8" rx="2" /><path d="M7 14v1a2 2 0 0 0 2 2h1" /><path d="M14 7h1a2 2 0 0 1 2 2v1" />',
+  "plus": '<path d="M5 12h14" /><path d="M12 5v14" />',
+  "close": '<path d="M18 6 6 18" /><path d="m6 6 12 12" />',
+  "chevron": '<path d="m6 9 6 6 6-6" />',
+  "image": '<rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />',
+  "layers": '<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" /><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" /><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" />',
+  "text": '<path d="M12 4v16" /><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2" /><path d="M9 20h6" />',
+  "shapes": '<path d="M8.3 10a.7.7 0 0 1-.626-1.079L11.4 3a.7.7 0 0 1 1.198-.043L16.3 8.9a.7.7 0 0 1-.572 1.1Z" /><rect x="3" y="14" width="7" height="7" rx="1" /><circle cx="17.5" cy="17.5" r="3.5" />',
+  "templates": '<rect width="18" height="7" x="3" y="3" rx="1" /><rect width="9" height="7" x="3" y="14" rx="1" /><rect width="5" height="7" x="16" y="14" rx="1" />',
+  "upload": '<path d="M12 3v12" /><path d="m17 8-5-5-5 5" /><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />',
+  "palette": '<path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /><circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /><circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /><circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /><circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />',
+  "alignLeft": '<path d="M21 5H3" /><path d="M15 12H3" /><path d="M17 19H3" />',
+  "alignCenter": '<path d="M21 5H3" /><path d="M17 12H7" /><path d="M19 19H5" />',
+  "alignRight": '<path d="M21 5H3" /><path d="M21 12H9" /><path d="M21 19H7" />',
+  "bold": '<path d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8" />',
+  "italic": '<line x1="19" x2="10" y1="4" y2="4" /><line x1="14" x2="5" y1="20" y2="20" /><line x1="15" x2="9" y1="4" y2="20" />',
+  "underline": '<path d="M6 4v6a6 6 0 0 0 12 0V4" /><line x1="4" x2="20" y1="20" y2="20" />',
+  "grid": '<rect width="18" height="18" x="3" y="3" rx="2" /><path d="M3 9h18" /><path d="M3 15h18" /><path d="M9 3v18" /><path d="M15 3v18" />',
+  "duplicate": '<rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />'
 };
 
 // UI consumers insert these strings directly into HTML, so each needs an SVG root.
 export const UI_ICONS = Object.fromEntries(
-  Object.entries(UI_ICON_PATHS).map(([name, paths]) => [
+  Object.entries(UI_ICON_PATHS).map(([name, markup]) => [
     name,
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${paths}</svg>`
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${markup}</svg>`
   ])
 );
 

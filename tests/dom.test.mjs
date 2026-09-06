@@ -77,9 +77,12 @@ for (const button of iconButtons) {
   const svg = button.querySelector('svg');
   assert.ok(svg, `${button.title}: SVG root exists`);
   assert.strictEqual(svg.getAttribute('viewBox'), '0 0 24 24', `${button.title}: icon viewBox`);
-  const path = svg.querySelector('path');
-  assert.ok(path?.getAttribute('d'), `${button.title}: icon path exists`);
-  assert.strictEqual(path.namespaceURI, 'http://www.w3.org/2000/svg', `${button.title}: drawable SVG path`);
+  const shape = svg.querySelector('path, circle, line, rect, polyline, polygon');
+  assert.ok(shape, `${button.title}: icon shape exists`);
+  if (shape.tagName.toLowerCase() === 'path') {
+    assert.ok(shape.getAttribute('d'), `${button.title}: icon path exists`);
+  }
+  assert.strictEqual(shape.namespaceURI, 'http://www.w3.org/2000/svg', `${button.title}: drawable SVG path`);
 }
 
 const { rotatePoint, deg2rad } = await import('../src/core/utils.js');

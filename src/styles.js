@@ -81,7 +81,7 @@ const CSS = `
   width: 32px; height: 32px; border: none; border-radius: 8px;
   background: transparent; color: var(--sk-text); padding: 0;
 }
-.sk-icon-btn svg { width: 18px; height: 18px; fill: currentColor; }
+.sk-icon-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; }
 .sk-icon-btn:hover { background: #ececf2; }
 .sk-icon-btn.sk-sm { width: 26px; height: 26px; border-radius: 6px; }
 .sk-icon-btn.sk-sm svg { width: 14px; height: 14px; }
@@ -95,7 +95,7 @@ const CSS = `
   height: 34px; padding: 0 14px; border-radius: 8px;
   border: 1px solid transparent; font-size: 13px; font-weight: 600;
 }
-.sk-btn svg { width: 15px; height: 15px; fill: currentColor; }
+.sk-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; }
 .sk-btn-ghost { background: #fff; border-color: var(--sk-border); color: var(--sk-text); }
 .sk-btn-ghost:hover { border-color: #c9c9d4; background: #fafafc; }
 .sk-btn-primary { background: var(--sk-accent); color: #fff; }
@@ -119,7 +119,7 @@ const CSS = `
   padding: 9px 2px 8px; border: none; background: transparent;
   font-size: 10.5px; font-weight: 600; color: var(--sk-text-dim);
 }
-.sk-tab-btn svg { width: 19px; height: 19px; fill: currentColor; }
+.sk-tab-btn svg { width: 19px; height: 19px; fill: none; stroke: currentColor; }
 .sk-tab-btn:hover { color: var(--sk-text); }
 .sk-tab-btn.sk-active { color: var(--sk-accent); }
 .sk-sidepanel-content { flex: 1; overflow-y: auto; padding: 14px; }
@@ -183,7 +183,7 @@ const CSS = `
   background: #fafafc; font-weight: 600; font-size: 13px; color: var(--sk-text);
   margin-bottom: 16px;
 }
-.sk-upload-btn svg { width: 17px; height: 17px; fill: currentColor; }
+.sk-upload-btn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; }
 .sk-upload-btn:hover { border-color: var(--sk-accent); color: var(--sk-accent); }
 .sk-upload-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .sk-upload-thumb {
@@ -216,7 +216,7 @@ const CSS = `
   display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;
   font-size: 12.5px; font-weight: 500; cursor: pointer;
 }
-.sk-layer-name svg { width: 14px; height: 14px; fill: var(--sk-text-dim); flex-shrink: 0; }
+.sk-layer-name svg { width: 14px; height: 14px; fill: none; stroke: var(--sk-text-dim); flex-shrink: 0; }
 .sk-layer-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sk-layer-actions { display: flex; gap: 2px; }
 .sk-layer-actions .sk-icon-btn { width: 24px; height: 24px; color: var(--sk-text-dim); }
@@ -332,7 +332,7 @@ const CSS = `
   background: transparent; color: var(--sk-text); font-size: 13px; font-weight: 700;
   display: inline-flex; align-items: center; justify-content: center; padding: 0 6px;
 }
-.sk-tool-toggle svg { width: 16px; height: 16px; fill: currentColor; }
+.sk-tool-toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; }
 .sk-tool-toggle:hover { background: #ececf2; }
 .sk-tool-toggle.sk-active { background: var(--sk-accent-soft); color: var(--sk-accent); }
 .sk-toolbar-sep-actions { display: flex; align-items: center; gap: 2px; border-left: 1px solid var(--sk-border); padding-left: 6px; }
@@ -364,7 +364,7 @@ const CSS = `
   padding: 8px 10px; border-radius: 7px; font-size: 13px; font-weight: 500;
   cursor: pointer; color: var(--sk-text);
 }
-.sk-menu-item svg { width: 15px; height: 15px; fill: currentColor; opacity: 0.75; }
+.sk-menu-item svg { width: 15px; height: 15px; fill: none; stroke: currentColor; opacity: 0.75; }
 .sk-menu-item:hover { background: var(--sk-accent-soft); }
 .sk-menu-item.sk-danger { color: var(--sk-danger); }
 .sk-menu-item.sk-danger:hover { background: #fdeef2; }

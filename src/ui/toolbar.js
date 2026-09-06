@@ -1,5 +1,6 @@
 import { el, clamp } from '../core/utils.js';
 import { UI_ICONS } from '../core/assets.js';
+import { selectionBBox } from '../core/elements.js';
 
 export class Toolbar {
   constructor(editor) {
@@ -35,14 +36,19 @@ export class Toolbar {
     const ed = this.editor;
     const containerRect = ed.container.getBoundingClientRect();
     const canvasRect = ed.canvas.getBoundingClientRect();
-    const first = sel[0];
-    const x = canvasRect.left - containerRect.left + first.x * ed.zoom;
-    const y = canvasRect.top - containerRect.top + first.y * ed.zoom;
+    const bounds = selectionBBox(sel);
+    const x = canvasRect.left - containerRect.left + bounds.x * ed.zoom;
+    const y = canvasRect.top - containerRect.top + bounds.y * ed.zoom;
     this.root.style.display = 'flex';
     const tw = this.root.offsetWidth;
     const th = this.root.offsetHeight;
     const left = clamp(x, 8, containerRect.width - tw - 8);
-    const top = clamp(y - th - 10, 8, containerRect.height - th - 8);
+    // The rotate handle extends 34 CSS pixels beyond the selection.
+    const gap = 48;
+    const above = y - th - gap;
+    const below = y + bounds.h * ed.zoom + gap;
+    const maxTop = Math.max(8, containerRect.height - th - 8);
+    const top = clamp(above < 8 && below <= maxTop ? below : above, 8, maxTop);
     this.root.style.left = left + 'px';
     this.root.style.top = top + 'px';
   }
