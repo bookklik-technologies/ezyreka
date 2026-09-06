@@ -13,28 +13,48 @@ export class Interactions {
     this.editor = editor;
     this.drag = null;
     this.spaceDown = false;
+    editor._isActive = true;
     this._bind();
   }
 
   _bind() {
     const ed = this.editor;
-    ed.canvas.addEventListener('pointerdown', (e) => this.onPointerDown(e));
-    ed.overlay.addEventListener('pointerdown', (e) => {
-      if (e.target === ed.overlay) this.onPointerDown(e);
-    });
-    window.addEventListener('pointermove', (e) => this.onPointerMove(e));
-    window.addEventListener('pointerup', (e) => this.onPointerUp(e));
-    ed.viewport.addEventListener('wheel', (e) => this.onWheel(e), { passive: false });
-    window.addEventListener('keydown', (e) => this.onKeyDown(e));
-    window.addEventListener('keyup', (e) => {
+    this._onDocPointerDown = (e) => {
+      ed._isActive = ed.container.contains(e.target);
+    };
+    this._onPointerMove = (e) => this.onPointerMove(e);
+    this._onPointerUp = (e) => this.onPointerUp(e);
+    this._onKeyDown = (e) => this.onKeyDown(e);
+    this._onKeyUp = (e) => {
       if (e.code === 'Space') {
         this.spaceDown = false;
         ed.viewport.classList.remove('sk-panning');
       }
+    };
+    ed.canvas.addEventListener('pointerdown', (e) => this.onPointerDown(e));
+    ed.overlay.addEventListener('pointerdown', (e) => {
+      if (e.target === ed.overlay) this.onPointerDown(e);
     });
+    window.addEventListener('pointermove', this._onPointerMove);
+    window.addEventListener('pointerup', this._onPointerUp);
+    ed.viewport.addEventListener('wheel', (e) => this.onWheel(e), { passive: false });
+    window.addEventListener('keydown', this._onKeyDown);
+    window.addEventListener('keyup', this._onKeyUp);
+    document.addEventListener('pointerdown', this._onDocPointerDown, true);
     ed.canvas.addEventListener('dblclick', (e) => this.onDblClick(e));
     ed.viewport.addEventListener('dragover', (e) => e.preventDefault());
     ed.viewport.addEventListener('drop', (e) => this.onDrop(e));
+  }
+
+  destroy() {
+    const ed = this.editor;
+    window.removeEventListener('pointermove', this._onPointerMove);
+    window.removeEventListener('pointerup', this._onPointerUp);
+    window.removeEventListener('keydown', this._onKeyDown);
+    window.removeEventListener('keyup', this._onKeyUp);
+    document.removeEventListener('pointerdown', this._onDocPointerDown, true);
+    ed.viewport.classList.remove('sk-panning');
+    this.drag = null;
   }
 
   clientToWorld(e) {
@@ -91,7 +111,8 @@ export class Interactions {
       this.startPan(e);
       return;
     }
-    if (e.button !== 0 || ed._editing) return;
+    if (e.button !== 0) return;
+    if (ed._editing) ed.commitTextEdit();
 
     const p = this.clientToWorld(e);
     const els = ed.getElements();
@@ -262,7 +283,7 @@ export class Interactions {
     }
   }
 
-  onPointerUp() {
+  onPointerUp(e) {
     const drag = this.drag;
     if (!drag) return;
     const ed = this.editor;
@@ -277,7 +298,15 @@ export class Interactions {
         const hits = ed
           .getElements()
           .filter((el) => !el.hidden && !el.locked && rectsIntersect(drag.rect, elementAABB(el)));
-        if (hits.length) ed.select(hits.map((h) => h.id));
+        if (hits.length) {
+          if (e.shiftKey) {
+            const ids = new Set(ed.selection);
+            hits.forEach((h) => ids.add(h.id));
+            ed.select([...ids]);
+          } else {
+            ed.select(hits.map((h) => h.id));
+          }
+        }
       }
       return;
     }
@@ -298,6 +327,7 @@ export class Interactions {
 
   onKeyDown(e) {
     const ed = this.editor;
+    if (!ed._isActive) return;
     const target = e.target;
     const typing =
       target &&

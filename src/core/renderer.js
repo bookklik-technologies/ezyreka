@@ -253,7 +253,7 @@ function drawIcon(ctx, el) {
   ctx.save();
   ctx.scale(el.w / 24, el.h / 24);
   ctx.fillStyle = el.fill || '#111827';
-  ctx.fill(getPath(d));
+  ctx.fill(getPath(d), 'evenodd');
   ctx.restore();
 }
 

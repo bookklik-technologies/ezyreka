@@ -116,6 +116,21 @@ assert.strictEqual(json.pages.length, 2, 'getJSON');
 editor.loadJSON({ pages: [{ width: 500, height: 500, elements: [{ type: 'rect', x: 0, y: 0, w: 50, h: 50 }] }] });
 assert.strictEqual(editor.getElements().length, 1, 'loadJSON elements');
 
+editor.loadJSON({
+  name: 'Renamed doc',
+  pages: [{ width: 400, height: 400, elements: [{ type: 'rect', x: 0, y: 0, w: 10, h: 10 }, { type: 'bogus' }] }]
+});
+assert.strictEqual(editor.getElements().length, 1, 'unknown element types skipped');
+assert.strictEqual(editor.fileName, 'Renamed doc', 'name restored from JSON');
+
+editor.loadJSON({ pages: [{ width: 500, height: 500, elements: [{ type: 'rect', x: 0, y: 0, w: 50, h: 50 }] }] });
+editor.select(editor.getElements().map((e) => e.id));
+editor.copy();
+editor.paste();
+editor.paste();
+const [a, b] = editor.getElements().slice(1);
+assert.ok(b.x > a.x && b.y > a.y, 'repeated paste offsets accumulate');
+
 let changed = 0;
 editor.on('change', () => changed++);
 editor.commit();

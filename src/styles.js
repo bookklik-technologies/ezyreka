@@ -229,7 +229,9 @@ const CSS = `
   position: relative; margin: 0; padding: 0;
   box-shadow: 0 2px 18px rgba(20, 20, 50, 0.14);
   flex-shrink: 0;
+  touch-action: none;
 }
+.sk-stage canvas, .sk-overlay { touch-action: none; }
 .sk-stage canvas { display: block; background: #fff; }
 .sk-editor input, .sk-editor [contenteditable] { user-select: text; }
 .sk-overlay { position: absolute; inset: 0; overflow: visible; pointer-events: none; }

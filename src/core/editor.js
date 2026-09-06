@@ -12,7 +12,7 @@ import { Interactions } from '../interactions.js';
 import { Topbar } from '../ui/topbar.js';
 import { Sidepanel } from '../ui/sidepanel.js';
 import { Toolbar } from '../ui/toolbar.js';
-import { ContextMenu } from '../ui/contextmenu.js';
+import { ContextMenu, closeMenus } from '../ui/contextmenu.js';
 import { PagesBar } from '../ui/pagesbar.js';
 import { injectStyles, injectFonts } from '../styles.js';
 
@@ -38,6 +38,7 @@ export class Editor extends Emitter {
     this.pageIndex = 0;
     this.selection = new Set();
     this.clipboard = [];
+    this._pasteCount = 0;
     this.uploads = [];
     this._guides = [];
     this._editing = false;
@@ -304,7 +305,10 @@ export class Editor extends Emitter {
 
   copy() {
     const sel = this.getSelected();
-    if (sel.length) this.clipboard = deepClone(sel);
+    if (sel.length) {
+      this.clipboard = deepClone(sel);
+      this._pasteCount = 0;
+    }
   }
 
   cut() {
@@ -314,8 +318,9 @@ export class Editor extends Emitter {
 
   paste() {
     if (!this.clipboard.length) return;
+    const offset = 24 * (++this._pasteCount || 1);
     const clones = this.clipboard.map((elx) =>
-      createElement(elx.type, { ...deepClone(elx), x: elx.x + 24, y: elx.y + 24 })
+      createElement(elx.type, { ...deepClone(elx), x: elx.x + offset, y: elx.y + offset })
     );
     this.page.elements.push(...clones);
     this.select(clones.map((c) => c.id));
@@ -399,6 +404,12 @@ export class Editor extends Emitter {
     const pw = this.page.width;
     const ph = this.page.height;
     const vRect = this.viewport.getBoundingClientRect();
+    if (!vRect.width || !vRect.height) {
+      this.zoom = 1;
+      this.render();
+      this.emit('zoom', this.zoom);
+      return;
+    }
     const z = clamp(Math.min((vRect.width - 96) / pw, (vRect.height - 96) / ph), 0.05, 2);
     this.zoom = z;
     this.render();
@@ -529,9 +540,18 @@ export class Editor extends Emitter {
         width: p.width || this.options.width,
         height: p.height || this.options.height,
         background: p.background || { type: 'solid', color: '#ffffff' },
-        elements: (p.elements || []).map((e2) => createElement(e2.type, e2))
+        elements: (p.elements || [])
+          .map((e2) => {
+            try {
+              return createElement(e2.type, e2);
+            } catch {
+              return null;
+            }
+          })
+          .filter(Boolean)
       }))
     };
+    if (typeof doc.name === 'string' && doc.name) this.setFileName(doc.name);
     this.pageIndex = 0;
     this.selection = new Set();
     this.history.reset();
@@ -708,6 +728,13 @@ export class Editor extends Emitter {
   }
 
   destroy() {
+    this.interactions?.destroy();
+    closeMenus(this);
+    if (this._editing) {
+      this._editing = false;
+      this._textEditorEl?.remove();
+      this._textEditorEl = null;
+    }
     this._resizeObserver?.disconnect();
     if (this._raf) cancelAnimationFrame(this._raf);
     this.container.__senangDesign = null;

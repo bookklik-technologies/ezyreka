@@ -59,6 +59,10 @@ export class Topbar {
       openInput.value = '';
     };
     ed.on('zoom', () => this.updateZoomLabel());
+    ed.on('rename', (name) => {
+      const input = this.root.querySelector('.sk-filename');
+      if (input && document.activeElement !== input) input.value = name;
+    });
     this.updateZoomLabel();
   }
 
