@@ -25,6 +25,7 @@ export class Topbar {
         <button class="sk-icon-btn" data-act="zoom-fit" title="Fit to screen (Ctrl+0)">${UI_ICONS.fit}</button>
       </div>
       <div class="sk-topbar-spacer"></div>
+      <button class="sk-icon-btn" data-act="theme" title="Switch theme (Ctrl+Shift+L)"></button>
       <button class="sk-btn sk-btn-ghost" data-act="open">Open</button>
       <button class="sk-btn sk-btn-ghost" data-act="save-json">Save</button>
       <button class="sk-btn sk-btn-primary" data-act="download">${UI_ICONS.download}<span>Download</span></button>
@@ -58,6 +59,9 @@ export class Topbar {
       }
       openInput.value = '';
     };
+    this.root.querySelector('[data-act="theme"]').onclick = () => ed.toggleTheme();
+    ed.on('theme', () => this.updateThemeIcon());
+    this.updateThemeIcon();
     ed.on('zoom', () => this.updateZoomLabel());
     ed.on('rename', (name) => {
       const input = this.root.querySelector('.sk-filename');
@@ -69,6 +73,14 @@ export class Topbar {
   updateZoomLabel() {
     const btn = this.root.querySelector('[data-act="zoom-menu"]');
     if (btn) btn.textContent = Math.round(this.editor.zoom * 100) + '%';
+  }
+
+  updateThemeIcon() {
+    const btn = this.root.querySelector('[data-act="theme"]');
+    if (!btn) return;
+    const dark = this.editor.theme === 'dark';
+    btn.innerHTML = dark ? UI_ICONS.sun : UI_ICONS.moon;
+    btn.title = dark ? 'Switch to light mode' : 'Switch to dark mode';
   }
 
   zoomMenu(e) {

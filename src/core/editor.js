@@ -35,6 +35,7 @@ export class Editor extends Emitter {
     };
     this.fileName = this.options.name;
     this.zoom = 1;
+    this.theme = options.theme === 'dark' ? 'dark' : 'light';
     this.pageIndex = 0;
     this.selection = new Set();
     this.clipboard = [];
@@ -60,6 +61,7 @@ export class Editor extends Emitter {
     injectStyles();
     injectFonts();
     this._buildDOM(target);
+    this.setTheme(this.theme);
     this.history = new History();
     this.history.push(deepClone(this.doc));
 
@@ -615,6 +617,17 @@ export class Editor extends Emitter {
     });
   }
 
+  setTheme(theme) {
+    if (theme !== 'dark' && theme !== 'light') return;
+    this.theme = theme;
+    this.container.classList.toggle('sk-dark', theme === 'dark');
+    this.emit('theme', theme);
+  }
+
+  toggleTheme() {
+    this.setTheme(this.theme === 'dark' ? 'light' : 'dark');
+  }
+
   setFileName(name) {
     this.fileName = name;
     this.emit('rename', name);
@@ -657,6 +670,21 @@ export class Editor extends Emitter {
     if (this.doc.pages.length <= 1) return;
     this.doc.pages.splice(index, 1);
     this.pageIndex = clamp(this.pageIndex, 0, this.doc.pages.length - 1);
+    this.clearSelection();
+    this.markDirty();
+    this.commit();
+    this.emit('page', this.pageIndex);
+  }
+
+  movePage(from, to) {
+    const n = this.doc.pages.length;
+    if (from === to || from < 0 || from >= n || to < 0 || to >= n) return;
+    if (this._editing) this.commitTextEdit();
+    const [page] = this.doc.pages.splice(from, 1);
+    this.doc.pages.splice(to, 0, page);
+    if (this.pageIndex === from) this.pageIndex = to;
+    else if (from < this.pageIndex && to >= this.pageIndex) this.pageIndex -= 1;
+    else if (from > this.pageIndex && to <= this.pageIndex) this.pageIndex += 1;
     this.clearSelection();
     this.markDirty();
     this.commit();

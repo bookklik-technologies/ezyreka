@@ -2,7 +2,7 @@ export as namespace SenangDesign;
 
 export interface DesignElement {
   id?: string;
-  type: 'text' | 'rect' | 'ellipse' | 'triangle' | 'star' | 'hexagon' | 'diamond' | 'heart' | 'line' | 'image' | 'icon';
+  type: 'text' | 'rect' | 'ellipse' | 'triangle' | 'star' | 'hexagon' | 'diamond' | 'heart' | 'line' | 'image' | 'icon' | 'shape';
   x: number;
   y: number;
   w: number;
@@ -30,6 +30,8 @@ export interface DesignElement {
   arrow?: boolean;
   src?: string;
   icon?: string;
+  iconStyle?: 'solid' | 'outline';
+  shape?: string;
 }
 
 export interface PageBackground {
@@ -58,12 +60,14 @@ export interface EditorOptions {
   width?: number;
   height?: number;
   name?: string;
+  theme?: 'light' | 'dark';
 }
 
 export class Editor {
   constructor(options: EditorOptions);
   fileName: string;
   zoom: number;
+  theme: 'light' | 'dark';
   pageIndex: number;
   uploads: { id: string; src: string; name: string }[];
   doc: DesignDocument;
@@ -103,6 +107,7 @@ export class Editor {
   duplicatePage(): void;
   deletePage(index?: number): void;
   goToPage(index: number): void;
+  movePage(from: number, to: number): void;
 
   undo(): void;
   redo(): void;
@@ -113,6 +118,8 @@ export class Editor {
   downloadJSON(): void;
 
   setFileName(name: string): void;
+  setTheme(theme: 'light' | 'dark'): void;
+  toggleTheme(): void;
   addUpload(file: File): Promise<string>;
   openFilePicker(): void;
   destroy(): void;

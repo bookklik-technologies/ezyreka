@@ -1,5 +1,5 @@
 import { el, escapeHtml, readAsDataURL } from '../core/utils.js';
-import { SHAPES, ICONS, FONTS, PALETTE, GRADIENTS, TEMPLATES, UI_ICONS } from '../core/assets.js';
+import { SHAPES, ICONS, ICON_OUTLINES, FONTS, PALETTE, GRADIENTS, TEMPLATES, UI_ICONS } from '../core/assets.js';
 import { elementName } from '../core/elements.js';
 import { renderPage } from '../core/renderer.js';
 import { createElement } from '../core/elements.js';
@@ -137,28 +137,103 @@ export class Sidepanel {
   }
 
   renderElements() {
-    this.sectionTitle('Shapes');
-    const shapeGrid = el('div', 'sk-element-grid', this.contentEl);
-    for (const shape of SHAPES) {
-      const btn = el('button', 'sk-element-btn', shapeGrid);
-      btn.title = shape.label;
-      btn.innerHTML = `<svg viewBox="0 0 100 100">${shape.svg}</svg>`;
-      btn.onclick = () => {
-        const el2 = this.editor.addElement({ type: shape.type, ...(shape.props || {}) });
-        this.editor.select([el2.id]);
+    this.sectionTitle('Make it yours');
+    const intro = el('p', 'sk-elements-intro', this.contentEl);
+    intro.textContent = 'Simple shapes. A little extra character.';
+    const search = el('input', 'sk-input sk-elements-search', this.contentEl);
+    search.type = 'search';
+    search.placeholder = 'Search shapes & icons';
+    search.setAttribute('aria-label', 'Search shapes and icons');
+    search.value = this.elementQuery || '';
+    const filters = el('div', 'sk-element-filters', this.contentEl);
+    filters.setAttribute('role', 'group');
+    filters.setAttribute('aria-label', 'Element types');
+    for (const category of ['All', 'Shapes', 'Icons']) {
+      const button = el('button', 'sk-element-filter', filters);
+      button.type = 'button';
+      button.textContent = category;
+      button.onclick = () => {
+        this.elementCategory = category;
+        update();
       };
     }
-    this.sectionTitle('Icons');
-    const iconGrid = el('div', 'sk-element-grid', this.contentEl);
-    for (const name of Object.keys(ICONS)) {
-      const btn = el('button', 'sk-element-btn', iconGrid);
-      btn.title = name;
-      btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="${ICONS[name]}" /></svg>`;
-      btn.onclick = () => {
-        const el2 = this.editor.addElement({ type: 'icon', icon: name, w: 160, h: 160 });
-        this.editor.select([el2.id]);
+    const count = el('div', 'sk-element-count', this.contentEl);
+    count.setAttribute('role', 'status');
+    const results = el('div', 'sk-element-results', this.contentEl);
+    const addCard = (grid, label, svg, props) => {
+      const button = el('button', 'sk-element-btn', grid);
+      button.type = 'button';
+      button.title = label;
+      button.setAttribute('aria-label', `Add ${label}`);
+      button.innerHTML = svg;
+      const caption = el('span', 'sk-element-label', button);
+      caption.textContent = label;
+      button.onclick = () => {
+        const added = this.editor.addElement(props);
+        this.editor.select([added.id]);
       };
-    }
+    };
+    const update = () => {
+      const category = this.elementCategory || 'All';
+      const query = (this.elementQuery || '').trim().toLowerCase();
+      const style = this.elementIconStyle || 'solid';
+      for (const button of filters.children) {
+        const active = button.textContent === category;
+        button.classList.toggle('sk-active', active);
+        button.setAttribute('aria-pressed', String(active));
+      }
+      const shapes = category === 'Icons' ? [] : SHAPES.filter(shape => shape.label.toLowerCase().includes(query));
+      const icons = category === 'Shapes' ? [] : Object.keys(ICONS).filter(name => name.replace(/-/g, ' ').includes(query));
+      const total = shapes.length + icons.length;
+      count.textContent = `${total} ${total === 1 ? 'element' : 'elements'}`;
+      results.innerHTML = '';
+      if (!total) {
+        const empty = el('p', 'sk-empty', results);
+        empty.textContent = 'No elements found. Try another search or filter.';
+      }
+      if (shapes.length) {
+        el('div', 'sk-panel-title', results).textContent = 'Shapes';
+        const grid = el('div', 'sk-element-grid', results);
+        for (const shape of shapes) {
+          addCard(grid, shape.label,
+            `<svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true" focusable="false">${shape.svg}</svg>`,
+            { type: shape.type, ...(shape.props || {}) });
+        }
+      }
+      if (icons.length) {
+        const heading = el('div', 'sk-element-heading', results);
+        el('div', 'sk-panel-title', heading).textContent = 'Icons';
+        const styles = el('div', 'sk-icon-styles', heading);
+        styles.setAttribute('role', 'group');
+        styles.setAttribute('aria-label', 'Icon style');
+        for (const variant of ['solid', 'outline']) {
+          const button = el('button', 'sk-icon-style' + (style === variant ? ' sk-active' : ''), styles);
+          button.type = 'button';
+          button.textContent = variant === 'solid' ? 'Solid' : 'Outline';
+          button.setAttribute('aria-pressed', String(style === variant));
+          button.onclick = () => {
+            this.elementIconStyle = variant;
+            update();
+            results.querySelector(`.sk-icon-style.sk-active`).focus({ preventScroll: true });
+          };
+        }
+        const grid = el('div', 'sk-element-grid', results);
+        for (const name of icons) {
+          const label = name.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase());
+          const attrs = style === 'outline'
+            ? 'fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"'
+            : 'fill="currentColor" fill-rule="evenodd"';
+          addCard(grid, label,
+            `<svg viewBox="0 0 24 24" ${attrs} aria-hidden="true" focusable="false"><path d="${style === 'outline' ? ICON_OUTLINES[name] : ICONS[name]}" /></svg>`,
+            { type: 'icon', icon: name, iconStyle: style, w: 160, h: 160 });
+        }
+      }
+    };
+    search.addEventListener('input', () => {
+      this.elementQuery = search.value;
+      update();
+    });
+    update();
   }
 
   renderText() {

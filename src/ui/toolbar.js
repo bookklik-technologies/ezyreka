@@ -111,6 +111,13 @@ export class Toolbar {
       arrowBtn.dataset.prop = 'arrow';
       arrowBtn.onclick = () => ed.updateSelected({ arrow: !first.arrow });
     }
+    if (sel.every(s => s.type === 'icon')) {
+      const style = el('select', 'sk-input', this.root);
+      style.setAttribute('aria-label', 'Icon style');
+      style.innerHTML = '<option value="solid">Solid</option><option value="outline">Outline</option>';
+      style.value = first.iconStyle || 'solid';
+      this.bind(style, 'iconStyle');
+    }
     if (first.type !== 'line') {
       this.numInput('Opacity', Math.round((first.opacity ?? 1) * 100), 0, 100, (v) => ({ opacity: v / 100 }));
     }
@@ -152,6 +159,8 @@ export class Toolbar {
     this.root.querySelectorAll('input[data-bind], select[data-bind]').forEach((input) => {
       const prop = input.dataset.bind;
       let v = first[prop];
+      if (prop === 'stroke') v = v || '#000000';
+      if (prop === 'iconStyle') v = v || 'solid';
       if (prop === 'opacity') v = Math.round((v ?? 1) * 100);
       if (document.activeElement !== input) input.value = v ?? '';
     });

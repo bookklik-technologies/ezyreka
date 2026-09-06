@@ -354,6 +354,10 @@ export class Interactions {
       ed.redo();
       return;
     }
+    if (mod && e.shiftKey && key === 'l') {
+      e.preventDefault();
+      return ed.toggleTheme();
+    }
     if (mod && key === 'c') return ed.copy();
     if (mod && key === 'x') return ed.cut();
     if (mod && key === 'v') return ed.paste();

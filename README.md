@@ -9,7 +9,7 @@ No frameworks. No runtime dependencies. One script tag.
 ## Features
 
 - **Canvas engine** — HTML5 canvas rendering at device pixel ratio with DOM overlay for handles and guides
-- **Element types** — text, rectangle, ellipse, triangle, star, hexagon, diamond, heart, line, arrow, icons (20 built-in SVG icons), images
+- **Element types** — text, images, 33 shape and line presets, and 41 SVG icons in solid and outline styles; searchable Elements library with labeled previews
 - **Full transform system** — move, 8-handle resize, rotate (with 15° snapping), flip, multi-select (shift-click + rubber band), group move
 - **Smart snapping** — edge/center alignment guides against other elements and the page, with pink guide lines
 - **Inline text editing** — double-click any text to edit in place, auto-growing text boxes, wrapping, alignment, letter spacing
@@ -86,6 +86,7 @@ editor.on('ready', () => {
 | `width` | `number` | `1080` | Initial page width |
 | `height` | `number` | `1080` | Initial page height |
 | `name` | `string` | `'Untitled design'` | File name |
+| `theme` | `'light' \| 'dark'` | `'light'` | UI color scheme |
 
 ### Documents
 
@@ -131,10 +132,11 @@ editor.on('ready', () => {
 | Method | Description |
 | --- | --- |
 | `setFileName(name)` | Rename the design |
+| `setTheme(theme)` / `toggleTheme()` | Switch UI color scheme (`'light'` / `'dark'`) |
 | `addUpload(file)` | Register an image file; returns a data URL promise |
 | `openFilePicker()` | Open the image upload dialog |
 | `destroy()` | Remove the editor and release listeners |
-| `on(event, cb)` / `off(event, cb)` | Events: `ready`, `change`, `selection`, `zoom`, `page`, `upload`, `export`, `save`, `rename` |
+| `on(event, cb)` / `off(event, cb)` | Events: `ready`, `change`, `selection`, `zoom`, `page`, `upload`, `export`, `save`, `rename`, `theme` |
 
 ## Element schema
 
@@ -142,7 +144,7 @@ editor.on('ready', () => {
 {
   id: 'rect_ab12cd3',
   type: 'rect',            // text | rect | ellipse | triangle | star | hexagon
-                           // | diamond | heart | line | image | icon
+                           // | diamond | heart | line | image | icon | shape
   x: 100, y: 100,          // top-left (unrotated)
   w: 200, h: 200,
   rotation: 0,             // degrees, rotates around center
@@ -165,9 +167,17 @@ editor.on('ready', () => {
   src: 'data:image/png;base64,...',
 
   // icon
-  icon: 'star', fill: '#111827'
+  icon: 'star', iconStyle: 'solid', fill: '#111827', // iconStyle: solid | outline
+
+  // vector shape (type: 'shape')
+  shape: 'arch'            // e.g. pentagon, burst, ring, blob, speech-bubble
 }
 ```
+
+Icons use `fill` as their color in both styles. Switch between solid and outline
+in the Elements panel before insertion, or in the toolbar for selected icons.
+Existing documents without `iconStyle` keep their solid appearance. Vector shapes
+support fill, stroke, resizing and the same transforms as the basic shapes.
 
 ## Keyboard shortcuts
 

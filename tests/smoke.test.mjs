@@ -22,17 +22,19 @@ assert.strictEqual(got, 7, 'emitter off');
 
 const hist = new History(10);
 const s1 = { p: 1 };
+const s2 = { p: 2 };
 hist.push(s1);
+hist.push(s2);
 assert.ok(hist.canUndo(), 'canUndo');
-const undone = hist.undo({ p: 99 });
+const undone = hist.undo(s2);
 assert.deepStrictEqual(undone, s1, 'undo restores');
 assert.ok(hist.canRedo(), 'canRedo');
-const redone = hist.redo({ p: 1 });
-assert.deepStrictEqual(redone, { p: 99 }, 'redo restores');
+const redone = hist.redo(s1);
+assert.deepStrictEqual(redone, s2, 'redo restores');
 
 const rect = createElement('rect', { x: 10, y: 20, w: 100, h: 50 });
 assert.strictEqual(rect.type, 'rect');
-assert.strictEqual(rect.fill, '#7d2ae8', 'shape default fill');
+assert.strictEqual(rect.fill, '#d97706', 'shape default fill');
 assert.ok(rect.id.startsWith('rect_'), 'id prefix by type');
 
 const text = createElement('text', {});

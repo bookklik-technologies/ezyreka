@@ -28,16 +28,17 @@ const TYPE_DEFAULTS = {
     w: 420,
     h: 64
   },
-  rect: { fill: '#7d2ae8', stroke: '', strokeWidth: 0, radius: 0 },
-  ellipse: { fill: '#7d2ae8', stroke: '', strokeWidth: 0 },
-  triangle: { fill: '#7d2ae8', stroke: '', strokeWidth: 0 },
+  rect: { fill: '#d97706', stroke: '', strokeWidth: 0, radius: 0 },
+  ellipse: { fill: '#d97706', stroke: '', strokeWidth: 0 },
+  triangle: { fill: '#d97706', stroke: '', strokeWidth: 0 },
   star: { fill: '#f59e0b', stroke: '', strokeWidth: 0 },
-  hexagon: { fill: '#7d2ae8', stroke: '', strokeWidth: 0 },
-  diamond: { fill: '#7d2ae8', stroke: '', strokeWidth: 0 },
+  hexagon: { fill: '#d97706', stroke: '', strokeWidth: 0 },
+  diamond: { fill: '#d97706', stroke: '', strokeWidth: 0 },
   heart: { fill: '#ef4444', stroke: '', strokeWidth: 0 },
   line: { stroke: '#111827', strokeWidth: 4, arrow: false, w: 220, h: 0 },
   image: { src: '' },
-  icon: { icon: 'star', fill: '#111827', w: 120, h: 120 }
+  icon: { icon: 'star', iconStyle: 'solid', fill: '#111827', w: 120, h: 120 },
+  shape: { shape: 'pentagon', fill: '#d97706', stroke: '', strokeWidth: 0 }
 };
 
 const TYPE_NAMES = {
@@ -51,7 +52,8 @@ const TYPE_NAMES = {
   heart: 'Heart',
   line: 'Line',
   image: 'Image',
-  icon: 'Icon'
+  icon: 'Icon',
+  shape: 'Shape'
 };
 
 export function createElement(type, props = {}) {
@@ -76,6 +78,7 @@ export function elementName(el) {
     return t ? (t.length > 22 ? t.slice(0, 22) + '…' : t) : 'Text';
   }
   if (el.type === 'icon') return 'Icon (' + el.icon + ')';
+  if (el.type === 'shape') return (el.shape || 'Shape').replace(/-/g, ' ').replace(/^./, c => c.toUpperCase());
   return TYPE_NAMES[el.type] || el.type;
 }
 

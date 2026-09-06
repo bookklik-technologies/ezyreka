@@ -185,6 +185,16 @@ assert.strictEqual(editor.pageIndex, 0, 'goToPage');
 editor.deletePage(2);
 assert.strictEqual(editor.doc.pages.length, 2, 'page deleted');
 
+editor.goToPage(0);
+const firstPageId = editor.page.id;
+editor.movePage(0, 1);
+assert.strictEqual(editor.doc.pages[1].id, firstPageId, 'movePage reorders');
+assert.strictEqual(editor.pageIndex, 1, 'pageIndex follows moved page');
+editor.undo();
+assert.strictEqual(editor.doc.pages[0].id, firstPageId, 'undo restores page order');
+editor.redo();
+assert.strictEqual(editor.doc.pages[1].id, firstPageId, 'redo reapplies page order');
+
 editor.setBackground({ type: 'gradient', from: '#000000', to: '#ffffff', angle: 135 });
 assert.strictEqual(editor.page.background.type, 'gradient', 'background set');
 
@@ -217,6 +227,18 @@ let changed = 0;
 editor.on('change', () => changed++);
 editor.commit();
 assert.strictEqual(changed, 1, 'change event');
+
+assert.strictEqual(editor.theme, 'light', 'default theme');
+const themeBtn = document.querySelector('[data-act="theme"]');
+assert.ok(themeBtn.querySelector('svg'), 'theme button has icon');
+editor.toggleTheme();
+assert.strictEqual(editor.theme, 'dark', 'toggleTheme switches to dark');
+assert.ok(document.getElementById('app').classList.contains('sk-dark'), 'sk-dark class applied');
+editor.setTheme('light');
+assert.strictEqual(editor.theme, 'light', 'setTheme light');
+assert.ok(!document.getElementById('app').classList.contains('sk-dark'), 'sk-dark class removed');
+editor.setTheme('bogus');
+assert.strictEqual(editor.theme, 'light', 'invalid theme ignored');
 
 editor.destroy();
 assert.strictEqual(document.getElementById('app').innerHTML, '', 'destroyed');

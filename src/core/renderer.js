@@ -1,5 +1,5 @@
 import { deg2rad } from './utils.js';
-import { ICONS } from './assets.js';
+import { ICONS, ICON_OUTLINES, SHAPE_PATHS } from './assets.js';
 
 const imageCache = new Map();
 const pathCache = new Map();
@@ -114,18 +114,21 @@ export function drawElement(ctx, el) {
     case 'line': drawLine(ctx, el); break;
     case 'image': drawImage(ctx, el); break;
     case 'icon': drawIcon(ctx, el); break;
+    case 'shape': drawVectorShape(ctx, el); break;
   }
   ctx.restore();
 }
 
-function fillAndStroke(ctx, el, path) {
+function fillAndStroke(ctx, el, path, fillRule = 'nonzero') {
   if (el.fill !== 'none') {
     ctx.fillStyle = el.fill || '#000000';
-    ctx.fill(path);
+    ctx.fill(path, fillRule);
   }
-  if (el.strokeWidth > 0 && el.stroke) {
+  // An unset stroke uses the black shown in the toolbar. Width zero or an
+  // explicit 'none' still disables the border, including in saved designs.
+  if (el.strokeWidth > 0 && el.stroke !== 'none') {
     ctx.lineWidth = el.strokeWidth;
-    ctx.strokeStyle = el.stroke;
+    ctx.strokeStyle = el.stroke || '#000000';
     ctx.stroke(path);
   }
 }
@@ -149,6 +152,15 @@ function drawRect(ctx, el) {
 function drawShapePath(ctx, el, builder) {
   const path = new Path2D(builder(el.w, el.h));
   fillAndStroke(ctx, el, path);
+}
+
+function drawVectorShape(ctx, el) {
+  const source = getPath(SHAPE_PATHS[el.shape] || SHAPE_PATHS.pentagon);
+  const path = new Path2D();
+  // Transform geometry before stroking to keep the border width in canvas pixels.
+  path.addPath(source, new DOMMatrix().scale(el.w / 100, el.h / 100));
+  ctx.lineJoin = 'round';
+  fillAndStroke(ctx, el, path, 'evenodd');
 }
 
 const ellipsePath = (w, h) => {
@@ -249,11 +261,23 @@ function drawImage(ctx, el) {
 }
 
 function drawIcon(ctx, el) {
-  const d = ICONS[el.icon] || ICONS.star;
+  const outline = el.iconStyle === 'outline';
+  const paths = outline ? ICON_OUTLINES : ICONS;
+  const d = paths[el.icon] || paths.star;
   ctx.save();
   ctx.scale(el.w / 24, el.h / 24);
-  ctx.fillStyle = el.fill || '#111827';
-  ctx.fill(getPath(d), 'evenodd');
+  if (el.fill !== 'none') {
+    if (outline) {
+      ctx.strokeStyle = el.fill || '#111827';
+      ctx.lineWidth = 1.75;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke(getPath(d));
+    } else {
+      ctx.fillStyle = el.fill || '#111827';
+      ctx.fill(getPath(d), 'evenodd');
+    }
+  }
   ctx.restore();
 }
 

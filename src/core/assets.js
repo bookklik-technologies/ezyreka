@@ -1,3 +1,6 @@
+import { EXTRA_SHAPES, EXTRA_ICONS, GEAR_PATH } from './element-artwork.js';
+export { SHAPE_PATHS, ICON_OUTLINES } from './element-artwork.js';
+
 export const GOOGLE_FONTS = [
   'Poppins:wght@400;600;700;800',
   'Inter:wght@400;600;700;800',
@@ -34,7 +37,7 @@ export const PALETTE = [
 ];
 
 export const GRADIENTS = [
-  { from: '#7d2ae8', to: '#f857a6', angle: 135 },
+  { from: '#b45309', to: '#f59e0b', angle: 135 },
   { from: '#0ea5e9', to: '#22d3ee', angle: 135 },
   { from: '#f59e0b', to: '#ef4444', angle: 135 },
   { from: '#10b981', to: '#84cc16', angle: 135 },
@@ -45,16 +48,17 @@ export const GRADIENTS = [
 ];
 
 export const SHAPES = [
-  { type: 'rect', label: 'Square', svg: '<rect x="12" y="12" width="76" height="76" rx="4" />' },
-  { type: 'rect', label: 'Rounded', props: { radius: 24 }, svg: '<rect x="12" y="12" width="76" height="76" rx="24" />' },
+  { type: 'rect', label: 'Square', svg: '<rect x="12" y="12" width="76" height="76" />' },
+  { type: 'rect', label: 'Rounded', props: { radius: 40 }, svg: '<rect x="12" y="12" width="76" height="76" rx="15.2" />' },
   { type: 'ellipse', label: 'Circle', svg: '<circle cx="50" cy="50" r="38" />' },
-  { type: 'triangle', label: 'Triangle', svg: '<polygon points="50,12 90,86 10,86" />' },
+  { type: 'triangle', label: 'Triangle', svg: '<polygon points="50,8 92,92 8,92" />' },
   { type: 'star', label: 'Star', svg: '<polygon points="50,6 61,38 95,38 67,59 78,92 50,72 22,92 33,59 5,38 39,38" />' },
   { type: 'hexagon', label: 'Hexagon', svg: '<polygon points="26,8 74,8 96,50 74,92 26,92 4,50" />' },
   { type: 'diamond', label: 'Diamond', svg: '<polygon points="50,6 94,50 50,94 6,50" />' },
   { type: 'heart', label: 'Heart', svg: '<path d="M50 86 C22 64 8 47 8 31 C8 17 19 9 30 9 C39 9 46 15 50 23 C54 15 61 9 70 9 C81 9 92 17 92 31 C92 47 78 64 50 86 Z" />' },
   { type: 'line', label: 'Line', props: { w: 260, h: 0, strokeWidth: 6 }, svg: '<line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" stroke-width="6" fill="none" />' },
-  { type: 'line', label: 'Arrow', props: { w: 260, h: 140, arrow: true }, svg: '<line x1="10" y1="88" x2="76" y2="88" stroke="currentColor" stroke-width="6" fill="none"/><polygon points="76,74 94,88 76,102" />' }
+  { type: 'line', label: 'Arrow', props: { w: 260, h: 0, arrow: true, strokeWidth: 6 }, svg: '<path d="M10 50H88" stroke="currentColor" stroke-width="6" stroke-linecap="round" fill="none"/><path d="M88 50L66 40V60Z" />' },
+  ...EXTRA_SHAPES
 ];
 
 export const ICONS = {
@@ -73,11 +77,12 @@ export const ICONS = {
   calendar: 'M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2zm14 8v10H5V10zM7 12v2h2v-2zm4 0v2h2v-2zm4 0v2h2v-2z',
   clock: 'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 5v5.2l4 2.4-.8 1.4L11 13V7z',
   chat: 'M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2z',
-  search: 'M10 3a7 7 0 1 1-4.4 12.4l-4 4L.2 18l4-4A7 7 0 0 1 10 3zm0 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5z',
+  search: 'M10 2A8 8 0 1 0 14.9 16.3L20.6 22L22 20.6L16.3 14.9A8 8 0 0 0 10 2ZM10 4A6 6 0 1 1 10 16A6 6 0 1 1 10 4Z',
   bell: 'M12 2a6 6 0 0 1 6 6v4l2 3v1H4v-1l2-3V8a6 6 0 0 1 6-6zm-2.5 16h5A2.5 2.5 0 0 1 12 21.5 2.5 2.5 0 0 1 9.5 18z',
-  gear: 'M12 8a4 4 0 1 1-4 4 4 4 0 0 1 4-4zm-2 -6h4l.6 2.6 2.2 1.3 2.5-.9 2 3.5-2 1.7v2.6l2 1.7-2 3.5-2.5-.9-2.2 1.3L13.9 22h-4l-.6-2.6-2.2-1.3-2.5.9-2-3.5 2-1.7v-2.6l-2-1.7 2-3.5 2.5.9 2.2-1.3z',
+  gear: GEAR_PATH,
   trash: 'M9 3h6l1 2h4v2H4V5h4zM5 8h14l-1 13H6z',
-  chart: 'M4 20V4h2v14h14v2zm3-3V9h3v8zm5 0V5h3v12zm5 0v-6h3v6z'
+  chart: 'M4 20V4h2v14h14v2zm3-3V9h3v8zm5 0V5h3v12zm5 0v-6h3v6z',
+  ...EXTRA_ICONS
 };
 
 // UI icons: Lucide (https://lucide.dev) - ISC License
@@ -112,7 +117,9 @@ const UI_ICON_PATHS = {"undo": '<path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5
   "italic": '<line x1="19" x2="10" y1="4" y2="4" /><line x1="14" x2="5" y1="20" y2="20" /><line x1="15" x2="9" y1="4" y2="20" />',
   "underline": '<path d="M6 4v6a6 6 0 0 0 12 0V4" /><line x1="4" x2="20" y1="20" y2="20" />',
   "grid": '<rect width="18" height="18" x="3" y="3" rx="2" /><path d="M3 9h18" /><path d="M3 15h18" /><path d="M9 3v18" /><path d="M15 3v18" />',
-  "duplicate": '<rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />'
+  "duplicate": '<rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />',
+  "sun": '<circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" />',
+  "moon": '<path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" />'
 };
 
 // UI consumers insert these strings directly into HTML, so each needs an SVG root.

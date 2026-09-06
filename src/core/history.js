@@ -12,8 +12,11 @@ export class History {
     this._redoStack.length = 0;
   }
   undo(current) {
-    if (!this._undoStack.length) return null;
+    // The top of the undo stack is always the current state (pushed by the
+    // last commit), so it must be discarded before returning the previous one.
+    if (this._undoStack.length < 2) return null;
     this._redoStack.push(deepClone(current));
+    this._undoStack.pop();
     return this._undoStack.pop();
   }
   redo(current) {
@@ -22,7 +25,7 @@ export class History {
     return this._redoStack.pop();
   }
   canUndo() {
-    return this._undoStack.length > 0;
+    return this._undoStack.length >= 2;
   }
   canRedo() {
     return this._redoStack.length > 0;
