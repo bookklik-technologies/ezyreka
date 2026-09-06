@@ -131,14 +131,29 @@ const CSS = `
 }
 .sk-empty { color: var(--sk-text-dim); font-size: 12.5px; line-height: 1.5; }
 
-.sk-template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sk-template-intro { color: var(--sk-text-dim); font-size: 12px; line-height: 1.5; margin: 0 0 14px; }
+.sk-template-search { width: 100%; height: 36px; }
+.sk-template-filters { display: flex; flex-wrap: wrap; gap: 5px; margin: 12px 0; }
+.sk-template-filter {
+  padding: 6px 9px; border: 1px solid var(--sk-border); border-radius: 20px;
+  background: #fff; color: var(--sk-text-dim); font-size: 11px; font-weight: 600;
+}
+.sk-template-filter:hover { border-color: var(--sk-accent); color: var(--sk-accent); }
+.sk-template-filter.sk-active { color: var(--sk-accent); background: var(--sk-accent-soft); border-color: var(--sk-accent); }
+.sk-template-count { color: var(--sk-text-dim); font-size: 11px; margin: 0 0 10px; }
+.sk-template-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: start; }
 .sk-template-card {
   border: 1px solid var(--sk-border); border-radius: 10px; overflow: hidden;
-  background: #fff; padding: 0; transition: box-shadow 0.15s, border-color 0.15s;
+  background: #fff; padding: 0; color: var(--sk-text); text-align: left; min-width: 0;
+  transition: box-shadow 0.15s, border-color 0.15s;
 }
 .sk-template-card:hover { border-color: var(--sk-accent); box-shadow: 0 4px 14px rgba(60, 20, 120, 0.12); }
-.sk-template-card canvas { display: block; width: 100% !important; height: auto !important; }
-.sk-template-name { padding: 7px 9px; font-size: 12px; font-weight: 600; text-align: left; }
+.sk-template-card:focus-visible, .sk-template-filter:focus-visible { outline: 2px solid var(--sk-accent); outline-offset: 2px; }
+.sk-template-preview { aspect-ratio: 1; padding: 8px; background: #f0f0f3; }
+.sk-template-card canvas { display: block; width: 100%; height: 100%; object-fit: contain; }
+.sk-template-name { padding: 9px 8px 4px; font-size: 11.5px; font-weight: 600; line-height: 1.35; }
+.sk-template-meta { padding: 0 8px 10px; color: var(--sk-text-dim); font-size: 10px; line-height: 1.5; }
+.sk-template-empty { grid-column: 1 / -1; }
 
 .sk-element-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
 .sk-element-btn {

@@ -64,28 +64,76 @@ export class Sidepanel {
   }
 
   renderTemplates() {
-    this.sectionTitle('Start with a template');
+    this.sectionTitle('Find your starting point');
+    const intro = el('p', 'sk-template-intro', this.contentEl);
+    intro.textContent = 'Fresh layouts. Make every detail yours.';
+    const search = el('input', 'sk-input sk-template-search', this.contentEl);
+    search.type = 'search';
+    search.placeholder = 'Search templates…';
+    search.setAttribute('aria-label', 'Search templates');
+    search.value = this.templateQuery || '';
+    const filters = el('div', 'sk-template-filters', this.contentEl);
+    filters.setAttribute('role', 'group');
+    filters.setAttribute('aria-label', 'Template categories');
+    const categories = ['All', ...new Set(TEMPLATES.map(tpl => tpl.category))];
+    for (const category of categories) {
+      const button = el('button', 'sk-template-filter', filters);
+      button.type = 'button';
+      button.textContent = category;
+      button.onclick = () => {
+        this.templateCategory = category;
+        update();
+      };
+    }
+    const count = el('div', 'sk-template-count', this.contentEl);
+    count.setAttribute('role', 'status');
     const grid = el('div', 'sk-template-grid', this.contentEl);
-    document.fonts?.ready.then(() => {
-      for (const tpl of TEMPLATES) {
-        const card = el('div', 'sk-template-card', grid);
+    const update = () => {
+      const category = this.templateCategory || 'All';
+      const query = (this.templateQuery || '').trim().toLowerCase();
+      for (const button of filters.children) {
+        const active = button.textContent === category;
+        button.classList.toggle('sk-active', active);
+        button.setAttribute('aria-pressed', String(active));
+      }
+      const matches = TEMPLATES.filter(tpl =>
+        (category === 'All' || tpl.category === category) &&
+        `${tpl.name} ${tpl.category} ${tpl.format}`.toLowerCase().includes(query)
+      );
+      count.textContent = `${matches.length} editable ${matches.length === 1 ? 'template' : 'templates'}`;
+      grid.innerHTML = '';
+      if (!matches.length) {
+        const empty = el('p', 'sk-empty sk-template-empty', grid);
+        empty.textContent = 'No templates found. Try another search or category.';
+      }
+      for (const tpl of matches) {
+        const card = el('button', 'sk-template-card', grid);
+        card.type = 'button';
+        card.setAttribute('aria-label', `Use ${tpl.name}, ${tpl.format}, ${tpl.page.width} by ${tpl.page.height} pixels`);
+        const preview = el('div', 'sk-template-preview', card);
         const canvas = document.createElement('canvas');
         const pw = tpl.page.width;
         const ph = tpl.page.height;
-        const scale = 190 / pw;
-        canvas.width = 190 * 2;
-        canvas.height = Math.round(ph * scale) * 2;
-        canvas.style.width = '190px';
-        canvas.style.height = Math.round(ph * scale) + 'px';
+        const scale = 380 / Math.max(pw, ph);
+        canvas.width = Math.round(pw * scale);
+        canvas.height = Math.round(ph * scale);
+        canvas.setAttribute('aria-hidden', 'true');
         const ctx = canvas.getContext('2d');
-        ctx.scale(2 * scale, 2 * scale);
+        ctx.scale(scale, scale);
         renderPage(ctx, { ...tpl.page, elements: tpl.page.elements.map((e) => createElement(e.type, e)) });
-        card.appendChild(canvas);
+        preview.appendChild(canvas);
         const label = el('div', 'sk-template-name', card);
         label.textContent = tpl.name;
+        const meta = el('div', 'sk-template-meta', card);
+        meta.textContent = `${tpl.format} · ${pw} × ${ph}`;
         card.onclick = () => this.editor.applyTemplate(tpl);
       }
+    };
+    search.addEventListener('input', () => {
+      this.templateQuery = search.value;
+      update();
     });
+    update();
   }
 
   renderElements() {
