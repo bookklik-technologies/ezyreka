@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SenangDesign - Programmatic init</title>
+  <style>
+    html, body { margin: 0; height: 100%; }
+    #app { width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script src="../dist/senangdesign.umd.js"></script>
+  <script>
+    const { Editor } = SenangDesign;
+
+    const editor = new Editor({
+      target: '#app',
+      width: 1080,
+      height: 1080,
+      name: 'Programmatic demo'
+    });
+
+    editor.on('ready', () => {
+      editor.addText({
+        text: 'Hello SenangDesign',
+        fontSize: 96,
+        fontWeight: 800,
+        align: 'center',
+        x: 90,
+        y: 420,
+        w: 900,
+        h: 140,
+        color: '#7d2ae8'
+      });
+      editor.addElement({ type: 'rect', x: 340, y: 620, w: 400, h: 110, radius: 55, fill: '#7d2ae8' });
+      editor.addText({
+        text: 'Made with JS',
+        fontSize: 36,
+        fontWeight: 600,
+        align: 'center',
+        color: '#ffffff',
+        x: 340,
+        y: 655,
+        w: 400,
+        h: 50
+      });
+    });
+
+    editor.on('change', ({ doc }) => console.log('Design changed:', doc.pages[0].elements.length, 'elements'));
+
+    window.editor = editor;
+  </script>
+</body>
+</html>

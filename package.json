@@ -1,0 +1,37 @@
+{
+  "name": "senangdesign",
+  "version": "1.0.0",
+  "description": "SenangDesign - a standalone, full-featured Canva-style design editor web library. Init programmatically via JS or automatically with <div data-sk-editor></div>.",
+  "main": "dist/senangdesign.umd.js",
+  "module": "dist/senangdesign.esm.js",
+  "unpkg": "dist/senangdesign.umd.js",
+  "jsdelivr": "dist/senangdesign.umd.js",
+  "types": "types/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "dev": "node scripts/dev.js",
+    "test": "node tests/smoke.test.mjs && node tests/dom.test.mjs"
+  },
+  "keywords": [
+    "canva",
+    "design-editor",
+    "canvas",
+    "editor",
+    "graphic-design",
+    "wysiwyg",
+    "no-code"
+  ],
+  "files": [
+    "dist",
+    "src",
+    "types",
+    "README.md",
+    "LICENSE"
+  ],
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "jsdom": "^25.0.0"
+  },
+  "license": "MIT"
+}
