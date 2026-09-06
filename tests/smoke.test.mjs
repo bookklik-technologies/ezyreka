@@ -42,6 +42,19 @@ assert.ok(text.h > 0, 'text default height');
 assert.ok(hitTest(rect, 50, 40), 'hit inside');
 assert.ok(!hitTest(rect, 200, 40), 'hit outside');
 
+// Positioned elements must be selectable where they are drawn, including after moving.
+for (const type of ['rect', 'icon', 'line']) {
+  for (const rotation of [0, 45, 90]) {
+    const placed = createElement(type, { x: 400, y: 300, w: 120, h: 60, rotation });
+    assert.ok(hitTest(placed, 460, 330), `${type} at ${rotation} degrees: hit visible center`);
+    assert.ok(!hitTest(placed, 60, 30), `${type} at ${rotation} degrees: no hit at canvas origin`);
+    placed.x += 250;
+    placed.y += 200;
+    assert.ok(hitTest(placed, 710, 530), `${type} at ${rotation} degrees: hit moved center`);
+    assert.ok(!hitTest(placed, 460, 330), `${type} at ${rotation} degrees: no hit at old position`);
+  }
+}
+
 const rotated = createElement('rect', { x: 100, y: 100, w: 100, h: 100, rotation: 45 });
 const corners = elementCorners(rotated);
 const bbox = selectionBBox([rotated]);

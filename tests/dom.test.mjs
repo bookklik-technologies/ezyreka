@@ -70,6 +70,85 @@ assert.ok(document.querySelector('.sk-sel-box'), 'selection box rendered');
 assert.ok(document.querySelectorAll('.sk-handle').length === 8, '8 resize handles');
 assert.ok(document.querySelector('.sk-rotate-handle'), 'rotate handle rendered');
 
+// Button icons must be SVG elements, not invisible HTML path elements.
+const iconButtons = document.querySelectorAll('.sk-icon-btn');
+assert.ok(editor.toolbarEl.querySelectorAll('.sk-icon-btn').length === 5, 'toolbar has five icon actions');
+for (const button of iconButtons) {
+  const svg = button.querySelector('svg');
+  assert.ok(svg, `${button.title}: SVG root exists`);
+  assert.strictEqual(svg.getAttribute('viewBox'), '0 0 24 24', `${button.title}: icon viewBox`);
+  const path = svg.querySelector('path');
+  assert.ok(path?.getAttribute('d'), `${button.title}: icon path exists`);
+  assert.strictEqual(path.namespaceURI, 'http://www.w3.org/2000/svg', `${button.title}: drawable SVG path`);
+}
+
+const { rotatePoint, deg2rad } = await import('../src/core/utils.js');
+const near = (actual, expected, message) => assert.ok(Math.abs(actual - expected) < 1e-6, message);
+const pointerAt = (p, shiftKey = false) => ({
+  clientX: p.x * editor.zoom,
+  clientY: p.y * editor.zoom,
+  shiftKey,
+  preventDefault() {},
+  stopPropagation() {}
+});
+const opposite = { n: 's', s: 'n', e: 'w', w: 'e', nw: 'se', ne: 'sw', se: 'nw', sw: 'ne' };
+for (const zoom of [0.5, 2]) {
+  editor.zoom = zoom;
+  for (const rotation of [0, 45, 90]) {
+    for (const dir of Object.keys(opposite)) {
+      for (const shiftKey of [false, true]) {
+        Object.assign(rect, { x: 200, y: 150, w: 120, h: 80, rotation });
+        const horizontal = dir.includes('e') || dir.includes('w');
+        const vertical = dir.includes('n') || dir.includes('s');
+        const anchor = editor.interactions.handlePoint(rect, opposite[dir]);
+        const handle = editor.interactions.handlePoint(rect, dir);
+        editor.interactions.startResize(pointerAt(handle), dir);
+        const delta = rotatePoint(
+          horizontal ? (dir.includes('w') ? -40 : 40) : 25,
+          vertical ? (dir.includes('n') ? -30 : 30) : 25,
+          0, 0, deg2rad(rotation)
+        );
+        editor.interactions.onPointerMove(pointerAt({ x: handle.x + delta.x, y: handle.y + delta.y }, shiftKey));
+        const label = `${dir}, rotation ${rotation}, zoom ${zoom}, shift ${shiftKey}`;
+        near(rect.w, horizontal ? 160 : 120, `resize width: ${label}`);
+        near(rect.h, shiftKey && horizontal && vertical ? 160 / 1.5 : vertical ? 110 : 80, `resize height: ${label}`);
+        const after = editor.interactions.handlePoint(rect, opposite[dir]);
+        near(after.x, anchor.x, `fixed anchor x: ${label}`);
+        near(after.y, anchor.y, `fixed anchor y: ${label}`);
+        editor.interactions.onPointerUp({});
+      }
+    }
+  }
+}
+
+// Dragging past the opposite edge keeps the minimum width and anchor stable.
+Object.assign(rect, { x: 200, y: 150, w: 120, h: 80, rotation: 0 });
+editor.interactions.startResize(pointerAt({ x: 320, y: 190 }), 'e');
+editor.interactions.onPointerMove(pointerAt({ x: 100, y: 230 }));
+near(rect.w, 8, 'minimum resize width');
+near(rect.h, 80, 'minimum resize preserves height');
+near(rect.x, 200, 'minimum resize keeps opposite edge');
+near(rect.y, 150, 'minimum resize keeps vertical position');
+editor.interactions.onPointerUp({});
+
+// Successive rotation gestures use pointer deltas, including across the angle wrap.
+Object.assign(rect, { x: 200, y: 150, w: 120, h: 80, rotation: 75 });
+const rotationPointer = (angle) => pointerAt({
+  x: 260 + 100 * Math.cos(deg2rad(angle)),
+  y: 190 + 100 * Math.sin(deg2rad(angle))
+});
+for (const startAngle of [-15, 170]) {
+  const before = rect.rotation;
+  editor.interactions.startRotate(rotationPointer(startAngle));
+  editor.interactions.onPointerMove(rotationPointer(startAngle));
+  near(rect.rotation, before, 'rotation does not jump on stationary pointer');
+  editor.interactions.onPointerMove(rotationPointer(startAngle + 30));
+  near(rect.rotation, (before + 30) % 360, 'rotation follows pointer delta');
+  near(rect.x, 200, 'rotation keeps x position');
+  near(rect.y, 150, 'rotation keeps y position');
+  editor.interactions.onPointerUp({});
+}
+
 editor.updateSelected({ fill: '#ff0000' });
 assert.strictEqual(rect.fill, '#ff0000', 'updateSelected applies');
 

@@ -201,7 +201,7 @@ export class Interactions {
     e.preventDefault();
     const c = elementCenter(el);
     const p = this.clientToWorld(e);
-    const startAngle = Math.atan2(p.y - c.y, p.x - c.x) - deg2rad(el.rotation || 0);
+    const startAngle = Math.atan2(p.y - c.y, p.x - c.x);
     this.drag = { mode: 'rotate', el, center: c, startAngle, startRotation: el.rotation || 0 };
   }
 
@@ -420,19 +420,23 @@ function applyResize(drag, pWorld, keepAspect) {
   const r = deg2rad(-(el.rotation || 0));
   const pLocal = rotatePoint(pWorld.x, pWorld.y, c0.x, c0.y, r);
   const aLocal = rotatePoint(anchor.x, anchor.y, c0.x, c0.y, r);
-  let px = pLocal.x;
-  let py = pLocal.y;
   const horizontal = dir.includes('e') || dir.includes('w');
   const vertical = dir.includes('n') || dir.includes('s');
-  if (!horizontal) px = aLocal.x;
-  if (!vertical) py = aLocal.y;
+  const sx = dir.includes('w') ? -1 : 1;
+  const sy = dir.includes('n') ? -1 : 1;
 
-  let w = Math.max(8, Math.abs(px - aLocal.x));
-  let h = Math.max(8, Math.abs(py - aLocal.y));
+  // Side handles change only their own axis; clamp at the opposite edge.
+  let w = horizontal ? Math.max(8, sx * (pLocal.x - aLocal.x)) : drag.startW;
+  let h = vertical ? Math.max(8, sy * (pLocal.y - aLocal.y)) : drag.startH;
   if (keepAspect && horizontal && vertical) {
+    w = Math.max(w, 8 * drag.aspect);
     h = w / drag.aspect;
   }
-  const mid = { x: (aLocal.x + px) / 2, y: (aLocal.y + py) / 2 };
+  // Derive the center from the final size so constraints cannot move the anchor.
+  const mid = {
+    x: aLocal.x + (horizontal ? sx * w / 2 : 0),
+    y: aLocal.y + (vertical ? sy * h / 2 : 0)
+  };
   const newCenter = rotatePoint(mid.x, mid.y, c0.x, c0.y, -r);
   el.w = w;
   el.h = h;

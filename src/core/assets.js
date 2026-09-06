@@ -80,7 +80,7 @@ export const ICONS = {
   chart: 'M4 20V4h2v14h14v2zm3-3V9h3v8zm5 0V5h3v12zm5 0v-6h3v6z'
 };
 
-export const UI_ICONS = {
+const UI_ICON_PATHS = {
   undo: '<path d="M4 8h9a5 5 0 0 1 0 10H8v-2h5a3 3 0 0 0 0-6H4l3.5 3.5L6.1 14.9 1.2 10l4.9-4.9 1.4 1.4z"/>',
   redo: '<path d="M20 8h-9a5 5 0 0 0 0 10h5v-2h-5a3 3 0 0 1 0-6h9l-3.5 3.5 1.4 1.4L22.8 10l-4.9-4.9-1.4 1.4z"/>',
   'zoom-in': '<path d="M10 3a7 7 0 1 1-4.4 12.4l-4 4L.2 18l4-4A7 7 0 0 1 10 3zm0 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm1 2v2h2v2h-2v2H9v-2H7V9h2V7z"/>',
@@ -114,6 +114,14 @@ export const UI_ICONS = {
   grid: '<path d="M3 3h5v5H3zm6.5 0h5v5h-5zM16 3h5v5h-5zM3 9.5h5v5H3zm6.5 0h5v5h-5zm6.5 0h5v5h-5zM3 16h5v5H3zm6.5 0h5v5h-5zm6.5 0h5v5h-5z"/>',
   duplicate: '<path d="M8 2h12v14h-4V6H8zm-4 4h12v14H4zm2 2v10h8V8z" fill-rule="evenodd"/>'
 };
+
+// UI consumers insert these strings directly into HTML, so each needs an SVG root.
+export const UI_ICONS = Object.fromEntries(
+  Object.entries(UI_ICON_PATHS).map(([name, paths]) => [
+    name,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${paths}</svg>`
+  ])
+);
 
 function buildTemplates() {
   return [

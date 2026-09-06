@@ -118,6 +118,9 @@ export function hitTest(el, wx, wy, tolerance = 4) {
   if (el.hidden || el.locked) return false;
   const c = elementCenter(el);
   const p = rotatePoint(wx, wy, c.x, c.y, deg2rad(-(el.rotation || 0)));
+  // Undoing rotation leaves world coordinates; hit areas use the element's local origin.
+  p.x -= el.x;
+  p.y -= el.y;
   if (el.type === 'line') {
     const tol = Math.max(10, (el.strokeWidth || 4) + tolerance);
     return distToSegment(p.x, p.y, 0, 0, el.w, el.h) <= tol;
