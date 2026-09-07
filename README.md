@@ -75,6 +75,7 @@ editor.on('ready', () => {
 - [Guides](https://bookklik-technologies.github.io/ezyreka/guide/elements) — elements, text, charts, templates, layers, pages, export
 - [API reference](https://bookklik-technologies.github.io/ezyreka/api/editor) — the full `Editor` API, events and document schema
 - [Customization & plugins](https://bookklik-technologies.github.io/ezyreka/advanced/plugins) — registries, custom panels, community plugins
+- [Development skills](docs/advanced/development-skills.md) — seven repository skills for AI-assisted plugin, element, template, chart, text, asset and UI development
 - [Examples](https://bookklik-technologies.github.io/ezyreka/examples/) — plain HTML, React and Vue integrations
 
 ## Development

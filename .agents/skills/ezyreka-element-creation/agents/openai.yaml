@@ -1,0 +1,7 @@
+interface:
+  display_name: "Ezyreka Element Creation"
+  short_description: "Create Ezyreka elements and canvas renderers"
+  default_prompt: "Use $ezyreka-element-creation to create a configurable diamond badge element with a canvas renderer."
+
+policy:
+  allow_implicit_invocation: true

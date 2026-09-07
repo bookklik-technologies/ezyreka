@@ -34,7 +34,7 @@ editor.setTheme('forest')
 
 ## CSS variables on top
 
-`cssVars` applies on top of any theme — good for radius, spacing and one-off overrides:
+`cssVars` supplies inline variables for radius, spacing and other overrides. If a named custom theme defines the same key, that theme's value wins:
 
 ```js
 new Editor({
@@ -107,3 +107,17 @@ editor.on('theme', (theme) => {
   console.log('UI theme is now', theme)
 })
 ```
+
+## Themes registered by plugins
+
+A theme registered during plugin setup is available after registration. Because the constructor resolves its initial theme before plugin setup, select a plugin-provided theme from a ready callback:
+
+```js
+// Inside a plugin's setup(ctx):
+ctx.registerTheme('brand-ocean', { '--ez-accent': '#0284c7' });
+ctx.once('ready', () => ctx.editor.setTheme('brand-ocean'));
+```
+
+There is no `ctx.registerPalette` wrapper; use `ctx.editor.registerPalette` for a plugin that intentionally replaces the editor's palette.
+
+For AI-assisted customization, use [`$ezyreka-ui-customization`](/advanced/development-skills).

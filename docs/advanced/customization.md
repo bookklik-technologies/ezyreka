@@ -98,6 +98,58 @@ editor.registerIcons({
 
 | Registry | Scope |
 | --- | --- |
-| Templates, fonts, palette, gradients, shapes, icons | Per editor instance |
-| Element types, manifests, chart types | Page-global |
+| Templates, fonts, palette, gradients, shapes, icons, uploads, image sources, themes, panels | Per editor instance; font loading adds page-level stylesheets |
+| Direct editor element types, manifests, chart types | Module-global definitions |
+| Direct editor element/chart renderers and background painters | Current editor override plus module-global fallback |
+| Plugin `ctx.register*` methods | Per editor instance; font loading still adds page-level stylesheets |
 | `chartColors` | Page-global (normalizes into chart data) |
+
+## Complete example: brand assets and background
+
+With the UMD bundle loaded and a sized `#app`, register vector assets and a background painter in a plugin:
+
+```js
+const brandPlugin = {
+  id: 'brand',
+  version: '1.0.0',
+  apiVersion: 1,
+  setup(ctx) {
+    ctx.registerShapes([{
+      label: 'Brand diamond',
+      shape: 'brand-diamond',
+      path: 'M50 0L100 50L50 100L0 50Z',
+      props: { shape: 'brand-diamond', fill: '#477cf5' }
+    }]);
+    ctx.registerIcons({
+      'brand-triangle': { solid: 'M12 2L22 22H2Z' }
+    });
+    ctx.registerBackgroundPainter('brand-stripes', (canvas, bg, width, height) => {
+      const step = Number.isFinite(bg.step) ? Math.max(4, bg.step) : 32;
+      canvas.fillStyle = bg.base || '#ffffff';
+      canvas.fillRect(0, 0, width, height);
+      canvas.fillStyle = bg.stripe || '#e2e8f0';
+      for (let x = 0; x < width; x += step) {
+        canvas.fillRect(x, 0, step / 2, height);
+      }
+    });
+  }
+};
+const editor = new Ezyreka.Editor({ target: '#app', plugins: [brandPlugin] });
+editor.on('ready', () => {
+  editor.setBackground({ type: 'brand-stripes', step: 32 });
+  editor.addElement({
+    type: 'shape', shape: 'brand-diamond',
+    x: 80, y: 80, w: 160, h: 160, fill: '#477cf5'
+  });
+  editor.addElement({
+    type: 'icon', icon: 'brand-triangle', iconStyle: 'outline',
+    x: 280, y: 80, w: 96, h: 96, fill: '#0f172a'
+  });
+});
+```
+
+The icon falls back to its solid path because no outline was supplied. The shape path uses 0–100 coordinates; the icon uses 24×24 coordinates. When a shape entry includes custom `props`, include `props.shape` explicitly: it replaces the default insertion props rather than merging with them.
+
+Saved designs contain the asset identifiers and background data. Load the same registrations when reopening them. Check the gallery insertion, resized geometry, preview and image export.
+
+For AI-assisted authoring, use [`$ezyreka-assets-backgrounds`](/advanced/development-skills).

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Ezyreka Chart Creation"
+  short_description: "Build editable Ezyreka charts and painters"
+  default_prompt: "Use $ezyreka-chart-creation to create a grouped bar chart that preserves missing values and supports editing."
+
+policy:
+  allow_implicit_invocation: true

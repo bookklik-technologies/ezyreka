@@ -31,7 +31,7 @@ editor.registerElementRenderer('star', (ctx, el, registry) => {
 })
 ```
 
-Renderer signature: `(ctx, el, registry)` where `el` is the design element and `registry` is the per-editor asset registry.
+Renderer signature: `(ctx, el, registry)` where `el` is the design element and `registry` is the per-editor asset registry. Drawing uses local coordinates; the outer renderer applies position, rotation, opacity and flips.
 
 ## The capability manifest
 
@@ -62,7 +62,7 @@ editor.registerElementManifest('rect', {
 Override the painter of an existing chart type:
 
 ```js
-editor.registerChartRenderer('bar', (ctx, chart, series, plotBox, font, bounds) => {
+editor.registerChartRenderer('bar', (ctx, chart, series, plotBox, font, bounds, registry) => {
   // custom draw
 })
 ```
@@ -77,12 +77,12 @@ editor.registerChartType({
   kind: 'radar',
   multiSeries: true,
   validate: (chart) => { /* throw on invalid data */ }
-}, (ctx, chart, series, plotBox, font, bounds) => {
+}, (ctx, chart, series, plotBox, font, bounds, registry) => {
   // custom draw
 })
 ```
 
-Painter signature: `(ctx, chart, series, plotBox, font, bounds)`.
+Painter signature: `(ctx, chart, series, plotBox, font, bounds, registry)`.
 
 Preset fields:
 
@@ -91,7 +91,7 @@ Preset fields:
 | `type` | Registry key |
 | `label` | Gallery/dropdown label |
 | `group` | Gallery grouping |
-| `kind` | Painter key to resolve |
+| `kind` | Built-in Cartesian behavior such as `bar`, `line`, `area` or `stacked-area`; novel geometry needs an explicit painter |
 | `circular` | Pie-style layout |
 | `multiSeries` | Supports multiple series |
 | `horizontal` | Horizontal orientation |
@@ -108,7 +108,7 @@ editor.registerBackgroundPainter('stripes', (ctx, bg, pw, ph) => {
 ```
 
 ::: warning
-Element type/manifest and chart type registration are **page-global**; they affect every editor on the page. Background painters and panels are registered per editor.
+Direct `editor.registerElementType`, `registerElementManifest` and `registerChartType` update module-global definitions. Direct element/chart renderer and background-painter registration also update global fallback tables as well as the current editor's overrides. Panels are per editor. Inside a plugin, use `ctx.register*` for isolated registrations; see the [scope table](/advanced/customization#scope-notes).
 :::
 
 ## Sidebar panels
@@ -141,3 +141,7 @@ editor.registerImageSource({
 ```
 
 See [Image sources](/advanced/image-sources) for the full contract.
+
+Custom chart painters receive `plotBox: { x, y, w, h }`, a numeric font size, `bounds: { w, h, top, bottom }` and the per-editor registry. The outer chart renderer draws the title and legend and clips to the element. See [a complete custom chart painter](/guide/charts#complete-example-percentage-bars).
+
+Use the [development skills](/advanced/development-skills) for focused instructions on custom elements, charts, backgrounds and UI.

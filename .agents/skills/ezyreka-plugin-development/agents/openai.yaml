@@ -1,0 +1,7 @@
+interface:
+  display_name: "Ezyreka Plugin Development"
+  short_description: "Build isolated Ezyreka editor plugins"
+  default_prompt: "Use $ezyreka-plugin-development to create a badge plugin with configurable color and a sidebar insertion button."
+
+policy:
+  allow_implicit_invocation: true

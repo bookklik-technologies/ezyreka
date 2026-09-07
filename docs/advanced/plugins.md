@@ -10,7 +10,7 @@ Ezyreka supports **developer-installed, trusted JavaScript plugins** that extend
 npm install @bookklik/ezyreka my-ezyreka-plugin
 ```
 
-`ezyreka` declares plugin compatibility through **npm peer dependencies**: a plugin package lists `ezyreka` under `peerDependencies` with the API version range it supports, so the package manager warns about mismatches before runtime.
+Declare package compatibility through **npm peer dependencies**: a plugin package lists `@bookklik/ezyreka` under `peerDependencies` with the package version range it supports, for example `"@bookklik/ezyreka": "^1.0.0"`. The plugin's separate integer `apiVersion` is checked at runtime.
 
 ### ESM
 
@@ -57,10 +57,10 @@ const badgePlugin = {
   version: '1.0.0',
   apiVersion: 1,
 
-  setup(ctx, options) {
+  setup(ctx, { color = '#477cf5' } = {}) {
     ctx.registerElementType('community-badges-badge', {
-      defaults: { w: 120, h: 40, fill: options.color },
-      manifest: { name: 'Badge', toolbar: ['fill', 'opacity'] },
+      defaults: { w: 120, h: 40, fill: color },
+      manifest: { name: 'Badge', toolbar: ['opacity'] },
       render(canvas, element) {
         canvas.fillStyle = element.fill;
         canvas.fillRect(0, 0, element.w, element.h);
@@ -75,7 +75,7 @@ const badgePlugin = {
 
 ### Lifecycle
 
-- Entries are **validated before any setup runs**: every entry needs a unique id (per page), a version string, an integer `apiVersion` matching the editor's supported version, and a synchronous `setup`. Async setup (a returned promise) or any non-function return value fails startup with the plugin id and cause.
+- Entries are **validated before any setup runs**: every entry needs an id unique within that editor's plugin list, a version string, an integer `apiVersion` matching the editor's supported version, and a synchronous `setup`. The same plugin can be configured in multiple editors. Setup may return a cleanup function, nothing, `undefined` or `null`; a Promise or another return value fails startup with the plugin id and cause.
 - Plugins run in **configuration order** during editor initialization — after core infrastructure (registries, DOM, history, interactions) exists, but **before UI construction and `initialDoc` loading**. Panel contributions therefore queue for the sidepanel, and plugin content in `initialDoc` resolves correctly.
 - The `ready` event still fires after initialization completes, so plugins can `ctx.once('ready', …)` during setup.
 - On **destroy**, plugins are torn down in reverse order before editor infrastructure: pending async work is aborted via `ctx.signal`, tracked listeners are removed, and the cleanup function runs exactly once. A throwing disposer never stops the remaining teardown.
@@ -85,9 +85,10 @@ const badgePlugin = {
 
 | Member | Description |
 | --- | --- |
+| `ctx.pluginId` | The current plugin's stable id. |
 | `ctx.editor` | The editor instance (trusted, untracked access). |
 | `ctx.apiVersion` | The supported plugin API version (currently `1`). |
-| `ctx.signal` | `AbortSignal` aborted at destroy; use it for async work started in setup. |
+| `ctx.signal` | `AbortSignal` aborted at destroy; use it for async work started in setup. May be `null` when `AbortController` is unavailable. |
 | `ctx.on(event, handler)` / `ctx.once(event, handler)` | Tracked subscriptions — removed automatically at destroy. |
 | `ctx.onDispose(fn)` | Extra teardown callback, run at destroy after cleanup. |
 | `ctx.registerPanel(panel)` | Adds a sidebar tab. Contributions queue until the UI is built; they stay unmounted when the sidebar is disabled. `render` may return a cleanup function, invoked before rerender, tab replacement and destruction. |
@@ -110,7 +111,7 @@ Registrations made through the context write to the **per-editor registry**, nev
 
 ### Saving, loading and missing capabilities
 
-Plugin content is ordinary document data: **JSON-compatible custom fields survive `getJSON`/`loadJSON`, copy/paste, duplication and undo/redo**, and plugin registrations are never embedded as executable code in saved documents.
+Plugin content is ordinary document data: **JSON-compatible custom element and background fields survive `getJSON`/`loadJSON`, copy/paste, duplication and undo/redo**, and plugin registrations are never embedded as executable code in saved documents.
 
 When a document is reopened without the providing plugin:
 
@@ -126,3 +127,61 @@ With `ui: false` or `{ sidepanel: false }`, plugin panel contributions remain un
 ## API compatibility
 
 `apiVersion` is an integer contract. The current version is `1`; plugins targeting another version fail initialization with a clear message. Bump your plugin's `apiVersion` requirement only after reviewing the changelog for the matching Ezyreka release. Keep the plugin `id` stable — it is how hosts pin and audit trusted code.
+
+## Complete example: two isolated editors
+
+This script-tag example uses the same plugin in two editors with different colors. Each panel inserts its own registered element. The renderer uses a solid color, so its manifest exposes opacity only; a gradient-capable fill control requires a renderer that implements gradients.
+
+```html
+<div id="blue-editor" style="height: 600px"></div>
+<div id="orange-editor" style="height: 600px"></div>
+<script src="https://unpkg.com/@bookklik/ezyreka@1.0.0/dist/ezyreka.umd.js"></script>
+<script>
+  const badgePlugin = {
+    id: 'brand-badges',
+    version: '1.0.0',
+    apiVersion: 1,
+    setup(ctx, { color = '#477cf5' } = {}) {
+      const type = 'brand-badges-badge';
+      ctx.registerElementType(type, {
+        defaults: { w: 160, h: 64, fill: color },
+        manifest: { name: 'Brand badge', toolbar: ['opacity'] },
+        render(canvas, element) {
+          canvas.fillStyle = element.fill;
+          canvas.fillRect(0, 0, element.w, element.h);
+        }
+      });
+      ctx.registerPanel({
+        id: 'brand-badges-panel', label: 'Badges',
+        render(contentEl, editor) {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.textContent = 'Add badge';
+          const insert = () => {
+            const badge = editor.addElement({ type });
+            editor.select([badge.id]);
+          };
+          button.addEventListener('click', insert);
+          contentEl.append(button);
+          return () => button.removeEventListener('click', insert);
+        }
+      });
+    }
+  };
+  const blueEditor = new Ezyreka.Editor({
+    target: '#blue-editor',
+    plugins: [{ plugin: badgePlugin, options: { color: '#477cf5' } }]
+  });
+  const orangeEditor = new Ezyreka.Editor({
+    target: '#orange-editor',
+    plugins: [{ plugin: badgePlugin, options: { color: '#d97706' } }]
+  });
+  // On host unmount, call blueEditor.destroy() and orangeEditor.destroy().
+</script>
+```
+
+Registering a custom type does not automatically add an Elements-gallery item; this example supplies an insertion panel. For packaged ESM distribution, export the plugin object and use the import pattern above.
+
+Chart configuration is normalized to its supported fields; store custom metadata on the outer element, not as arbitrary properties inside `element.chart`.
+
+For AI-assisted authoring, use [`$ezyreka-plugin-development`](/advanced/development-skills).

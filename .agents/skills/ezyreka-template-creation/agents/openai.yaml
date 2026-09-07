@@ -1,0 +1,7 @@
+interface:
+  display_name: "Ezyreka Template Creation"
+  short_description: "Compose editable Ezyreka design templates"
+  default_prompt: "Use $ezyreka-template-creation to create an editable 1200 by 628 event announcement template."
+
+policy:
+  allow_implicit_invocation: true

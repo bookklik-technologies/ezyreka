@@ -1,0 +1,7 @@
+interface:
+  display_name: "Ezyreka Text Creation"
+  short_description: "Create editable text and typography in Ezyreka"
+  default_prompt: "Use $ezyreka-text-creation to create an editable heading and paragraph with consistent typography."
+
+policy:
+  allow_implicit_invocation: true

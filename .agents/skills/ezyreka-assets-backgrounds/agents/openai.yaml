@@ -1,0 +1,7 @@
+interface:
+  display_name: "Ezyreka Assets and Backgrounds"
+  short_description: "Register Ezyreka assets and background painters"
+  default_prompt: "Use $ezyreka-assets-backgrounds to create a brand asset pack with an icon, vector shape and striped background."
+
+policy:
+  allow_implicit_invocation: true

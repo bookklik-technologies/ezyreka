@@ -27,6 +27,7 @@ export default defineConfig({
         text: 'Resources',
         items: [
           { text: 'Examples', link: '/examples/' },
+          { text: 'Development skills', link: '/advanced/development-skills' },
           { text: 'TypeScript definitions', link: '/api/typescript' },
           { text: 'Changelog', link: 'https://github.com/bookklik-technologies/ezyreka/releases' }
         ]
@@ -87,6 +88,7 @@ export default defineConfig({
             { text: 'Customization & registries', link: '/advanced/customization' },
             { text: 'Extensibility', link: '/advanced/extensibility' },
             { text: 'Community plugins', link: '/advanced/plugins' },
+            { text: 'Development skills', link: '/advanced/development-skills' },
             { text: 'Image sources', link: '/advanced/image-sources' },
             { text: 'Recipes', link: '/advanced/recipes' }
           ]

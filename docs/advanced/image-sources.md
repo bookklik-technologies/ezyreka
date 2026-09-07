@@ -81,3 +81,9 @@ editor.registerImageSource({
 
 - Route provider API calls through your own server proxy; never embed API keys in the browser bundle.
 - Only return image URLs you trust — the editor loads them into the canvas as `Image` sources.
+
+For a provider owned by a plugin, use `ctx.registerImageSource(source)` and pass `ctx.signal` to asynchronous fetch work when available. The `search` contract itself receives only the query string. Handle non-success responses before mapping results to `{ src, name, thumb }`.
+
+`registerImage()` seeds the uploads library; it does not insert a canvas element. Use `addElement({ type: 'image', src, x, y, w, h })` for insertion. Remote sources must allow the browser's cross-origin image loading for canvas export.
+
+For AI-assisted asset integration, use [`$ezyreka-assets-backgrounds`](/advanced/development-skills).

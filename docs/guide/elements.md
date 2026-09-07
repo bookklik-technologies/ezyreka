@@ -22,7 +22,7 @@ Everything on the canvas is an element. Ezyreka supports text, basic shapes, vec
 
 ## Adding elements
 
-Use `addElement()` for any type — it auto-centers the element in view and selects it:
+Use `addElement()` for any registered type. Each omitted coordinate is centered in the viewport; explicit coordinates are preserved. It returns the element and commits history but does not select it:
 
 ```js
 const rect = editor.addElement({
@@ -160,3 +160,45 @@ editor.addElement({ type: 'shape', shape: 'speech-bubble', x: 100, y: 400, w: 26
 ```
 
 Vector shapes support fill, stroke, resizing and the same transforms as the basic shapes. Add your own via [`registerShapes()`](/advanced/customization#shapes).
+
+## Creating a custom element
+
+Use a plugin for an element type that should stay isolated to one editor. This example draws a diamond using the element's local width and height. The outer renderer already applies position, rotation, flips and opacity.
+
+With the Ezyreka UMD bundle loaded and a sized `#app` container:
+
+```js
+const diamondPlugin = {
+  id: 'brand',
+  version: '1.0.0',
+  apiVersion: 1,
+  setup(ctx) {
+    ctx.registerElementType('brand-diamond', {
+      defaults: { w: 160, h: 100, badgeColor: '#477cf5' },
+      manifest: { name: 'Diamond badge', toolbar: ['opacity'] },
+      render(canvas, element) {
+        canvas.beginPath();
+        canvas.moveTo(element.w / 2, 0);
+        canvas.lineTo(element.w, element.h / 2);
+        canvas.lineTo(element.w / 2, element.h);
+        canvas.lineTo(0, element.h / 2);
+        canvas.closePath();
+        canvas.fillStyle = element.badgeColor;
+        canvas.fill();
+      }
+    });
+  }
+};
+const editor = new Ezyreka.Editor({ target: '#app', plugins: [diamondPlugin] });
+editor.on('ready', () => {
+  const item = editor.addElement({ type: 'brand-diamond', x: 80, y: 80 });
+  editor.select([item.id]);
+  editor.updateSelected({ badgeColor: '#d97706', rotation: 15 });
+});
+```
+
+This example uses a solid custom `badgeColor`; it does not offer the standard fill control, which can produce gradient objects. Custom types need a host button or [panel](/guide/ui-modules#complete-example-brand-panel) if users should insert them interactively.
+
+Check resize, rotate, duplicate, undo/redo and JSON save/load with the plugin registered. Reopening without it retains the payload as a placeholder; visible unresolved content prevents image export.
+
+For AI-assisted authoring, use [`$ezyreka-element-creation`](/advanced/development-skills).

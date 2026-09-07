@@ -1,0 +1,7 @@
+interface:
+  display_name: "Ezyreka UI Customization"
+  short_description: "Build Ezyreka panels, themes and UI controls"
+  default_prompt: "Use $ezyreka-ui-customization to add a brand sidebar panel with a heading button and a named theme."
+
+policy:
+  allow_implicit_invocation: true
