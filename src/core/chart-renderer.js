@@ -18,7 +18,7 @@ function text(ctx, value, x, y, width, align = 'left') {
 // { w, h, top, bottom } frame. Register new types via registerChartRenderer
 // (or editor.registerChartRenderer) instead of editing the dispatch here.
 const circularPainter = (ctx, chart, series, box, font) => drawCircular(ctx, chart, box, font);
-const cartesianPainter = (ctx, chart, series, box, font, bounds) => drawCartesian(ctx, chart, series, bounds, font);
+const cartesianPainter = (ctx, chart, series, box, font, bounds, registry) => drawCartesian(ctx, chart, series, bounds, font, registry);
 const chartRenderers = {
   bar: cartesianPainter,
   row: cartesianPainter,
@@ -38,7 +38,7 @@ export function registerChartRenderer(type, renderer) {
 }
 
 export function drawChart(ctx, element, registry = {}) {
-  const chart = normalizeChart(element.chart);
+  const chart = normalizeChart(element.chart, registry);
   const w = Math.max(1, element.w), h = Math.max(1, element.h);
   const font = Math.min(chart.fontSize, Math.max(6, Math.min(w / 12, h / 10)));
   ctx.save();
@@ -46,9 +46,13 @@ export function drawChart(ctx, element, registry = {}) {
   ctx.font = `${font}px ${CHART_FONT_STACK}`;
   ctx.textBaseline = 'middle';
   ctx.fillStyle = chart.textColor;
-  let invalid = '';
-  try { validateChart(chart); } catch (error) { invalid = error.message; }
-  const series = isMultiSeriesChart(chart.type) ? chart.series : chart.series.slice(0, 1);
+  // Unknown chart types (e.g. saved with a plugin that is not loaded) show a
+  // labeled placeholder instead of normalizing into a bar chart.
+  let invalid = chartPreset(chart.type, registry) ? '' : `Chart type "${chart.type}" unavailable`;
+  if (!invalid) {
+    try { validateChart(chart, registry); } catch (error) { invalid = error.message; }
+  }
+  const series = isMultiSeriesChart(chart.type, registry) ? chart.series : chart.series.slice(0, 1);
   if (invalid || !chart.categories.length || !series.some(s => s.values.some(v => v !== null))) {
     text(ctx, invalid || 'No data to display', w / 2, h / 2, w - 16, 'center');
     ctx.restore(); return;
@@ -61,7 +65,7 @@ export function drawChart(ctx, element, registry = {}) {
     top += font * 2;
   }
   if (chart.showLegend) {
-    const entries = isCircularChart(chart.type)
+    const entries = isCircularChart(chart.type, registry)
       ? chart.categories.map((name, i) => ({ name, color: chart.categoryColors[i] })) : series;
     const cellWidth = Math.min(150, Math.max(80, w / Math.min(3, entries.length)));
     const columns = Math.max(1, Math.floor((w - 16) / cellWidth));
@@ -75,8 +79,8 @@ export function drawChart(ctx, element, registry = {}) {
     });
   }
   const painter = (registry.chartRenderers && registry.chartRenderers[chart.type]) || chartRenderers[chart.type]
-    || (isCircularChart(chart.type) ? circularPainter : cartesianPainter);
-  painter(ctx, chart, series, { x: 12, y: top, w: w - 24, h: Math.max(1, h - top - bottom) }, font, { w, h, top, bottom });
+    || (isCircularChart(chart.type, registry) ? circularPainter : cartesianPainter);
+  painter(ctx, chart, series, { x: 12, y: top, w: w - 24, h: Math.max(1, h - top - bottom) }, font, { w, h, top, bottom }, registry);
   ctx.restore();
 }
 
@@ -110,15 +114,15 @@ function drawCircular(ctx, chart, box, font) {
   });
 }
 
-function drawCartesian(ctx, chart, series, bounds, font) {
-  const preset = chartPreset(chart.type) || {};
+function drawCartesian(ctx, chart, series, bounds, font, registry = null) {
+  const preset = chartPreset(chart.type, registry) || {};
   const horizontal = preset.horizontal === true;
   const bar = preset.kind === 'bar';
   const x = chart.showAxes ? Math.min(bounds.w * 0.28, font * (horizontal ? 6 : 4)) : 12;
   const y = bounds.top + (chart.showValues ? font : 0);
   const w = Math.max(1, bounds.w - x - 16);
   const h = Math.max(1, bounds.h - y - bounds.bottom - (chart.showAxes ? font * 2 : 0));
-  const [low, high] = chartDomain(chart);
+  const [low, high] = chartDomain(chart, registry);
   const scale = Math.max(Math.abs(low), Math.abs(high), 1);
   const unit = value => (value / scale - low / scale) / (high / scale - low / scale);
   const valueAt = value => horizontal ? x + unit(value) * w : y + (1 - unit(value)) * h;

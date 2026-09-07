@@ -69,7 +69,7 @@ export class Toolbar {
     // only when every selected element's type supports it.
     const groups = ['chartEdit', 'text', 'fill', 'line', 'iconStyle', 'opacity'];
     const common = groups.filter((group) =>
-      sel.every((s) => manifestFor(s.type).toolbar?.includes(group)));
+      sel.every((s) => manifestFor(s.type, ed.registry).toolbar?.includes(group)));
     if (common.includes('chartEdit') && sel.length === 1) {
       const edit = el('button', 'ez-btn ez-btn-ghost', this.root);
       edit.textContent = 'Edit chart';
@@ -114,7 +114,7 @@ export class Toolbar {
         this.colorInput('Stroke', first.stroke || '#000000', 'stroke');
         this.numInput('Stroke', first.strokeWidth || 0, 0, 100, (v) => ({ strokeWidth: v }));
       }
-      if (manifestFor(first.type).radius) {
+      if (manifestFor(first.type, ed.registry).radius) {
         this.numInput('Radius', first.radius || 0, 0, 400, (v) => ({ radius: v }));
       }
     }

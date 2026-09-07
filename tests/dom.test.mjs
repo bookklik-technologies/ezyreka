@@ -215,9 +215,10 @@ assert.strictEqual(editor.getElements().length, 1, 'loadJSON elements');
 
 editor.loadJSON({
   name: 'Renamed doc',
-  pages: [{ width: 400, height: 400, elements: [{ type: 'rect', x: 0, y: 0, w: 10, h: 10 }, { type: 'bogus' }] }]
+  pages: [{ width: 400, height: 400, elements: [{ type: 'rect', x: 0, y: 0, w: 10, h: 10 }, { type: 'bogus', custom: 'payload' }] }]
 });
-assert.strictEqual(editor.getElements().length, 1, 'unknown element types skipped');
+assert.strictEqual(editor.getElements().length, 2, 'unknown element types retained as placeholders');
+assert.strictEqual(editor.getElements()[1].custom, 'payload', 'placeholder keeps its payload');
 assert.strictEqual(editor.fileName, 'Renamed doc', 'name restored from JSON');
 
 editor.loadJSON({ pages: [{ width: 500, height: 500, elements: [{ type: 'rect', x: 0, y: 0, w: 50, h: 50 }] }] });

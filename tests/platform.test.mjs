@@ -146,7 +146,7 @@ editor.registerChartType(
 assert.ok(chartPreset('radar'), 'registered chart preset discoverable');
 assert.ok(CHART_PRESETS.some(p => p.type === 'radar'), 'preset listed for the gallery');
 assert.equal(normalizeChart({ type: 'radar', categories: ['A'], series: [{ values: [1] }] }).type, 'radar', 'registered type not coerced');
-assert.equal(normalizeChart({ type: 'mystery' }).type, 'bar', 'unknown types still coerce to bar');
+assert.equal(normalizeChart({ type: 'mystery' }).type, 'mystery', 'unknown types keep their identifier');
 assert.throws(() => validateChart(normalizeChart({ type: 'radar', categories: ['A'], series: [{ values: [-3] }] })), /non-negative/, 'per-type validation applies');
 assert.throws(() => editor.registerChartType({ type: 'radar', label: 'Radar' }), /already exists/, 'duplicate chart type rejected');
 assert.throws(() => editor.registerChartType({ label: 'NoType' }), /type, label/, 'malformed preset rejected');

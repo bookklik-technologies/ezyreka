@@ -97,9 +97,9 @@ export class Interactions {
     const p = this.clientToWorld(e);
     const els = ed.getElements();
     for (let i = els.length - 1; i >= 0; i--) {
-      if (hitTest(els[i], p.x, p.y)) {
+      if (hitTest(els[i], p.x, p.y, 4, ed.registry)) {
         ed.select([els[i].id]);
-        const edit = manifestFor(els[i].type).edit;
+        const edit = manifestFor(els[i].type, ed.registry).edit;
         if (edit === 'chart') ed.ui.sidepanel?.charts?.open();
         else if (edit === 'text') ed.startTextEdit(els[i]);
         return;
@@ -120,7 +120,7 @@ export class Interactions {
     const els = ed.getElements();
 
     for (let i = els.length - 1; i >= 0; i--) {
-      if (hitTest(els[i], p.x, p.y)) {
+      if (hitTest(els[i], p.x, p.y, 4, ed.registry)) {
         const el = els[i];
         if (e.shiftKey) {
           ed.toggleSelect(el.id);
@@ -326,7 +326,7 @@ export class Interactions {
       return;
     }
     if (drag.mode === 'resize' || drag.mode === 'rotate') {
-      if (manifestFor(drag.el.type).autoFitHeight) ed.fitTextHeight(drag.el);
+      if (manifestFor(drag.el.type, ed.registry).autoFitHeight) ed.fitTextHeight(drag.el);
       ed.markDirty();
       ed.commit();
     }

@@ -32,7 +32,13 @@ export function createRegistry(options = {}) {
     chartRenderers: {},
     backgroundPainters: {},
     // Image source providers for the Uploads panel (stock/CDN/brand assets).
-    imageSources: asArray(options.imageSources, [])
+    imageSources: asArray(options.imageSources, []),
+    // Instance-scoped element type definitions and chart presets, used by
+    // plugins (via the plugin context) so registrations never touch the
+    // module-global tables. Instance entries resolve before global defaults.
+    elementDefaults: {},
+    elementManifests: {},
+    chartPresets: {}
   };
 }
 

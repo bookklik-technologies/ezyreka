@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ezyreka - Community plugin demo</title>
+  <style>
+    html, body { margin: 0; height: 100%; }
+    #app { width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script src="../dist/ezyreka.umd.js"></script>
+  <script>
+    // A trusted, developer-installed plugin. It demonstrates a sidebar panel,
+    // a custom element type, options, tracked events and cleanup.
+    const badgePlugin = {
+      id: 'community-badges',
+      version: '1.0.0',
+      apiVersion: 1,
+
+      setup(ctx, options) {
+        // Custom element type, scoped to this editor.
+        ctx.registerElementType('community-badges-badge', {
+          defaults: { w: 180, h: 56, radius: 28, label: 'New', fill: options.color },
+          manifest: { name: 'Badge', toolbar: ['fill', 'opacity'] },
+          render(canvas, element) {
+            const r = Math.min(element.radius || 0, element.w / 2, element.h / 2);
+            canvas.fillStyle = element.fill;
+            canvas.beginPath();
+            canvas.moveTo(r, 0);
+            canvas.arcTo(element.w, 0, element.w, element.h, r);
+            canvas.arcTo(element.w, element.h, 0, element.h, r);
+            canvas.arcTo(0, element.h, 0, 0, r);
+            canvas.arcTo(0, 0, element.w, 0, r);
+            canvas.closePath();
+            canvas.fill();
+            canvas.fillStyle = '#ffffff';
+            canvas.font = `600 ${Math.round(element.h * 0.34)}px Arial`;
+            canvas.textAlign = 'center';
+            canvas.textBaseline = 'middle';
+            canvas.fillText(element.label || 'Badge', element.w / 2, element.h / 2 + 1);
+          }
+        });
+
+        // Sidebar panel. The render may return a cleanup function.
+        let counter = 0;
+        let badgeCount = 0;
+        ctx.registerPanel({
+          id: 'community-badges-panel',
+          label: 'Badges',
+          render(contentEl, editor) {
+            const title = document.createElement('h3');
+            title.textContent = 'Badges';
+            const add = document.createElement('button');
+            add.textContent = 'Add a badge';
+            const note = document.createElement('p');
+            const update = () => {
+              note.textContent = `${counter} badges added in this session, ${badgeCount} on the page.`;
+            };
+            add.onclick = () => {
+              counter += 1;
+              const el = editor.addElement({
+                type: 'community-badges-badge',
+                x: 120 + counter * 24,
+                y: 120 + counter * 24
+              });
+              editor.select([el.id]);
+              update();
+            };
+            const offChange = ctx.on('change', () => {
+              badgeCount = editor.getElements().filter((e) => e.type === 'community-badges-badge').length;
+              update();
+            });
+            contentEl.append(title, add, note);
+            update();
+            // Runs before rerender, tab replacement and editor destruction.
+            return offChange;
+          }
+        });
+
+        // Tracked event + abortable async work, cleaned up automatically.
+        ctx.on('selection', (selected) => {
+          if (selected.some((e) => e.type === 'community-badges-badge')) {
+            console.log('[community-badges] badge selected');
+          }
+        });
+
+        return () => console.log('[community-badges] cleaned up');
+      }
+    };
+
+    const { Editor } = Ezyreka;
+    const editor = new Editor({
+      target: '#app',
+      width: 1080,
+      height: 1080,
+      name: 'Plugin demo',
+      plugins: [{ plugin: badgePlugin, options: { color: '#477cf5' } }]
+    });
+
+    editor.on('ready', () => {
+      editor.addElement({ type: 'community-badges-badge', x: 420, y: 480, label: 'Featured' });
+      editor.addText({ text: 'Plugin demo', fontSize: 72, fontWeight: 800, align: 'center', x: 190, y: 300, w: 700, h: 100 });
+    });
+
+    window.editor = editor;
+  </script>
+</body>
+</html>

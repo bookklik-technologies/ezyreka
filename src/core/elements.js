@@ -1,5 +1,5 @@
 import { uid, rotatePoint, deg2rad } from './utils.js';
-import { normalizeChart, validateChart, sampleChart, CHART_PRESETS } from './charts.js';
+import { normalizeChart, validateChart, sampleChart, chartPreset } from './charts.js';
 import { ACCENT } from './constants.js';
 
 const BASE = {
@@ -96,20 +96,36 @@ export const ELEMENT_MANIFESTS = {
     toolbar: ['fill', 'opacity']
   },
   chart: {
-    name: (el) => el.chart?.title || `${CHART_PRESETS.find(p => p.type === el.chart?.type)?.label || 'Data'} chart`,
+    name: (el, registry) => el.chart?.title || `${chartPreset(el.chart?.type, registry)?.label || 'Data'} chart`,
     layerIcon: 'chart',
     edit: 'chart',
     toolbar: ['chartEdit', 'opacity'],
-    create: (el, props) => {
-      el.chart = validateChart(props.chart ? normalizeChart(props.chart) : sampleChart());
+    create: (el, props, registry) => {
+      el.chart = props.chart
+        ? validateChart(normalizeChart(props.chart, registry), registry)
+        : sampleChart('bar', registry);
     },
     // Props in this map target only this type; the value normalizes them.
-    exclusiveProps: { chart: (c) => normalizeChart(validateChart(normalizeChart(c))) }
+    exclusiveProps: { chart: (c, registry) => normalizeChart(validateChart(normalizeChart(c, registry), registry), registry) }
   }
 };
 
-export function manifestFor(type) {
-  return ELEMENT_MANIFESTS[type] || {};
+// Per-editor manifests win over the module table; overrides are merged so a
+// plugin (or local registration) can extend a type without touching globals.
+export function manifestFor(type, registry = null) {
+  const local = registry && registry.elementManifests && registry.elementManifests[type];
+  const global = ELEMENT_MANIFESTS[type];
+  if (!local) return global || {};
+  return local === global ? local : { ...global, ...local };
+}
+
+// Merged manifest table for tools that must scan every type (e.g. exclusive
+// prop routing in updateSelected), including instance-only registrations.
+export function allManifests(registry = null) {
+  const types = new Set([...Object.keys(ELEMENT_MANIFESTS), ...Object.keys(registry?.elementManifests || {})]);
+  const merged = {};
+  for (const type of types) merged[type] = manifestFor(type, registry);
+  return merged;
 }
 
 // Extends or overrides a type's manifest. Global (like setChartColors):
@@ -138,9 +154,12 @@ export function registerElementType(type, { defaults = {}, manifest = {} } = {})
   registerElementManifest(type, { name: type, ...manifest });
 }
 
-export function createElement(type, props = {}) {
-  const defaults = TYPE_DEFAULTS[type];
-  if (!defaults) throw new Error(`ezyreka: unknown element type "${type}"`);
+export function createElement(type, props = {}, registry = null) {
+  const defaults = (registry && registry.elementDefaults && registry.elementDefaults[type]) || TYPE_DEFAULTS[type];
+  // Unknown types keep their payload as labeled placeholder elements, so
+  // documents saved with plugins reload losslessly and regain behavior when
+  // the plugin is present again.
+  if (!defaults) return createPlaceholderElement(type, props);
   const el = {
     ...BASE,
     ...JSON.parse(JSON.stringify(defaults)),
@@ -148,14 +167,36 @@ export function createElement(type, props = {}) {
     id: props.id || uid(type),
     type
   };
-  const create = manifestFor(type).create;
-  if (create) create(el, props);
+  const create = manifestFor(type, registry).create;
+  if (create) create(el, props, registry);
+  // Reopening with the plugin restores normal behavior: placeholder markers
+  // from an earlier save never survive resolution.
+  delete el.__unresolved;
+  delete el.__missingType;
   return el;
 }
 
-export function elementName(el) {
-  const name = manifestFor(el.type).name;
-  return typeof name === 'function' ? name(el) : (name || el.type);
+export function hasElementType(type, registry = null) {
+  return Boolean((registry && registry.elementDefaults && registry.elementDefaults[type]) || TYPE_DEFAULTS[type]);
+}
+
+function createPlaceholderElement(type, props = {}) {
+  const source = typeof props === 'object' && props ? props : {};
+  const el = {
+    ...BASE,
+    ...source,
+    id: source.id || uid(type),
+    type,
+    __unresolved: true,
+    __missingType: source.__missingType || type
+  };
+  return el;
+}
+
+export function elementName(el, registry = null) {
+  if (el.__unresolved) return `Unsupported (${el.__missingType || el.type})`;
+  const name = manifestFor(el.type, registry).name;
+  return typeof name === 'function' ? name(el, registry) : (name || el.type);
 }
 
 export function elementCenter(el) {
@@ -193,14 +234,14 @@ export function selectionBBox(elements) {
   return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
 }
 
-export function hitTest(el, wx, wy, tolerance = 4) {
+export function hitTest(el, wx, wy, tolerance = 4, registry = null) {
   if (el.hidden || el.locked) return false;
   const c = elementCenter(el);
   const p = rotatePoint(wx, wy, c.x, c.y, deg2rad(-(el.rotation || 0)));
   // Undoing rotation leaves world coordinates; hit areas use the element's local origin.
   p.x -= el.x;
   p.y -= el.y;
-  if (manifestFor(el.type).hitTest === 'segment') {
+  if (manifestFor(el.type, registry).hitTest === 'segment') {
     const tol = Math.max(10, (el.strokeWidth || 4) + tolerance);
     return distToSegment(p.x, p.y, 0, 0, el.w, el.h) <= tol;
   }

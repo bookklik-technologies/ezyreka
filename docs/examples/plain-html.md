@@ -20,7 +20,7 @@ The fastest way to use Ezyreka: one container, one script tag.
     data-ez-height="1080"
     data-ez-name="My design"
   ></div>
-  <script src="https://unpkg.com/ezyreka/dist/ezyreka.umd.js"></script>
+  <script src="https://unpkg.com/@bookklik/ezyreka/dist/ezyreka.umd.js"></script>
 </body>
 </html>
 ```
@@ -40,7 +40,7 @@ Any element with `data-ez-editor` is turned into an editor on page load.
 <body>
   <div id="app"></div>
 
-  <script src="https://unpkg.com/ezyreka/dist/ezyreka.umd.js"></script>
+  <script src="https://unpkg.com/@bookklik/ezyreka/dist/ezyreka.umd.js"></script>
   <script>
     const { Editor } = Ezyreka
 
@@ -63,7 +63,7 @@ Any element with `data-ez-editor` is turned into an editor on page load.
 
 ```html
 <script type="module">
-  import { Editor } from 'https://unpkg.com/ezyreka/dist/ezyreka.esm.js'
+  import { Editor } from 'https://unpkg.com/@bookklik/ezyreka/dist/ezyreka.esm.js'
 
   const editor = new Editor({ target: '#app' })
 </script>

@@ -1,6 +1,13 @@
 export as namespace Ezyreka;
 
-export type ChartType = 'bar' | 'row' | 'grouped-bar' | 'line' | 'multi-line' | 'pie' | 'donut' | 'area' | 'stacked-area';
+/**
+ * Built-in chart types, open to plugin-registered identifiers. When a
+ * document references an unavailable type it is preserved and rendered as a
+ * labeled placeholder instead of being coerced to another type.
+ */
+export type ChartType =
+  | 'bar' | 'row' | 'grouped-bar' | 'line' | 'multi-line' | 'pie' | 'donut' | 'area' | 'stacked-area'
+  | (string & {});
 
 export interface ChartSeries {
   name: string;
@@ -54,7 +61,13 @@ export interface HistoryLike {
 
 export interface DesignElement {
   id?: string;
-  type: 'text' | 'rect' | 'ellipse' | 'triangle' | 'star' | 'hexagon' | 'diamond' | 'heart' | 'line' | 'image' | 'icon' | 'shape' | 'chart';
+  /** Built-in types are known to the editor; plugin types are simple identifiers. */
+  type:
+    | 'text' | 'rect' | 'ellipse' | 'triangle' | 'star' | 'hexagon' | 'diamond' | 'heart'
+    | 'line' | 'image' | 'icon' | 'shape' | 'chart'
+    | (string & {});
+  /** Plugin-defined custom fields; JSON-compatible values survive save/load. */
+  [key: string]: unknown;
   chart?: ChartConfig;
   x: number;
   y: number;
@@ -88,12 +101,15 @@ export interface DesignElement {
 }
 
 export interface PageBackground {
-  type: 'solid' | 'gradient' | 'image';
+  /** Built-in backgrounds are solid/gradient/image; plugins can register painters. */
+  type: 'solid' | 'gradient' | 'image' | (string & {});
   color?: string;
   from?: string;
   to?: string;
   angle?: number;
   src?: string;
+  /** Plugin-defined custom fields. */
+  [key: string]: unknown;
 }
 
 export interface DesignPage {
@@ -144,6 +160,12 @@ export interface EditorOptions {
   /** CSS custom properties applied to the editor container on top of the theme. */
   cssVars?: Record<string, string>;
   /**
+   * Trusted, developer-installed plugins, initialized in configuration order
+   * after core setup and before UI construction and initialDoc loading. A
+   * bare PluginDefinition is shorthand for an entry without options.
+   */
+  plugins?: (PluginDefinition | PluginEntry)[];
+  /**
    * UI module configuration. `false` runs headless (canvas API only);
    * set a module key to `false` to disable it, or to a constructor to
    * replace it (each module is instantiated with the editor).
@@ -163,7 +185,101 @@ export interface PanelDefinition {
   label?: string;
   /** SVG markup for the tool rail icon; defaults to the shapes icon. */
   icon?: string;
-  render(contentEl: HTMLElement, editor: Editor): void;
+  /** May return a cleanup function, invoked before rerender, tab replacement and destruction. */
+  render(contentEl: HTMLElement, editor: Editor): void | undefined | null | (() => void);
+}
+
+export type ElementRenderer = (ctx: CanvasRenderingContext2D, el: DesignElement, registry: unknown) => void;
+
+export type ChartRenderer = (
+  ctx: CanvasRenderingContext2D,
+  chart: ChartConfig,
+  series: ChartSeries[],
+  plotBox: { x: number; y: number; w: number; h: number },
+  font: number,
+  bounds: { w: number; h: number; top: number; bottom: number },
+  registry: unknown
+) => void;
+
+export interface ChartPreset {
+  type: string;
+  label: string;
+  group?: string;
+  kind?: string;
+  circular?: boolean;
+  multiSeries?: boolean;
+  horizontal?: boolean;
+  validate?: (chart: ChartConfig) => void;
+}
+
+export interface PluginElementTypeDefinition {
+  defaults?: Record<string, unknown>;
+  manifest?: Record<string, unknown>;
+  render?: ElementRenderer;
+}
+
+/**
+ * The isolated, tracked environment handed to a plugin's synchronous
+ * `setup(ctx, options)`. Registrations are scoped to the editor instance and
+ * never write to module-global registries; `on`/`once` subscriptions and
+ * `onDispose` callbacks are cleaned up automatically on destroy.
+ */
+export interface PluginContext {
+  readonly pluginId: string;
+  readonly apiVersion: number;
+  readonly editor: Editor;
+  /** Aborted when the editor is destroyed; use for async work started in setup. */
+  readonly signal: AbortSignal | null;
+  /** Tracked subscription; removed automatically when the editor is destroyed. */
+  on(event: string, handler: (payload: any) => void): () => void;
+  /** Tracked one-shot subscription; removed automatically on destroy. */
+  once(event: string, handler: (payload: any) => void): () => void;
+  /** Registers a callback to run at destroy time (after subscriptions are removed). */
+  onDispose(fn: () => void): void;
+
+  /** Adds a sidebar tab; queued until the UI is built and unmounted when the sidebar is disabled. */
+  registerPanel(panel: PanelDefinition): PanelDefinition;
+  /** Registers a brand-new element type on this editor; duplicate type ids are rejected. */
+  registerElementType(type: string, def?: PluginElementTypeDefinition): string;
+  /** Overrides or adds the canvas renderer for an element type on this editor. */
+  registerElementRenderer(type: string, renderer: ElementRenderer): void;
+  /** Registers a brand-new chart type on this editor; duplicate type ids are rejected. */
+  registerChartType(preset: ChartPreset, renderFn?: ChartRenderer): ChartPreset;
+  /** Overrides or adds the painter for a chart type on this editor. */
+  registerChartRenderer(type: string, renderer: ChartRenderer): void;
+  /** Registers a background type painter on this editor. */
+  registerBackgroundPainter(type: string, painter: (ctx: CanvasRenderingContext2D, bg: PageBackground, pw: number, ph: number) => void): void;
+
+  // Asset and content registrations (instance-scoped).
+  registerTemplates(templates: EditorTemplate | EditorTemplate[]): void;
+  registerFont(name: string, opts?: { google?: string | boolean }): string;
+  registerIcons(icons: Record<string, string | { solid: string; outline?: string }>): void;
+  registerShapes(shapes: { label: string; type?: string; props?: Partial<DesignElement>; svg?: string; path?: string; shape?: string } | { label: string; type?: string; props?: Partial<DesignElement>; svg?: string; path?: string; shape?: string }[]): void;
+  registerImage(image: string | { src: string; name?: string }): { id: string; src: string; name: string };
+  registerTheme(name: string, vars: Record<string, string>): string;
+  /** Adds an image source provider; duplicate provider ids are rejected. */
+  registerImageSource(source: ImageSource): ImageSource;
+}
+
+/**
+ * A trusted, developer-installed plugin. `setup` runs synchronously during
+ * editor initialization and may return a cleanup function that runs when the
+ * editor is destroyed.
+ */
+export interface PluginDefinition {
+  /** Unique, stable plugin identifier. */
+  id: string;
+  /** Plugin version string, e.g. "1.0.0". */
+  version: string;
+  /** Plugin API version the plugin targets (currently 1). */
+  apiVersion: number;
+  setup(context: PluginContext, options: any): void | undefined | null | (() => void);
+}
+
+/** A configured plugin entry with its own options. */
+export interface PluginEntry {
+  plugin: PluginDefinition;
+  options?: any;
 }
 
 export class Editor {

@@ -1,5 +1,5 @@
 import { el, uid } from '../core/utils.js';
-import { CHART_PRESETS, sampleChart, normalizeChart, validateChart, parseChartValue, pasteChartData, chartColor, isCircularChart, isMultiSeriesChart } from '../core/charts.js';
+import { chartPresetList, sampleChart, normalizeChart, validateChart, parseChartValue, pasteChartData, chartColor, isCircularChart, isMultiSeriesChart } from '../core/charts.js';
 import { drawChart } from '../core/chart-renderer.js';
 
 export class ChartPanel {
@@ -75,9 +75,10 @@ export class ChartPanel {
     const target = this.target(id);
     if (!target || target.locked) return;
     try {
-      const next = normalizeChart(target.chart);
-      const result = normalizeChart(mutate(next) || next);
-      validateChart(result);
+      const registry = this.editor.registry;
+      const next = normalizeChart(target.chart, registry);
+      const result = normalizeChart(mutate(next) || next, registry);
+      validateChart(result, registry);
       control?.removeAttribute('aria-invalid');
       const binding = this.bindings.find(b => b.input === control);
       if (binding) {
@@ -138,21 +139,22 @@ export class ChartPanel {
   renderGallery(root) {
     this.sidepanel.panelHeader('Charts', 'Choose a chart, then make it yours with data and colors.');
     if (this.target()) this.button(root, 'Edit selected chart', () => this.open(), 'ez-btn ez-btn-ghost ez-panel-action');
-    for (const group of [...new Set(CHART_PRESETS.map(p => p.group))]) {
+    const presets = chartPresetList(this.editor.registry);
+    for (const group of [...new Set(presets.map(p => p.group))]) {
       this.sidepanel.sectionTitle(group, root);
       const grid = el('div', 'ez-chart-gallery', root);
-      for (const preset of CHART_PRESETS.filter(p => p.group === group)) {
+      for (const preset of presets.filter(p => p.group === group)) {
         const button = this.button(grid, '', () => {
-          const item = this.editor.addElement({ type: 'chart', chart: sampleChart(preset.type) });
+          const item = this.editor.addElement({ type: 'chart', chart: sampleChart(preset.type, this.editor.registry) });
           this.editor.select([item.id]);
           this.section = 'Data'; this.open();
         }, 'ez-panel-card ez-chart-card');
         button.setAttribute('aria-label', `Add ${preset.label} chart`);
         const canvas = el('canvas', '', button);
         canvas.width = 240; canvas.height = 170; canvas.setAttribute('aria-hidden', 'true');
-        const chart = sampleChart(preset.type);
+        const chart = sampleChart(preset.type, this.editor.registry);
         Object.assign(chart, { showAxes: false, showGrid: false, showLegend: false });
-        drawChart(canvas.getContext('2d'), { chart, w: canvas.width, h: canvas.height });
+        drawChart(canvas.getContext('2d'), { chart, w: canvas.width, h: canvas.height }, this.editor.registry);
         el('span', '', button).textContent = preset.label;
       }
     }
@@ -179,7 +181,7 @@ export class ChartPanel {
         const text = e.clipboardData?.getData('text/plain');
         if (text === undefined) return;
         e.preventDefault();
-        this.apply(target.id, chart => pasteChartData(chart, text, row, column), input);
+        this.apply(target.id, chart => pasteChartData(chart, text, row, column, this.editor.registry), input);
       };
       return container;
     };
@@ -221,13 +223,13 @@ export class ChartPanel {
       return input;
     };
     const type = field('Chart type', 'select', c => c.type, (c, input) => { c.type = input.value; });
-    CHART_PRESETS.forEach(p => { const option = el('option', '', type); option.value = p.type; option.textContent = p.label; });
+    chartPresetList(this.editor.registry).forEach(p => { const option = el('option', '', type); option.value = p.type; option.textContent = p.label; });
     type.value = chart.type;
-    if (!isMultiSeriesChart(chart.type) && chart.series.length > 1) {
+    if (!isMultiSeriesChart(chart.type, this.editor.registry) && chart.series.length > 1) {
       el('p', 'ez-chart-note', root).textContent = 'This chart displays the first series. Additional series are kept when switching chart types.';
     }
     field('Title', 'text', c => c.title, (c, input) => { c.title = input.value; });
-    for (const [key, label] of [['showLegend', 'Legend'], ['showValues', 'Value labels'], ...(!isCircularChart(chart.type) ? [['showAxes', 'Axes'], ['showGrid', 'Gridlines']] : [])]) {
+    for (const [key, label] of [['showLegend', 'Legend'], ['showValues', 'Value labels'], ...(!isCircularChart(chart.type, this.editor.registry) ? [['showAxes', 'Axes'], ['showGrid', 'Gridlines']] : [])]) {
       field(label, 'checkbox', c => c[key], (c, input) => { c[key] = input.checked; });
     }
     const size = field('Text size', 'number', c => c.fontSize, (c, input) => {
@@ -236,10 +238,10 @@ export class ChartPanel {
     });
     size.min = 8; size.max = 72;
     field('Text color', 'color', c => c.textColor, (c, input) => { c.textColor = input.value; });
-    if (isCircularChart(chart.type)) chart.categories.forEach((name, i) => {
+    if (isCircularChart(chart.type, this.editor.registry)) chart.categories.forEach((name, i) => {
       field(`${name || `Category ${i + 1}`} color`, 'color', c => c.categoryColors[i], (c, input) => { c.categoryColors[i] = input.value; });
     });
-    else (isMultiSeriesChart(chart.type) ? chart.series : chart.series.slice(0, 1)).forEach((s, i) => {
+    else (isMultiSeriesChart(chart.type, this.editor.registry) ? chart.series : chart.series.slice(0, 1)).forEach((s, i) => {
       field(`${s.name || `Series ${i + 1}`} color`, 'color', c => c.series[i]?.color, (c, input) => { c.series[i].color = input.value; });
     });
   }

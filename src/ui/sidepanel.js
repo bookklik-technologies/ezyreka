@@ -50,9 +50,16 @@ export class Sidepanel {
     };
     this.activeTab = 'elements';
     this.tabs = [...BUILTIN_TABS];
+    this._tabCleanup = null;
     this.renderTabs();
     this.setTab('elements');
     this.charts = new ChartPanel(this);
+    // Mount the panel contributions plugins queued during initialization.
+    // With the sidebar disabled this class is never constructed and the
+    // contributions remain unmounted in the editor's queue.
+    const pending = editor._pendingPanels || [];
+    editor._pendingPanels = [];
+    for (const panel of pending) this.registerPanel(panel);
     this._unsubs = [
       editor.on('selection', () => {
         if (this.activeTab === 'layers') this.renderLayers();
@@ -72,8 +79,23 @@ export class Sidepanel {
   }
 
   destroy() {
+    this._runTabCleanup();
     this._unsubs?.forEach((off) => off());
     this._unsubs = [];
+  }
+
+  // Custom panel renders may return a cleanup function; it runs before the
+  // content is cleared on rerender, tab replacement and destruction.
+  _runTabCleanup() {
+    const cleanup = this._tabCleanup;
+    this._tabCleanup = null;
+    if (typeof cleanup === 'function') {
+      try {
+        cleanup();
+      } catch (error) {
+        console.warn('ezyreka: panel cleanup failed:', error);
+      }
+    }
   }
 
   renderTabs() {
@@ -115,10 +137,12 @@ export class Sidepanel {
     this.setCollapsed(false);
     this.contentEl.setAttribute('aria-labelledby', `${this.contentEl.id}-${id}`);
     if (alreadyRendered) return;
+    this._runTabCleanup();
     this.contentEl.innerHTML = '';
     this.contentEl.scrollTop = 0;
     if (typeof tab.render === 'function') {
-      tab.render(this.contentEl, this.editor);
+      const cleanup = tab.render(this.contentEl, this.editor);
+      if (typeof cleanup === 'function') this._tabCleanup = cleanup;
       return;
     }
     ({ templates: () => this.renderTemplates(),
@@ -149,6 +173,7 @@ export class Sidepanel {
 
   // Rebuilds the active tab, e.g. after registering templates, fonts or icons.
   rerender() {
+    this._runTabCleanup();
     this.contentEl.innerHTML = '';
     this.setTab(this.activeTab);
   }
@@ -240,7 +265,7 @@ export class Sidepanel {
         canvas.setAttribute('aria-hidden', 'true');
         const ctx = canvas.getContext('2d');
         ctx.scale(scale, scale);
-        renderPage(ctx, { ...tpl.page, elements: tpl.page.elements.map((e) => createElement(e.type, e)) }, { registry: this.editor.registry });
+        renderPage(ctx, { ...tpl.page, elements: tpl.page.elements.map((e) => createElement(e.type, e, this.editor.registry)) }, { registry: this.editor.registry });
         preview.appendChild(canvas);
         const label = el('div', 'ez-template-name', card);
         label.textContent = tpl.name;
@@ -639,7 +664,7 @@ export class Sidepanel {
       handle.type = 'button';
       handle.textContent = '⠿';
       handle.title = 'Drag to reorder, or use Up/Down arrow keys';
-      handle.setAttribute('aria-label', `Reorder ${elementName(item)}. Use Up or Down arrow keys.`);
+      handle.setAttribute('aria-label', `Reorder ${elementName(item, ed.registry)}. Use Up or Down arrow keys.`);
       handle.draggable = true;
       handle.onkeydown = (e) => {
         if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
@@ -687,11 +712,11 @@ export class Sidepanel {
         const insertion = target + (before ? 1 : 0);
         ed.moveLayer(from, insertion - (from < insertion ? 1 : 0));
       };
-      const icon = UI_ICONS[manifestFor(item.type).layerIcon || 'shapes'];
+      const icon = UI_ICONS[manifestFor(item.type, ed.registry).layerIcon || 'shapes'];
       const name = el('span', 'ez-layer-name', row);
       name.draggable = true;
       name.title = 'Click to select, or drag to reorder';
-      name.innerHTML = `${icon}<span>${escapeHtml(elementName(item))}</span>`;
+      name.innerHTML = `${icon}<span>${escapeHtml(elementName(item, ed.registry))}</span>`;
       name.onclick = () => ed.select([item.id]);
       const btns = el('span', 'ez-layer-actions', row);
       const mkBtn = (html, title, fn, cls = '') => {

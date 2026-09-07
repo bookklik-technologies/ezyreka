@@ -11,6 +11,8 @@ export default defineConfig({
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
     ['meta', { name: 'theme-color', content: '#d97706' }]
   ],
+  // GitHub Pages project site: docs are served from /ezyreka/.
+  base: '/ezyreka/',
   cleanUrls: true,
   markdown: {
     lineNumbers: false
@@ -84,6 +86,7 @@ export default defineConfig({
           items: [
             { text: 'Customization & registries', link: '/advanced/customization' },
             { text: 'Extensibility', link: '/advanced/extensibility' },
+            { text: 'Community plugins', link: '/advanced/plugins' },
             { text: 'Image sources', link: '/advanced/image-sources' },
             { text: 'Recipes', link: '/advanced/recipes' }
           ]
@@ -103,7 +106,7 @@ export default defineConfig({
     },
     socialLinks: [
       { icon: 'github', link: 'https://github.com/bookklik-technologies/ezyreka' },
-      { icon: 'npm', link: 'https://www.npmjs.com/package/ezyreka' }
+      { icon: 'npm', link: 'https://www.npmjs.com/package/@bookklik/ezyreka' }
     ],
     search: {
       provider: 'local',

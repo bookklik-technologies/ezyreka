@@ -19,7 +19,7 @@ No frameworks. No runtime dependencies. One script tag.
 ### npm
 
 ```bash
-npm install ezyreka
+npm install @bookklik/ezyreka
 ```
 
 ### CDN
@@ -27,7 +27,7 @@ npm install ezyreka
 Or use the bundle directly:
 
 ```html
-<script src="https://unpkg.com/ezyreka/dist/ezyreka.umd.js"></script>
+<script src="https://unpkg.com/@bookklik/ezyreka/dist/ezyreka.umd.js"></script>
 ```
 
 ## Quick start
@@ -44,7 +44,7 @@ Any element with `data-ez-editor` is turned into an editor on page load:
   data-ez-height="1080"
   data-ez-name="My design"
 ></div>
-<script src="https://unpkg.com/ezyreka/dist/ezyreka.umd.js"></script>
+<script src="https://unpkg.com/@bookklik/ezyreka/dist/ezyreka.umd.js"></script>
 ```
 
 ::: tip
@@ -55,7 +55,7 @@ Size the container with CSS (e.g. `#app { width: 100vw; height: 100vh; }`).
 
 ```js
 const { Editor } = Ezyreka // UMD global
-// or: import { Editor } from 'ezyreka' // ESM
+// or: import { Editor } from '@bookklik/ezyreka' // ESM
 
 const editor = new Editor({
   target: '#app', // selector or HTMLElement

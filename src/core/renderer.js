@@ -115,9 +115,17 @@ function drawBackground(ctx, bg, pw, ph, transparent, registry = {}) {
   ctx.rect(0, 0, pw, ph);
   const type = (bg && bg.type) || 'solid';
   const painters = { ...backgroundPainters, ...(registry.backgroundPainters || {}) };
-  // Unknown background types degrade to solid white, matching older documents.
-  const painter = painters[type] || painters.solid;
-  painter(ctx, bg, pw, ph);
+  if (!painters[type]) {
+    // Unknown background types keep their data and show a labeled placeholder
+    // over a white page, matching the missing-capability experience elsewhere.
+    painters.solid(ctx, { color: '#ffffff' }, pw, ph);
+    ctx.restore();
+    ctx.save();
+    drawPlaceholder(ctx, { w: pw, h: ph }, `Background "${type}" unavailable`);
+    ctx.restore();
+    return;
+  }
+  painters[type](ctx, bg, pw, ph);
   ctx.restore();
 }
 
@@ -158,15 +166,36 @@ export function drawElement(ctx, el, opts = {}) {
   ctx.scale(el.flipX ? -1 : 1, el.flipY ? -1 : 1);
   ctx.translate(-el.w / 2, -el.h / 2);
   if (draw) draw(ctx, el, r);
-  else warnUnknownType(el.type);
+  else drawPlaceholder(ctx, el, `Unsupported (${el.__missingType || el.type})`);
   ctx.restore();
 }
 
-const warnedTypes = new Set();
-function warnUnknownType(type) {
-  if (warnedTypes.has(type)) return;
-  warnedTypes.add(type);
-  console.warn(`ezyreka: no renderer for element type "${type}" — the element is skipped. Register a renderer or use a supported type.`);
+// Labeled stand-in for content whose capability is missing (unknown element
+// type, unregistered shape/icon, unavailable chart type or background).
+// Selection, transforms, duplication and history keep working on these.
+export function drawPlaceholder(ctx, el, label) {
+  const w = Math.max(1, el.w || 0);
+  const h = Math.max(1, el.h || 0);
+  ctx.save();
+  ctx.fillStyle = 'rgba(100, 116, 139, 0.1)';
+  ctx.fillRect(0, 0, w, h);
+  ctx.setLineDash([6, 4]);
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = '#94a3b8';
+  ctx.strokeRect(0.75, 0.75, Math.max(0, w - 1.5), Math.max(0, h - 1.5));
+  ctx.setLineDash([]);
+  if (h > 26 && w > 40) {
+    const font = Math.max(9, Math.min(14, h / 3, w / (label.length * 0.62)));
+    ctx.fillStyle = '#64748b';
+    ctx.font = `600 ${font}px ${DEFAULT_FONT}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    let text = label;
+    while (text.length && ctx.measureText(text + '…').width > w - 12) text = text.slice(0, -1);
+    if (text !== label) text += '…';
+    ctx.fillText(text, w / 2, h / 2);
+  }
+  ctx.restore();
 }
 
 function fillAndStroke(ctx, el, path, fillRule = 'nonzero') {
@@ -201,7 +230,12 @@ function drawRect(ctx, el) {
 
 function drawVectorShape(ctx, el, registry = {}) {
   const paths = registry.shapePaths || SHAPE_PATHS;
-  const source = getPath(paths[el.shape] || paths.pentagon);
+  if (paths[el.shape] === undefined) {
+    // Missing referenced shape: keep the element data and label the placeholder.
+    drawPlaceholder(ctx, el, `Shape "${el.shape || ''}" unavailable`);
+    return;
+  }
+  const source = getPath(paths[el.shape]);
   const path = new Path2D();
   // Transform geometry before stroking to keep the border width in canvas pixels.
   path.addPath(source, new DOMMatrix().scale(el.w / 100, el.h / 100));
@@ -269,7 +303,11 @@ function drawImage(ctx, el) {
 function drawIcon(ctx, el, registry = {}) {
   const outline = el.iconStyle === 'outline';
   const paths = outline ? (registry.iconOutlines || ICON_OUTLINES) : (registry.icons || ICONS);
-  const d = paths[el.icon] || paths.star;
+  const d = paths[el.icon];
+  if (d === undefined) {
+    drawPlaceholder(ctx, el, `Icon "${el.icon || ''}" unavailable`);
+    return;
+  }
   // Create the paint in element coordinates before scaling the icon geometry.
   const fill = el.fill === 'none' ? null : resolveFill(ctx, el.fill, el.w, el.h, '#111827');
   ctx.save();

@@ -1,7 +1,8 @@
 import { Emitter, uid, deepClone, clamp, el, readAsDataURL, downloadDataURL, downloadBlob } from './utils.js';
 import { History } from './history.js';
-import { setChartColors, registerChartPreset } from './charts.js';
+import { setChartColors, chartPreset, registerChartPreset } from './charts.js';
 import { createRegistry } from './registry.js';
+import { PluginManager, normalizePluginEntries } from './plugins.js';
 import {
   createElement,
   hitTest,
@@ -9,13 +10,15 @@ import {
   selectionBBox,
   elementName,
   manifestFor,
-  ELEMENT_MANIFESTS,
+  allManifests,
+  hasElementType,
   registerElementType as registerElementDefaults,
   registerElementManifest
 } from './elements.js';
 import { renderPage, whenImagesReady, measureTextElement, registerElementRenderer } from './renderer.js';
 import { registerChartRenderer } from './chart-renderer.js';
 import { registerBackgroundPainter } from './renderer.js';
+import { SHAPE_PATHS, ICONS, ICON_OUTLINES } from './assets.js';
 import { Interactions } from '../interactions.js';
 import { Topbar } from '../ui/topbar.js';
 import { Sidepanel } from '../ui/sidepanel.js';
@@ -61,6 +64,12 @@ export class Editor extends Emitter {
     // Per-editor asset registries: built-ins merged with injected options.
     this.registry = createRegistry(options);
     if (Array.isArray(options.chartColors)) setChartColors(options.chartColors);
+    // Plugin entries are validated before any setup runs; a malformed
+    // configuration fails fast without partial initialization.
+    this._pluginEntries = normalizePluginEntries(options.plugins);
+    // Panel contributions from plugins queue here until the sidepanel UI is
+    // constructed; they stay unmounted when the sidebar is disabled.
+    this._pendingPanels = [];
 
     this.doc = {
       version: 1,
@@ -90,6 +99,21 @@ export class Editor extends Emitter {
     this.history.push(deepClone(this.doc));
 
     this.interactions = new Interactions(this);
+    // Plugins initialize after core infrastructure (registry, DOM, history,
+    // interactions) exists, but before UI construction and initialDoc loading,
+    // so panel contributions queue for the sidepanel and the document can
+    // resolve plugin-registered element/chart types. The `ready` event still
+    // fires after initialization completes.
+    this.plugins = new PluginManager(this, this._pluginEntries);
+    try {
+      this.plugins.initialize();
+    } catch (error) {
+      // Release the target (and window-level listeners) so the host can
+      // retry with a fresh editor.
+      this.interactions?.destroy();
+      target.__ezyreka = null;
+      throw error;
+    }
     // UI modules are configurable per instance: `ui: false` runs headless,
     // `{ sidepanel: false }` disables one module, and a constructor replaces it.
     const uiDefaults = {
@@ -222,7 +246,7 @@ export class Editor extends Emitter {
         transformOrigin: '50% 50%'
       });
       const label = el('div', 'ez-sel-name', box);
-      label.textContent = elementName(elx);
+      label.textContent = elementName(elx, this.registry);
       for (const dir of ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']) {
         const h = el('div', 'ez-handle', box);
         h.dataset.dir = dir;
@@ -280,7 +304,7 @@ export class Editor extends Emitter {
   }
 
   hitTestElement(elx, wx, wy) {
-    return hitTest(elx, wx, wy);
+    return hitTest(elx, wx, wy, 4, this.registry);
   }
 
   viewportCenter() {
@@ -293,8 +317,11 @@ export class Editor extends Emitter {
   }
 
   addElement(props = {}) {
+    if (!hasElementType(props.type, this.registry)) {
+      throw new Error(`ezyreka: unknown element type "${props.type}"`);
+    }
     const center = this.viewportCenter();
-    const elx = createElement(props.type, props);
+    const elx = createElement(props.type, props, this.registry);
     if (props.x === undefined) elx.x = Math.round(center.x - elx.w / 2);
     if (props.y === undefined) elx.y = Math.round(center.y - elx.h / 2);
     this.page.elements.push(elx);
@@ -313,17 +340,18 @@ export class Editor extends Emitter {
     const selected = this.getSelected();
     // Props listed in a type manifest's exclusiveProps target only the types
     // that declare them (and run their normalizer), instead of hitting all.
+    const manifests = allManifests(this.registry);
     const exclusiveKey = Object.keys(props).find((key) =>
-      Object.values(ELEMENT_MANIFESTS).some((m) => m.exclusiveProps && key in m.exclusiveProps));
+      Object.values(manifests).some((m) => m.exclusiveProps && key in m.exclusiveProps));
     if (exclusiveKey !== undefined) {
-      const entry = Object.values(ELEMENT_MANIFESTS)
+      const entry = Object.values(manifests)
         .find((m) => m.exclusiveProps && exclusiveKey in m.exclusiveProps);
-      const types = new Set(Object.entries(ELEMENT_MANIFESTS)
+      const types = new Set(Object.entries(manifests)
         .filter(([, m]) => m.exclusiveProps && exclusiveKey in m.exclusiveProps)
         .map(([type]) => type));
       const targets = selected.filter(item => types.has(item.type) && !item.locked);
       if (!targets.length) return;
-      const value = entry.exclusiveProps[exclusiveKey](props[exclusiveKey]);
+      const value = entry.exclusiveProps[exclusiveKey](props[exclusiveKey], this.registry);
       targets.forEach(item => Object.assign(item, props, { [exclusiveKey]: value }));
     } else selected.forEach((elx) => Object.assign(elx, props));
     this.markDirty();
@@ -348,7 +376,7 @@ export class Editor extends Emitter {
     const sel = this.getSelected();
     if (!sel.length) return;
     const clones = sel.map((elx) => {
-      const clone = createElement(elx.type, { ...deepClone(elx), id: undefined, x: elx.x + 24, y: elx.y + 24 });
+      const clone = createElement(elx.type, { ...deepClone(elx), id: undefined, x: elx.x + 24, y: elx.y + 24 }, this.registry);
       return clone;
     });
     this.page.elements.push(...clones);
@@ -374,7 +402,7 @@ export class Editor extends Emitter {
     if (!this.clipboard.length) return;
     const offset = 24 * (++this._pasteCount || 1);
     const clones = this.clipboard.map((elx) =>
-      createElement(elx.type, { ...deepClone(elx), id: undefined, x: elx.x + offset, y: elx.y + offset })
+      createElement(elx.type, { ...deepClone(elx), id: undefined, x: elx.x + offset, y: elx.y + offset }, this.registry)
     );
     this.page.elements.push(...clones);
     this.select(clones.map((c) => c.id));
@@ -605,14 +633,7 @@ export class Editor extends Emitter {
         height: p.height || this.options.height,
         background: p.background || { type: 'solid', color: '#ffffff' },
         elements: (p.elements || [])
-          .map((e2) => {
-            try {
-              return createElement(e2.type, e2);
-            } catch {
-              return null;
-            }
-          })
-          .filter(Boolean)
+          .map((e2) => createElement(e2.type, e2, this.registry))
       }))
     };
     if (typeof doc.name === 'string' && doc.name) this.setFileName(doc.name);
@@ -640,7 +661,7 @@ export class Editor extends Emitter {
           width: tpl.page.width,
           height: tpl.page.height,
           background: deepClone(tpl.page.background),
-          elements: tpl.page.elements.map((e2) => createElement(e2.type, e2))
+          elements: tpl.page.elements.map((e2) => createElement(e2.type, e2, this.registry))
         }
       ]
     };
@@ -929,7 +950,7 @@ export class Editor extends Emitter {
       width: src.width,
       height: src.height,
       background: deepClone(src.background),
-      elements: src.elements.map((e2) => createElement(e2.type, e2))
+      elements: src.elements.map((e2) => createElement(e2.type, e2, this.registry))
     };
     this.doc.pages.splice(this.pageIndex + 1, 0, page);
     this.pageIndex += 1;
@@ -981,7 +1002,7 @@ export class Editor extends Emitter {
     const srcs = [];
     if (page.background?.type === 'image' && page.background.src) srcs.push(page.background.src);
     for (const e2 of page.elements) {
-      for (const prop of manifestFor(e2.type).preloadProps || []) {
+      for (const prop of manifestFor(e2.type, this.registry).preloadProps || []) {
         if (e2[prop]) srcs.push(e2[prop]);
       }
     }
@@ -1003,9 +1024,56 @@ export class Editor extends Emitter {
     return canvas;
   }
 
+  // Collects the capabilities a page needs that this editor cannot resolve:
+  // unknown element/chart/background types and unregistered shapes or icons.
+  // Only visible content blocks an export.
+  _missingCapabilities(page) {
+    const registry = this.registry;
+    const issues = [];
+    const bgType = (page.background && page.background.type) || 'solid';
+    if (!['solid', 'gradient', 'image'].includes(bgType) && !registry.backgroundPainters[bgType]) {
+      issues.push(`background type "${bgType}"`);
+    }
+    for (const el of page.elements) {
+      if (el.hidden) continue;
+      if (el.__unresolved || !hasElementType(el.type, registry)) {
+        issues.push(`element type "${el.__missingType || el.type}"`);
+        continue;
+      }
+      if (el.type === 'shape' && el.shape &&
+          registry.shapePaths[el.shape] === undefined && SHAPE_PATHS[el.shape] === undefined) {
+        issues.push(`shape "${el.shape}"`);
+      }
+      if (el.type === 'icon' && el.icon) {
+        const paths = el.iconStyle === 'outline'
+          ? (registry.iconOutlines || ICON_OUTLINES)
+          : (registry.icons || ICONS);
+        if (paths[el.icon] === undefined) issues.push(`icon "${el.icon}"`);
+      }
+      if (el.type === 'chart' && el.chart?.type && !chartPreset(el.chart.type, registry)) {
+        issues.push(`chart type "${el.chart.type}"`);
+      }
+    }
+    return [...new Set(issues)];
+  }
+
+  _assertExportable(pages) {
+    const problems = pages
+      .map((page, index) => ({ index, issues: this._missingCapabilities(page) }))
+      .filter((p) => p.issues.length);
+    if (!problems.length) return;
+    const detail = problems
+      .map((p) => `page ${p.index + 1}: ${p.issues.join(', ')}`)
+      .join('; ');
+    throw new Error(
+      `ezyreka: image export blocked by unresolved content (load the providing plugins or remove it): ${detail}`
+    );
+  }
+
   async exportImage(format = 'png', { scale = 2, transparent = false, pageIndex = null } = {}) {
     const page =
       pageIndex === null ? this.page : this.doc.pages[clamp(pageIndex, 0, this.doc.pages.length - 1)];
+    this._assertExportable([page]);
     const canvas = await this._renderPageToCanvas(page, scale, transparent && format === 'png');
     const dataURL = canvas.toDataURL(format === 'jpeg' ? 'image/jpeg' : 'image/png', 0.92);
     const ext = format === 'jpeg' ? 'jpg' : 'png';
@@ -1015,6 +1083,9 @@ export class Editor extends Emitter {
   }
 
   async exportAllPages(format = 'png', { scale = 2 } = {}) {
+    // Preflight every requested page before any download starts, so a blocked
+    // export never leaves a partial set of files behind.
+    this._assertExportable(this.doc.pages);
     for (let i = 0; i < this.doc.pages.length; i++) {
       const page = this.doc.pages[i];
       const canvas = await this._renderPageToCanvas(page, scale, false);
@@ -1036,6 +1107,9 @@ export class Editor extends Emitter {
   }
 
   destroy() {
+    // Plugins tear down first (reverse setup order), aborting pending work
+    // and releasing tracked listeners before editor infrastructure goes away.
+    this.plugins?.dispose();
     this.interactions?.destroy();
     closeMenus(this);
     // UI modules unsubscribe their editor listeners and release references.

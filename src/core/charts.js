@@ -36,7 +36,18 @@ export const CHART_PRESETS = [
   { type: 'stacked-area', label: 'Stacked area', group: 'Area charts', kind: 'stacked-area', multiSeries: true, validate: rejectOverflowingStacks }
 ];
 
-export const chartPreset = type => CHART_PRESETS.find(p => p.type === type) || null;
+// Preset lookup consults the per-editor registry first, then the global
+// table, so plugin chart types resolve per instance without global writes.
+export const chartPreset = (type, registry = null) =>
+  registry?.chartPresets?.[type] || CHART_PRESETS.find(p => p.type === type) || null;
+
+// All presets visible to an editor: globals plus instance registrations,
+// in stable order for the gallery and the type dropdown.
+export function chartPresetList(registry = null) {
+  return registry && registry.chartPresets
+    ? [...CHART_PRESETS, ...Object.values(registry.chartPresets)]
+    : [...CHART_PRESETS];
+}
 
 export function registerChartPreset(preset) {
   if (!preset || typeof preset.type !== 'string' || !preset.label) {
@@ -49,23 +60,25 @@ export function registerChartPreset(preset) {
   return preset;
 }
 
-export const isCircularChart = type => chartPreset(type)?.circular === true;
-export const isMultiSeriesChart = type => chartPreset(type)?.multiSeries === true;
+export const isCircularChart = (type, registry = null) => chartPreset(type, registry)?.circular === true;
+export const isMultiSeriesChart = (type, registry = null) => chartPreset(type, registry)?.multiSeries === true;
 export const chartColor = index => activeChartColors[index % activeChartColors.length];
 
-export function sampleChart(type = 'bar') {
+export function sampleChart(type = 'bar', registry = null) {
   return normalizeChart({
     type,
     categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-    series: (isMultiSeriesChart(type) ? [[24, 42, 35, 64, 80], [16, 28, 44, 52, 65], [10, 18, 24, 32, 48]] : [[24, 42, 35, 64, 80]])
+    series: (isMultiSeriesChart(type, registry) ? [[24, 42, 35, 64, 80], [16, 28, 44, 52, 65], [10, 18, 24, 32, 48]] : [[24, 42, 35, 64, 80]])
       .map((values, i) => ({ name: `Series ${i + 1}`, values, color: chartColor(i) }))
-  });
+  }, registry);
 }
 
 // Every call returns fresh arrays and objects, including when supplied by the API.
-export function normalizeChart(input = {}) {
+// Unknown chart types keep their identifier instead of coercing to 'bar', so
+// documents saved with plugins reload losslessly and render placeholders.
+export function normalizeChart(input = {}, registry = null) {
   input = input && typeof input === 'object' ? input : {};
-  const type = chartPreset(input.type) ? input.type : 'bar';
+  const type = typeof input.type === 'string' && input.type ? input.type : 'bar';
   const categories = Array.isArray(input.categories) ? input.categories.map(v => String(v ?? '')) : ['Jan', 'Feb', 'Mar'];
   const source = Array.isArray(input.series) ? input.series : [{ name: 'Series 1', values: [24, 42, 35] }];
   return {
@@ -76,7 +89,7 @@ export function normalizeChart(input = {}) {
     })),
     categoryColors: categories.map((_, i) => hexOr(input.categoryColors?.[i], chartColor(i))),
     title: String(input.title ?? ''),
-    showLegend: input.showLegend ?? (isMultiSeriesChart(type) || isCircularChart(type)),
+    showLegend: input.showLegend ?? (isMultiSeriesChart(type, registry) || isCircularChart(type, registry)),
     showValues: input.showValues ?? false,
     showAxes: input.showAxes ?? true,
     showGrid: input.showGrid ?? true,
@@ -85,8 +98,8 @@ export function normalizeChart(input = {}) {
   };
 }
 
-export function validateChart(chart) {
-  chartPreset(chart.type)?.validate?.(chart);
+export function validateChart(chart, registry = null) {
+  chartPreset(chart.type, registry)?.validate?.(chart);
   return chart;
 }
 
@@ -119,9 +132,9 @@ export function parseChartPaste(text) {
 }
 
 // Row 0 contains headers; column 0 contains categories. The corner header is ignored.
-export function pasteChartData(chart, text, row, column) {
+export function pasteChartData(chart, text, row, column, registry = null) {
   const cells = parseChartPaste(text);
-  const next = normalizeChart(chart);
+  const next = normalizeChart(chart, registry);
   const rowCount = Math.max(next.categories.length, row + cells.length - 1);
   const seriesCount = Math.max(next.series.length, column + cells[0].length - 1);
   while (next.categories.length < rowCount) next.categories.push(`Item ${next.categories.length + 1}`);
@@ -133,7 +146,7 @@ export function pasteChartData(chart, text, row, column) {
     else if (cc === 0) next.categories[rr - 1] = value;
     else next.series[cc - 1].values[rr - 1] = parseChartValue(value);
   }));
-  return validateChart(normalizeChart(next));
+  return validateChart(normalizeChart(next, registry), registry);
 }
 
 // Stacked positive and negative values have independent zero baselines.
@@ -148,12 +161,12 @@ export function chartStacks(chart) {
   }));
 }
 
-export function chartDomain(chart) {
+export function chartDomain(chart, registry = null) {
   let low = 0, high = 0;
   const add = value => { if (Number.isFinite(value)) { low = Math.min(low, value); high = Math.max(high, value); } };
-  const kind = chartPreset(chart.type)?.kind;
+  const kind = chartPreset(chart.type, registry)?.kind;
   if (kind === 'stacked-area') chartStacks(chart).forEach(s => s.forEach(v => { if (v) { add(v.start); add(v.end); } }));
-  else (isMultiSeriesChart(chart.type) ? chart.series : chart.series.slice(0, 1)).forEach(s => s.values.forEach(add));
+  else (isMultiSeriesChart(chart.type, registry) ? chart.series : chart.series.slice(0, 1)).forEach(s => s.values.forEach(add));
   if (low === high) return [0, 1];
   // Avoid rounding arithmetic overflowing for very large, but finite, inputs.
   const magnitude = Math.max(Math.abs(low), Math.abs(high));
