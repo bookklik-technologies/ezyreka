@@ -85,7 +85,7 @@ export class Editor extends Emitter {
     };
 
     injectStyles();
-    injectFonts(this.registry.googleFonts);
+    this._fontStylesheet = injectFonts(this.registry.googleFonts);
     this._buildDOM(target);
     this.setTheme(this.theme);
     // Custom history strategies (e.g. server-backed or memory-pruned) can be
@@ -135,11 +135,23 @@ export class Editor extends Emitter {
 
     this.zoomFit();
     if (options.initialDoc) this.loadJSON(options.initialDoc);
-    if (document.fonts?.ready) document.fonts.ready.then(() => this.markDirty());
     this._resizeObserver = new ResizeObserver(() => this.markDirty());
     this._resizeObserver.observe(this.viewport);
     target.__ezyreka = this;
-    this.emit('ready', this);
+    // The initial fonts.ready promise can settle before the stylesheet arrives.
+    // Redraw when its faces become available, then again when they finish loading.
+    this._fontSet = document.fonts;
+    this._onFontsChanged = () => {
+      if (target.__ezyreka === this) this.markDirty();
+    };
+    this._fontStylesheet.addEventListener('load', this._onFontsChanged);
+    this._fontSet?.addEventListener('loadingdone', this._onFontsChanged);
+    this._fontSet?.addEventListener('loadingerror', this._onFontsChanged);
+    this._fontSet?.ready?.then(this._onFontsChanged);
+    // Let callers subscribe immediately after `new Editor(...)` returns.
+    queueMicrotask(() => {
+      if (target.__ezyreka === this) this.emit('ready', this);
+    });
   }
 
   _buildDOM(target) {
@@ -747,7 +759,6 @@ export class Editor extends Emitter {
       const spec = /[:@]/.test(family) ? family : `${family}:wght@400;600;700`;
       if (!this.registry.googleFonts.includes(spec)) this.registry.googleFonts.push(spec);
       injectFonts(this.registry.googleFonts);
-      document.fonts?.ready?.then(() => this.markDirty());
     }
     this._refreshPanels('text');
     return name;
@@ -1107,6 +1118,9 @@ export class Editor extends Emitter {
   }
 
   destroy() {
+    this._fontStylesheet?.removeEventListener('load', this._onFontsChanged);
+    this._fontSet?.removeEventListener('loadingdone', this._onFontsChanged);
+    this._fontSet?.removeEventListener('loadingerror', this._onFontsChanged);
     // Plugins tear down first (reverse setup order), aborting pending work
     // and releasing tracked listeners before editor infrastructure goes away.
     this.plugins?.dispose();

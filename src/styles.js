@@ -32,6 +32,7 @@ export function injectFonts(families = GOOGLE_FONT_FAMILIES) {
     document.head.appendChild(link);
   }
   if (link.getAttribute('href') !== href) link.setAttribute('href', href);
+  return link;
 }
 
 const CSS = `

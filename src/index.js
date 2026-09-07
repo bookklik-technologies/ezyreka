@@ -8,9 +8,9 @@ function autoInit() {
     if (node.__ezyreka) return;
     const editor = new Editor({
       target: node,
-      width: parseInt(node.dataset.skWidth, 10) || 1080,
-      height: parseInt(node.dataset.skHeight, 10) || 1080,
-      name: node.dataset.skName || 'Untitled design'
+      width: parseInt(node.dataset.ezWidth, 10) || 1080,
+      height: parseInt(node.dataset.ezHeight, 10) || 1080,
+      name: node.dataset.ezName || 'Untitled design'
     });
     node.__ezyreka = editor;
   });

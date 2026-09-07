@@ -433,7 +433,29 @@ const readyPlugin = {
   id: 'p-ready2', version: '1.0.0', apiVersion: 1,
   setup(ctx) { ctx.once('ready', () => readyPluginFired.push('ready')); }
 };
-new Editor({ target: container('pl-ready2'), plugins: [readyPlugin] });
+const readyEditor = new Editor({ target: container('pl-ready2'), plugins: [readyPlugin] });
+let readyPayload;
+let readyCalls = 0;
+readyEditor.on('ready', (editor) => {
+  readyPayload = editor;
+  readyCalls++;
+  editor.addText({ text: 'Hello Ezyreka', x: 90, y: 420 });
+  editor.addElement({ type: 'rect', x: 340, y: 620, w: 400, h: 110 });
+});
+assert.deepEqual(readyPluginFired, [], 'ready waits until callers can subscribe');
+await Promise.resolve();
 assert.deepEqual(readyPluginFired, ['ready'], 'plugins can subscribe to ready during setup');
+assert.equal(readyPayload, readyEditor, 'post-construction ready listener receives the editor');
+assert.deepEqual(readyEditor.getElements().map((el) => el.type), ['text', 'rect'], 'ready listener populates the design');
+await Promise.resolve();
+assert.equal(readyCalls, 1, 'ready fires once');
+readyEditor.destroy();
+
+const destroyedBeforeReady = new Editor({ target: container('pl-destroy-before-ready') });
+destroyedBeforeReady.destroy();
+let destroyedReadyCalls = 0;
+destroyedBeforeReady.on('ready', () => destroyedReadyCalls++);
+await Promise.resolve();
+assert.equal(destroyedReadyCalls, 0, 'destroyed editor does not emit a pending ready event');
 
 console.log('All P1 plugin tests passed.');

@@ -9,7 +9,7 @@ off() // stop listening
 
 ## `ready`
 
-Fires once when the editor finishes initializing. Safe to call the API from here.
+Fires once in a microtask after the editor finishes initializing. Subscribe immediately after `new Editor(...)` returns. Safe to call the API from here. If the editor is destroyed before the microtask runs, the event is skipped.
 
 ```js
 editor.on('ready', () => {
