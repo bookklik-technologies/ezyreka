@@ -1,74 +1,2628 @@
-var Ezyreka=(()=>{var Ge=Object.defineProperty;var Jt=Object.getOwnPropertyDescriptor;var Xt=Object.getOwnPropertyNames;var ei=Object.prototype.hasOwnProperty;var ti=(i,e)=>{for(var t in e)Ge(i,t,{get:e[t],enumerable:!0})},ii=(i,e,t,r)=>{if(e&&typeof e=="object"||typeof e=="function")for(let o of Xt(e))!ei.call(i,o)&&o!==t&&Ge(i,o,{get:()=>e[o],enumerable:!(r=Jt(e,o))||r.enumerable});return i};var ri=i=>ii(Ge({},"__esModule",{value:!0}),i);var Di={};ti(Di,{Editor:()=>ye,default:()=>Ni,version:()=>Kt});var D=(i="el")=>i+"_"+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4),V=(i,e,t)=>Math.max(e,Math.min(t,i)),J=i=>i*Math.PI/180,pt=i=>i*180/Math.PI;function te(i,e,t,r,o){let n=Math.sin(o),a=Math.cos(o),s=i-t,l=e-r;return{x:t+s*a-l*n,y:r+s*n+l*a}}function Z(i){return JSON.parse(JSON.stringify(i))}function He(i){return new Promise((e,t)=>{let r=new FileReader;r.onload=()=>e(r.result),r.onerror=t,r.readAsDataURL(i)})}function qe(i,e){let t=document.createElement("a");t.href=i,t.download=e,document.body.appendChild(t),t.click(),t.remove()}function Ke(i,e){let t=URL.createObjectURL(i);qe(t,e),setTimeout(()=>URL.revokeObjectURL(t),2e3)}function f(i,e,t){let r=document.createElement(i);return e&&(r.className=e),t&&t.appendChild(r),r}function xe(i){return String(i).replace(/[&<>"']/g,e=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[e])}var Le=class{constructor(){this._listeners=new Map}on(e,t){return this._listeners.has(e)||this._listeners.set(e,new Set),this._listeners.get(e).add(t),()=>this.off(e,t)}once(e,t){let r=this.on(e,o=>{r(),t(o)});return r}off(e,t){this._listeners.get(e)?.delete(t)}emit(e,t){this._listeners.get(e)?.forEach(r=>{try{r(t)}catch(o){console.error("ezyreka listener error:",o)}}),this._listeners.get("*")?.forEach(r=>{try{r(e,t)}catch(o){console.error("ezyreka listener error:",o)}})}},ft=/^#([0-9a-f]{6})$/i,ut=/^#([0-9a-f]{3})$/i;function gt(i){return typeof i=="string"&&(ft.test(i)||ut.test(i))}function se(i){if(typeof i!="string")return null;if(ft.test(i))return i.toLowerCase();if(ut.test(i)){let[e,t,r]=i.slice(1);return("#"+e+e+t+t+r+r).toLowerCase()}return null}function B(i,e){return se(i)||e}var Ie=class{constructor(e=100){this.limit=e,this._undoStack=[],this._redoStack=[]}push(e){this._undoStack.push(Z(e)),this._undoStack.length>this.limit&&this._undoStack.shift(),this._redoStack.length=0}undo(e){return this._undoStack.length<2?null:(this._redoStack.push(Z(e)),this._undoStack.pop(),this._undoStack.pop())}redo(e){return this._redoStack.length?(this._undoStack.push(Z(e)),this._redoStack.pop()):null}canUndo(){return this._undoStack.length>=2}canRedo(){return this._redoStack.length>0}reset(){this._undoStack.length=0,this._redoStack.length=0}};var oi=["#477cf5","#aa87ef","#f6b966","#ffdf58","#41bda7","#ed759b"],Qe=oi;function bt(i){if(!Array.isArray(i))return;let e=i.map(t=>se(t)).filter(Boolean);e.length&&(Qe=e)}var mt=i=>{if(i.series[0]?.values.some(e=>e!==null&&e<0))throw new Error("Pie and donut charts need non-negative values in the first series.")},ni=i=>{if(Re(i).some(e=>e.some(t=>t&&!Number.isFinite(t.end))))throw new Error("Stacked totals are too large. Use smaller values.")},ie=[{type:"bar",label:"Bar",group:"Bar charts",kind:"bar"},{type:"row",label:"Row",group:"Bar charts",kind:"bar",horizontal:!0},{type:"grouped-bar",label:"Grouped bar",group:"Bar charts",kind:"bar",multiSeries:!0},{type:"line",label:"Line",group:"Line charts",kind:"line"},{type:"multi-line",label:"Multi-line",group:"Line charts",kind:"line",multiSeries:!0},{type:"pie",label:"Pie",group:"Pie and donut charts",kind:"circular",circular:!0,validate:mt},{type:"donut",label:"Donut",group:"Pie and donut charts",kind:"circular",circular:!0,validate:mt},{type:"area",label:"Area",group:"Area charts",kind:"area"},{type:"stacked-area",label:"Stacked area",group:"Area charts",kind:"stacked-area",multiSeries:!0,validate:ni}],re=i=>ie.find(e=>e.type===i)||null;function zt(i){if(!i||typeof i.type!="string"||!i.label)throw new Error("ezyreka: chart presets need { type, label }");if(re(i.type))throw new Error(`ezyreka: chart type "${i.type}" already exists`);return ie.push({group:"Other charts",...i}),i}var ce=i=>re(i)?.circular===!0,oe=i=>re(i)?.multiSeries===!0,le=i=>Qe[i%Qe.length];function ve(i="bar"){return j({type:i,categories:["Jan","Feb","Mar","Apr","May"],series:(oe(i)?[[24,42,35,64,80],[16,28,44,52,65],[10,18,24,32,48]]:[[24,42,35,64,80]]).map((e,t)=>({name:`Series ${t+1}`,values:e,color:le(t)}))})}function j(i={}){i=i&&typeof i=="object"?i:{};let e=re(i.type)?i.type:"bar",t=Array.isArray(i.categories)?i.categories.map(o=>String(o??"")):["Jan","Feb","Mar"],r=Array.isArray(i.series)?i.series:[{name:"Series 1",values:[24,42,35]}];return{type:e,categories:t,series:r.map((o,n)=>({name:String(o?.name??`Series ${n+1}`),color:B(o?.color,le(n)),values:t.map((a,s)=>Number.isFinite(o?.values?.[s])?o.values[s]:null)})),categoryColors:t.map((o,n)=>B(i.categoryColors?.[n],le(n))),title:String(i.title??""),showLegend:i.showLegend??(oe(e)||ce(e)),showValues:i.showValues??!1,showAxes:i.showAxes??!0,showGrid:i.showGrid??!0,fontSize:Number.isFinite(i.fontSize)?Math.max(8,Math.min(72,i.fontSize)):16,textColor:B(i.textColor,"#374151")}}function ne(i){return re(i.type)?.validate?.(i),i}function Je(i){if(String(i).trim()==="")return null;let e=Number(String(i).trim());if(!Number.isFinite(e))throw new Error("Enter a finite number, or leave the value blank.");return e}function ai(i){let e=[],t=[],r="",o=!1;i=String(i).replace(/\r\n?/g,`
-`);for(let n=0;n<i.length;n++){let a=i[n];a==='"'&&(o||r==="")?o&&i[n+1]==='"'?(r+='"',n++):o=!o:!o&&(a==="	"||a===`
-`)?(t.push(r),r="",a===`
-`&&(e.push(t),t=[])):r+=a}if(o)throw new Error("The pasted table contains an unclosed quote.");if((r!==""||t.length||!i.endsWith(`
-`))&&(t.push(r),e.push(t)),!e.length||e.some(n=>n.length!==e[0].length))throw new Error("Paste a rectangular table with the same number of columns in every row.");return e}function yt(i,e,t,r){let o=ai(e),n=j(i),a=Math.max(n.categories.length,t+o.length-1),s=Math.max(n.series.length,r+o[0].length-1);for(;n.categories.length<a;)n.categories.push(`Item ${n.categories.length+1}`);for(;n.series.length<s;)n.series.push({name:`Series ${n.series.length+1}`,values:[],color:le(n.series.length)});return n.series.forEach(l=>{for(;l.values.length<a;)l.values.push(null)}),o.forEach((l,c)=>l.forEach((d,h)=>{let g=t+c,u=r+h;g===0?u>0&&(n.series[u-1].name=d):u===0?n.categories[g-1]=d:n.series[u-1].values[g-1]=Je(d)})),ne(j(n))}function Re(i){let e=i.categories.map(()=>0),t=[...e];return i.series.map(r=>r.values.map((o,n)=>{if(o===null)return null;let a=o>=0?e:t,s=a[n];return a[n]+=o,{start:s,end:a[n]}}))}function xt(i){let e=0,t=0,r=c=>{Number.isFinite(c)&&(e=Math.min(e,c),t=Math.max(t,c))};if(re(i.type)?.kind==="stacked-area"?Re(i).forEach(c=>c.forEach(d=>{d&&(r(d.start),r(d.end))})):(oe(i.type)?i.series:i.series.slice(0,1)).forEach(c=>c.values.forEach(r)),e===t)return[0,1];let n=Math.max(Math.abs(e),Math.abs(t)),a=10**Math.floor(Math.log10(n))/2;if(!Number.isFinite(a)||a===0)return[e,t];let s=Math.floor(e/a)*a,l=Math.ceil(t/a)*a;return[Number.isFinite(s)?s:e,Number.isFinite(l)?l:t]}var we=(i,e=1)=>{let t=e===1?i:i*2;return Array.from({length:t},(r,o)=>{let n=-Math.PI/2+o*Math.PI*2/t,a=48*(o%2?e:1);return`${o?"L":"M"}${(50+Math.cos(n)*a).toFixed(3)} ${(50+Math.sin(n)*a).toFixed(3)}`}).join(" ")+"Z"},Xe=Array.from({length:32},(i,e)=>{let t=(e-.5)*Math.PI/16,r=e%4<2?10:8;return`${e?"L":"M"}${(12+Math.cos(t)*r).toFixed(3)} ${(12+Math.sin(t)*r).toFixed(3)}`}).join(" ")+"ZM16 12A4 4 0 1 1 8 12A4 4 0 1 1 16 12Z",K={ellipse:"M0 50A50 50 0 1 1 100 50A50 50 0 1 1 0 50Z",triangle:"M50 0L100 100L0 100Z",star:"M50 6L61 38L95 38L67 59L78 92L50 72L22 92L33 59L5 38L39 38Z",hexagon:"M26 8L74 8L96 50L74 92L26 92L4 50Z",diamond:"M50 0L100 50L50 100L0 50Z",heart:"M50 86C22 64 8 47 8 31C8 17 19 9 30 9C39 9 46 15 50 23C54 15 61 9 70 9C81 9 92 17 92 31C92 47 78 64 50 86Z",pentagon:we(5),octagon:we(8),"star-six":we(6,.52),"star-eight":we(8,.55),burst:we(16,.8),sparkle:"M50 2C55 34 66 45 98 50C66 55 55 66 50 98C45 66 34 55 2 50C34 45 45 34 50 2Z",arch:"M0 100V50A50 50 0 0 1 100 50V100Z",semicircle:"M0 100A50 100 0 0 1 100 100Z","quarter-circle":"M0 0A100 100 0 0 1 100 100H0Z",ring:"M50 0A50 50 0 1 1 50 100A50 50 0 1 1 50 0ZM50 22A28 28 0 1 0 50 78A28 28 0 1 0 50 22Z",crescent:"M78 4A50 50 0 1 0 78 96A48 48 0 0 1 78 4Z",droplet:"M50 0C42 15 10 48 10 65A40 35 0 0 0 90 65C90 48 58 15 50 0Z",leaf:"M3 97C-9 26 26-9 97 3C109 74 74 109 3 97Z",blob:"M51 2C76-5 101 17 98 43C95 66 83 97 57 99C28 102 0 84 2 58C4 33 24 9 51 2Z",pebble:"M16 15C36-3 72-6 89 16C106 38 99 76 79 92C57 108 21 98 7 75C-6 52 0 30 16 15Z","speech-bubble":"M18 4H82Q98 4 98 20V63Q98 79 82 79H42L16 98V79Q2 79 2 63V20Q2 4 18 4Z",ribbon:"M0 12H100L82 50L100 88H0L18 50Z",chevron:"M0 0H52L100 50L52 100H0L48 50Z",cross:"M34 0H66V34H100V66H66V100H34V66H0V34H34Z","arrow-block":"M0 32H58V0L100 50L58 100V68H0Z"},si=["ellipse","triangle","star","hexagon","diamond","heart"],vt=[{type:"rect",label:"Rectangle",props:{w:280,h:160},svg:'<rect x="8" y="26" width="84" height="48" />'},{type:"rect",label:"Pill",props:{w:280,h:140,radius:70},svg:'<rect x="8" y="29" width="84" height="42" rx="21" />'},{type:"ellipse",label:"Oval",props:{w:280,h:160},svg:'<ellipse cx="50" cy="50" rx="42" ry="24" />'},...Object.keys(K).filter(i=>!si.includes(i)).map(i=>({type:"shape",label:i.replace(/-/g," ").replace(/^./,e=>e.toUpperCase()),props:{shape:i,...i==="semicircle"?{w:240,h:120}:{}},svg:`<path d="${K[i]}" transform="${i==="semicircle"?"translate(8 29) scale(.84 .42)":"translate(8 8) scale(.84)"}" fill-rule="evenodd" />`}))],wt="M8.75 6.371A3.5 3.5 0 1 1 15.25 6.371A3.5 3.5 0 1 1 18.5 12A3.5 3.5 0 1 1 15.25 17.629A3.5 3.5 0 1 1 8.75 17.629A3.5 3.5 0 1 1 5.5 12A3.5 3.5 0 1 1 8.75 6.371ZM15 12A3 3 0 1 1 9 12A3 3 0 1 1 15 12Z",kt="M8 10C11 4.5 15.5 2 21 3C22 8.5 19.5 13 14 16V19L9 21.5L10 16L8 14L2.5 15L5 10Z",St="M18 8A2 2 0 1 1 14 8A2 2 0 1 1 18 8Z",Et="M6.5 17.5C4.5 16.5 2.5 19 2.5 21.5C5 21.5 7.5 19.5 6.5 17.5Z",Mt={bolt:"M13 2L3 14H10L9 22L21 9H14L15 2Z",sparkle:"M12 2C13 8 16 11 22 12C16 13 13 16 12 22C11 16 8 13 2 12C8 11 11 8 12 2Z",location:"M12 2A8 8 0 0 0 4 10C4 15 12 22 12 22S20 15 20 10A8 8 0 0 0 12 2ZM12 6A3 3 0 1 1 12 12A3 3 0 1 1 12 6Z",bookmark:"M6 2H18A1 1 0 0 1 19 3V22L12 17L5 22V3A1 1 0 0 1 6 2Z",flag:"M4 2H6V3C11 0 14 6 21 3V15C14 18 11 12 6 15V22H4Z",shield:"M12 2L21 6V11C21 17 17 20 12 22C7 20 3 17 3 11V6ZM10.5 15.5L17 9L15.5 7.5L10.5 12.5L8 10L6.5 11.5Z",trophy:"M7 2H17V4H22V8A5 5 0 0 1 17 13H16.6A5 5 0 0 1 13 16V19H17V22H7V19H11V16A5 5 0 0 1 7.4 13H7A5 5 0 0 1 2 8V4H7ZM4 6V8A3 3 0 0 0 7 11V6ZM17 6V11A3 3 0 0 0 20 8V6Z",crown:"M2 6L7 10L12 3L17 10L22 6L19 18H5ZM5 20H19V22H5Z",gift:"M12 5C8-2 1 3 5 7H2V12H11V7H13V12H22V7H19C23 3 16-2 12 5ZM10 7H7C3 7 5 2 8 5ZM14 7L16 5C19 2 21 7 17 7ZM3 14H11V22H3ZM13 14H21V22H13Z",bag:"M8 7V6A4 4 0 0 1 16 6V7H20L22 22H2L4 7ZM10 7H14V6A2 2 0 0 0 10 6Z",tag:"M3 2H12L22 12L12 22L2 12V3A1 1 0 0 1 3 2ZM7 5A2 2 0 1 0 7 9A2 2 0 1 0 7 5Z",play:"M6 3Q6 2 7 2.6L21 11Q22.5 12 21 13L7 21.4Q6 22 6 21Z",music:"M10 4L21 2V17A4 3 0 1 1 19 14.4V7L12 8.3V19A4 3 0 1 1 10 16.4Z",headphones:"M2 12A10 10 0 0 1 22 12V19A3 3 0 0 1 19 22H16V12H20A8 8 0 0 0 4 12H8V22H5A3 3 0 0 1 2 19Z",coffee:"M3 6H17V7H19A4 4 0 0 1 19 15H16.5A6 6 0 0 1 11 19H9A6 6 0 0 1 3 13ZM17 9V13H19A2 2 0 0 0 19 9ZM2 20H20V22H2ZM6 2H8V5H6ZM11 2H13V5H11Z",leaf:"M3 21C-1 7 7 0 22 2C24 17 16 25 3 21ZM6 18L17 7L15.6 5.6L4.6 16.6Z",flower:wt,globe:"M12 2A10 10 0 1 0 12 22A10 10 0 1 0 12 2ZM11 4.5C9.8 6 9.2 8.5 9 11H11ZM13 4.5V11H15C14.8 8.5 14.2 6 13 4.5ZM4.1 11H7C7.2 8.8 7.5 6.9 8.2 5A8 8 0 0 0 4.1 11ZM15.8 5C16.5 6.9 16.8 8.8 17 11H19.9A8 8 0 0 0 15.8 5ZM4.1 13A8 8 0 0 0 8.2 19C7.5 17.1 7.2 15.2 7 13ZM9 13C9.2 15.5 9.8 18 11 19.5V13ZM13 13V19.5C14.2 18 14.8 15.5 15 13ZM17 13C16.8 15.2 16.5 17.1 15.8 19A8 8 0 0 0 19.9 13Z",rocket:kt+St+Et,briefcase:"M8 3H16A2 2 0 0 1 18 5V7H21A1 1 0 0 1 22 8V13H14V11H10V13H2V8A1 1 0 0 1 3 7H6V5A2 2 0 0 1 8 3ZM8 5V7H16V5ZM2 15H10V17H14V15H22V21H2Z"},de={star:"M12 2L15.1 8.3L22 9.3L17 14.2L18.2 21.1L12 17.8L5.8 21.1L7 14.2L2 9.3L8.9 8.3Z",heart:"M20.8 4.6A5.5 5.5 0 0 0 12 6A5.5 5.5 0 0 0 3.2 4.6C-2 10 6 17 12 21C18 17 26 10 20.8 4.6Z",check:"M4 12L9 17L20 6","arrow-right":"M3 12H21M14 5L21 12L14 19",sun:"M16 12A4 4 0 1 1 8 12A4 4 0 1 1 16 12ZM12 2V4M12 20V22M2 12H4M20 12H22M5 5L6.5 6.5M17.5 17.5L19 19M5 19L6.5 17.5M17.5 6.5L19 5",moon:"M21 13.5A9 9 0 1 1 10.5 3A7 7 0 0 0 21 13.5Z",cloud:"M7 19A5 5 0 1 1 7 9A6 6 0 0 1 18.5 8.5A5.3 5.3 0 0 1 18 19Z",home:"M3 10L12 3L21 10M5 9V21H10V15H14V21H19V9",mail:"M4 4H20Q22 4 22 6V18Q22 20 20 20H4Q2 20 2 18V6Q2 4 4 4ZM2 6L12 13L22 6",phone:"M5 3H8L10 8L7.5 10A14 14 0 0 0 14 16.5L16 14L21 16V19Q21 22 18 21C10 20 4 14 3 6Q2 3 5 3Z",camera:"M8 6L10 3H14L16 6H20Q22 6 22 8V19Q22 21 20 21H4Q2 21 2 19V8Q2 6 4 6ZM16 13A4 4 0 1 1 8 13A4 4 0 1 1 16 13Z",user:"M16 7A4 4 0 1 1 8 7A4 4 0 1 1 16 7ZM4 21V19C4 12 20 12 20 19V21",calendar:"M5 4H19A2 2 0 0 1 21 6V20A2 2 0 0 1 19 22H5A2 2 0 0 1 3 20V6A2 2 0 0 1 5 4ZM8 2V6M16 2V6M3 9H21M6.5 12.5H7.5V13.5H6.5ZM11.5 12.5H12.5V13.5H11.5ZM16.5 12.5H17.5V13.5H16.5ZM6.5 17.5H7.5V18.5H6.5ZM11.5 17.5H12.5V18.5H11.5ZM16.5 17.5H17.5V18.5H16.5Z",clock:"M22 12A10 10 0 1 1 2 12A10 10 0 1 1 22 12ZM12 6V12L16 15",chat:"M5 3H19Q22 3 22 6V15Q22 18 19 18H8L3 22V6Q3 3 5 3ZM7 8H17M7 12H14",search:"M18 10A8 8 0 1 1 2 10A8 8 0 1 1 18 10ZM16 16L22 22",bell:"M18 8A6 6 0 0 0 6 8V12L3 17H21L18 12ZM9 21H15",gear:Xe,trash:"M3 6H21M8 6V3H16V6M5 6L6 21H18L19 6M10 10V17M14 10V17",chart:"M3 3V21H22M7 16V11M12 16V5M17 16V8",bolt:"M13 2L3 14H10L9 22L21 9H14L15 2Z",sparkle:"M12 2C13 8 16 11 22 12C16 13 13 16 12 22C11 16 8 13 2 12C8 11 11 8 12 2Z",location:"M20 10C20 15 12 22 12 22S4 15 4 10A8 8 0 1 1 20 10ZM15 10A3 3 0 1 1 9 10A3 3 0 1 1 15 10Z",bookmark:"M5 3H19V22L12 17L5 22Z",flag:"M4 22V3C10 0 15 6 21 3V15C15 18 10 12 4 15",shield:"M12 2L21 6V11C21 17 17 20 12 22C7 20 3 17 3 11V6ZM8 11L11 14L16 9",trophy:"M7 3H17V11A5 5 0 0 1 7 11ZM7 5H3V8Q3 12 7 12M17 5H21V8Q21 12 17 12M12 16V21M7 21H17",crown:"M2 5L7 10L12 3L17 10L22 5L19 18H5ZM5 22H19",gift:"M3 8H21V12H3ZM4 12V22H20V12M12 8V22M12 8C3 9 3 2 7 2C10 2 12 8 12 8C21 9 21 2 17 2C14 2 12 8 12 8Z",bag:"M4 7H20L22 22H2ZM8 9V6A4 4 0 0 1 16 6V9",tag:"M3 2H12L22 12L12 22L2 12V3ZM8 7A1 1 0 1 1 6 7A1 1 0 1 1 8 7Z",play:"M6 3L21 12L6 21Z",music:"M10 18V4L21 2V16M10 8L21 6M10 18A3 3 0 1 1 4 18A3 3 0 1 1 10 18ZM21 16A3 3 0 1 1 15 16A3 3 0 1 1 21 16Z",headphones:"M3 13V11A9 9 0 0 1 21 11V13M3 12H7V21H5Q3 21 3 19ZM21 12H17V21H19Q21 21 21 19Z",coffee:"M3 7H17V13A6 6 0 0 1 11 19H9A6 6 0 0 1 3 13ZM17 8H19A3 3 0 0 1 19 14H17M2 22H20M7 2V4M12 2V4",leaf:"M3 21C-1 7 7 0 22 2C24 17 16 25 3 21ZM3 21L16 8",flower:wt,globe:"M22 12A10 10 0 1 1 2 12A10 10 0 1 1 22 12ZM2 12H22M12 2C6 7 6 17 12 22C18 17 18 7 12 2Z",rocket:kt+St+Et+"M8 10L14 16",briefcase:"M3 7H21Q22 7 22 8V20Q22 21 21 21H3Q2 21 2 20V8Q2 7 3 7ZM8 7V3H16V7M2 13H10M14 13H22M10 11H14V16H10Z"};var p=(i,e,t,r,o,n,a={})=>{let s={fontSize:o,fontFamily:"Arial",fontWeight:400,lineHeight:1.15,...a};return{type:"text",text:i,x:e,y:t,w:r,color:n,h:Math.ceil(s.fontSize*s.lineHeight*i.split(`
-`).length+8),...s}},b=(i,e,t,r,o,n={})=>p(i,e,t,r,20,o,{fontWeight:700,letterSpacing:2,...n}),y=(i,e,t,r,o,n={})=>({type:"rect",x:i,y:e,w:t,h:r,fill:o,...n}),O=(i,e,t,r,o={})=>({type:"ellipse",x:i,y:e,w:t,h:t,fill:r,...o}),U=(i,e,t,r,o,n={})=>({type:"ellipse",x:i,y:e,w:t,h:r,fill:o,...n}),E=(i,e,t,r)=>y(i,e,t,2,r),N=(i,e,t,r,o,n={})=>({type:"icon",icon:i,x:e,y:t,w:r,h:r,fill:o,...n}),li=(i,e,t=135)=>({type:"gradient",from:i,to:e,angle:t}),M={fontFamily:"Georgia"},Y={fontWeight:700},_={fontFamily:"Impact"},ci={fontFamily:"Courier New"},w={align:"center"},F={align:"right"},L=(i,e,t,r,o,n,a)=>({name:i,category:e,format:t,page:{width:r,height:o,background:typeof n=="string"?{type:"solid",color:n}:n,elements:a}}),et=[L("Summer Social","Social","Square post",1080,1080,"#ff7048",[y(36,36,1008,1008,"none",{stroke:"#43251e",strokeWidth:2}),b("[YOUR BRAND] / SUMMER EDIT",70,72,890,"#43251e"),E(70,123,940,"#43251e"),p("SUNNY",60,166,950,220,"#fff7cc",_),p("SIDE UP.",65,392,950,180,"#43251e",_),O(718,630,250,"#ffde58"),N("sun",749,661,188,"#43251e"),p(`Long days.
-Little adventures.`,75,690,590,48,"#43251e",M),y(75,887,505,74,"#43251e",{radius:37}),b("MAKE A LITTLE SUNSHINE",98,912,460,"#fff7cc",{...w,fontSize:18}),p("01 / THE GOOD DAYS",730,978,280,18,"#43251e",ci)]),L("Words to Keep","Social","Quote card",1080,1080,"#f7f5ef",[y(0,0,28,1080,"#7460b0"),b("WORDS TO KEEP",85,70,700,"#53466f"),p("\u201C",65,162,280,240,"#bcaed7",M),p(`Make space
-for what
-matters.`,190,306,785,108,"#30293c",{...M,lineHeight:1.1}),y(192,708,280,12,"#cbbfeb"),p("A small reminder for a full life.",195,785,740,30,"#655e70"),E(85,933,910,"#c9c3d1"),b("[AUTHOR / YOUR NAME]",85,969,760,"#53466f",{fontSize:17}),N("star",932,960,40,"#7460b0")]),L("New Collection","Social","Portrait story",1080,1920,"#efe9df",[b("[YOUR STUDIO]",75,84,700,"#373a31"),b("VOL. 01",805,84,200,"#373a31",F),p(`Everyday
-objects.`,72,208,936,144,"#373a31",{...M,lineHeight:1.05}),y(75,565,930,795,"#b8c3aa",{radius:430}),O(623,634,235,"#e5d3a2"),U(220,1170,660,100,"#8c9d80"),y(305,939,270,272,"#a5513e",{radius:55}),U(305,905,270,90,"#bd7054"),U(329,923,222,48,"#613f32"),y(659,865,100,334,"#f4e7c9",{radius:40}),U(629,820,160,125,"#f4e7c9"),y(703,746,10,118,"#465941",{rotation:12}),U(712,751,105,42,"#465941",{rotation:-25}),b("THE NEW COLLECTION",78,1443,920,"#675b4b"),p(`Considered shapes.
-Made for your everyday.`,75,1510,930,46,"#373a31",M),E(75,1690,930,"#a7aa98"),p("[Launch date]  /  [Your website]",75,1730,830,27,"#373a31"),N("arrow-right",930,1725,58,"#373a31"),b("EXPLORE THE COLLECTION",75,1830,900,"#675b4b",{fontSize:18})]),L("Open Conversations","Social","Podcast cover",1080,1080,"#102d36",[y(48,48,984,984,"none",{stroke:"#5e7b80",strokeWidth:2}),b("[YOUR PODCAST NETWORK]",85,85,890,"#baf2d1"),p("OPEN",75,180,910,220,"#baf2d1",_),p("conversations",83,420,930,84,"#fff3de",M),...[70,145,220,110,270,170,95,210,140,60].map((i,e)=>y(95+e*52,705-i/2,26,i,"#baf2d1",{radius:13})),O(725,580,220,"#f18a65"),N("chat",780,635,110,"#102d36"),E(85,892,910,"#5e7b80"),p("Ideas worth listening to.",85,932,680,30,"#fff3de"),b("[HOST NAME]",735,936,245,"#baf2d1",{...F,fontSize:18})]),L("Studio Pitch","Business","Presentation",1920,1080,"#f4f2ec",[y(1250,0,670,1080,"#203fba"),y(1345,130,475,475,"none",{stroke:"#c8d1ff",strokeWidth:3}),O(1345,130,475,"#c8d1ff"),y(1582,368,238,237,"#203fba"),y(1345,650,475,210,"#b6e9c0"),p("N",1390,661,390,155,"#203fba",{..._,...w}),b("[YOUR STUDIO]",95,88,1030,"#203fba",{fontSize:26}),p(`Ideas into
-impact.`,88,250,1110,164,"#202633",{...M,lineHeight:1.05}),p("A clear vision for your next chapter.",98,650,1030,39,"#5c626d"),E(98,839,1040,"#b8bcc4"),b("STRATEGY / IDENTITY / EXPERIENCE",98,885,1060,"#203fba"),p("[Client name]  /  [Presentation date]",98,961,1060,25,"#5c626d"),b("01",1700,945,115,"#ffffff",{...F,fontSize:32})]),L("Studio Business Card","Business","Business card",1050,600,"#202b27",[y(32,32,986,536,"none",{stroke:"#728b77",strokeWidth:2}),O(68,65,92,"#d6eea6"),N("star",90,87,48,"#202b27"),b("[YOUR STUDIO]",195,97,760,"#d6eea6",{fontSize:17}),p("[Your Name]",65,222,920,74,"#f8f4e9",M),p("[Your role / specialty]",70,328,880,26,"#a8b9aa"),E(70,420,910,"#728b77"),p(`[Email address]
-[Your website]`,70,455,560,23,"#f8f4e9",{lineHeight:1.5}),p("[Phone number]",650,485,330,23,"#d6eea6",F)]),L("Project Proposal","Business","Document cover",1240,1754,"#f1f3f6",[y(0,0,1240,250,"#172c49"),b("[YOUR COMPANY]",90,100,900,"#ffffff",{fontSize:28}),b("PROPOSAL / [YEAR]",90,333,1060,"#345fea"),p(`A plan for
-what\u2019s next.`,82,449,1080,132,"#172c49",{...M,lineHeight:1.07}),p("[Project title]",90,795,1060,42,"#52617a"),y(90,953,1060,309,"#345fea"),y(125,988,240,239,"#9fb7ff"),y(385,1080,300,147,"#dce5ff"),y(705,1160,410,67,"#ffffff"),b("PROJECT PROPOSAL",90,1365,1060,"#345fea"),E(90,1430,1060,"#aab4c4"),b("PREPARED FOR",90,1480,510,"#52617a",{fontSize:17}),b("PREPARED BY",660,1480,490,"#52617a",{fontSize:17}),p("[Client name]",90,1530,510,32,"#172c49"),p("[Team name]",660,1530,490,32,"#172c49"),p("[Date]  /  [Contact email]",90,1650,1060,25,"#52617a")]),L("Certificate of Completion","Business","Certificate",1600,1130,"#faf7ed",[y(0,0,215,1130,"#233c36"),E(275,65,1250,"#b69a57"),y(275,1020,1250,3,"#b69a57"),O(44,390,128,"#b69a57"),N("star",77,423,62,"#faf7ed"),y(74,510,27,145,"#b69a57"),y(118,510,27,145,"#b69a57"),b("[ISSUING ORGANIZATION]",300,125,1190,"#233c36",{...w,fontSize:23}),p("Certificate",290,237,1220,120,"#233c36",{...M,...w}),b("OF COMPLETION",300,397,1190,"#8a713a",{...w,fontSize:23}),p("This certificate is presented to",300,500,1190,29,"#63726a",w),p("[Participant Name]",305,578,1180,68,"#233c36",{...M,...w}),E(430,686,930,"#b69a57"),p("For completing [Course or Workshop Name]",310,741,1180,30,"#63726a",w),E(360,917,370,"#63726a"),E(1060,917,370,"#63726a"),p("[Date]",360,940,370,24,"#233c36",w),p("[Signature / Name]",1060,940,370,24,"#233c36",w)]),L("Weekend Sale","Events","Sale poster",1080,1350,"#efefdf",[b("[YOUR BRAND] / LIMITED-TIME OFFERS",65,65,950,"#252525",{fontSize:19}),E(65,116,950,"#252525"),p("WEEKEND",55,182,980,163,"#252525",_),p("SALE",52,354,976,325,"#e14432",_),y(65,745,950,216,"#e14432"),b("YOUR OFFER",95,779,700,"#fff8e4"),p("[Discount / deal]",94,827,880,69,"#fff8e4",Y),p("Good finds. A fresh reason to shop.",65,1020,950,34,"#252525",M),E(65,1125,950,"#252525"),p(`[Start date] \u2014 [End date]
-[Store address / website]`,65,1171,820,28,"#252525",{lineHeight:1.5}),N("arrow-right",935,1195,60,"#e14432")]),L("After Hours","Events","Music flyer",1080,1350,"#151320",[b("[PROMOTER] PRESENTS",65,65,800,"#f9b7dc"),...[0,1,2,3,4].map(i=>U(130+i*67,185+i*50,700-i*90,480-i*52,"none",{stroke:["#6254ed","#8577ff","#c298ff","#edabec","#ffd5b4"][i],strokeWidth:22,rotation:-22})),p("AFTER",62,732,950,176,"#fcebd9",_),p("HOURS",63,905,950,176,"#f9b7dc",_),E(65,1133,950,"#8577ff"),p(`[Artist / lineup]
-[Date] / [Time] / [Venue]`,65,1170,810,29,"#fcebd9",{lineHeight:1.5}),N("star",927,1178,72,"#f9b7dc")]),L("Make Something","Events","Workshop invite",1080,1350,"#f7eecf",[y(0,0,1080,105,"#2b4791"),b("[YOUR CREATIVE CLUB] PRESENTS",65,37,950,"#f7eecf"),p("MAKE",63,174,950,202,"#2b4791",_),p("something",65,414,950,116,"#d95137",{...M,italic:!0}),p("YOUR OWN.",65,564,950,137,"#2b4791",_),y(80,778,200,200,"#e7b730",{rotation:-8}),N("star",369,770,230,"#d95137"),O(715,786,195,"#2b4791"),O(775,846,75,"#f7eecf"),E(65,1065,950,"#2b4791"),p("[Workshop title]",65,1102,950,37,"#2b4791",Y),p(`[Date & time]  /  [Venue]
-Reserve your spot: [Website / email]`,65,1175,950,27,"#2b4791",{lineHeight:1.5})]),L("Together Forever","Events","Wedding invitation",1080,1500,"#ede8df",[y(65,65,950,1370,"#f9f6ee",{radius:440}),U(470,140,140,190,"none",{stroke:"#8a7756",strokeWidth:3}),N("heart",510,205,60,"#8a7756"),b("TOGETHER WITH THEIR FAMILIES",160,402,760,"#675e4d",{...w,fontSize:17}),p("[Name]",140,527,800,113,"#465443",{...M,...w}),p("&",140,688,800,80,"#8a7756",{...M,...w,italic:!0}),p("[Name]",140,810,800,113,"#465443",{...M,...w}),p("invite you to celebrate their wedding",150,984,780,27,"#675e4d",w),E(407,1076,266,"#a99b80"),b("[DAY / MONTH / YEAR]",180,1130,720,"#465443",{...w,fontSize:21}),p(`[Time]  /  [Venue]
-[City]`,200,1203,680,27,"#675e4d",{...w,lineHeight:1.5}),p("RSVP: [Contact]",240,1330,600,22,"#675e4d",w)]),L("Coffee & Company","Lifestyle","Caf\xE9 post",1080,1080,"#f3dfb7",[y(35,35,1010,1010,"none",{stroke:"#743c29",strokeWidth:3}),b("[YOUR CAF\xC9]",75,73,930,"#743c29",w),p("Coffee first.",68,180,940,125,"#743c29",{...M,...w}),p("Good company always.",85,344,910,38,"#743c29",{...M,...w,italic:!0}),U(239,760,600,90,"#d2ad7c"),O(683,550,180,"none",{stroke:"#466056",strokeWidth:38}),y(292,530,438,261,"#466056",{radius:90}),U(292,504,438,92,"#658073"),U(318,521,386,54,"#382d24"),p("c.",430,612,180,104,"#f3dfb7",{...M,...w,italic:!0}),E(85,903,910,"#b1845f"),p("[Opening hours]  /  [Your address]",85,949,910,27,"#743c29",w)]),L("Seasonal Table","Lifestyle","Restaurant menu",1080,1500,"#f9f3e5",[y(35,35,1010,1430,"none",{stroke:"#354e3c",strokeWidth:2}),b("[YOUR RESTAURANT]",85,84,910,"#354e3c",w),p(`Seasonal
-table`,85,173,910,107,"#354e3c",{...M,...w,lineHeight:1.03}),E(85,455,910,"#354e3c"),...[["TO START","Garden salad","Roasted tomato soup"],["THE MAIN EVENT","Wild mushroom pasta","Herb-roasted vegetables"],["SOMETHING SWEET","Lemon & almond cake","Seasonal fruit bowl"]].flatMap(([i,e,t],r)=>{let o=500+r*245;return[b(i,85,o,910,"#a05b3e"),p(e,85,o+58,715,34,"#354e3c",M),p("[Price]",810,o+63,185,25,"#354e3c",F),p(t,85,o+124,715,34,"#354e3c",M),p("[Price]",810,o+129,185,25,"#354e3c",F)]}),E(85,1265,910,"#354e3c"),p("Fresh ingredients. Thoughtfully prepared.",85,1310,910,28,"#354e3c",{...M,...w,italic:!0}),p("[Address]  /  [Contact]",85,1389,910,22,"#68745e",w)]),L("A Moment of Calm","Lifestyle","Wellness post",1080,1080,"#dce5dd",[y(580,45,455,990,"#a9bdac",{radius:225}),O(657,161,300,"#f1e6c9"),U(640,790,335,118,"#45665d"),U(683,688,250,117,"#739080"),U(729,601,159,100,"#cad2b9"),b("[YOUR WELLNESS STUDIO]",65,73,930,"#304e46",{fontSize:18}),p(`A softer
-start.`,62,281,640,111,"#304e46",{...M,lineHeight:1.08}),p(`Pause. Breathe.
-Come back to yourself.`,67,596,480,33,"#304e46",{lineHeight:1.4}),E(67,813,405,"#839b87"),p(`[Class / session]
-[Date & time]`,67,853,465,27,"#304e46",{lineHeight:1.5}),b("FIND YOUR MOMENT",67,986,450,"#304e46",{fontSize:17})]),L("Take the Scenic Route","Lifestyle","Travel poster",1080,1350,"#f6e3bb",[b("[DESTINATION / TRAVEL BRAND]",65,65,950,"#284c46",w),p("THE SCENIC",62,171,956,136,"#284c46",{..._,...w}),p("ROUTE",65,309,950,216,"#284c46",{..._,...w}),y(65,590,950,470,"#b2c9bb"),O(717,630,155,"#ec8c46"),{type:"triangle",x:75,y:670,w:640,h:390,fill:"#668876"},{type:"triangle",x:425,y:756,w:570,h:304,fill:"#284c46"},y(65,990,950,70,"#284c46"),p("Less hurry. More wonder.",65,1115,950,42,"#284c46",{...M,...w,italic:!0}),E(65,1210,950,"#9ca784"),p("[Travel dates]  /  [Booking website]",65,1252,950,27,"#284c46",w)]),L("Product Launch","Social","Product launch announcement",1080,1080,li("#4134b6","#ba4b9b"),[b("[YOUR BRAND]",70,65,760,"#ffffff"),y(778,60,232,52,"#d7ff85",{radius:26}),b("JUST DROPPED",788,77,212,"#28254b",{...w,fontSize:15}),p(`Meet your
-next favourite.`,65,204,940,104,"#ffffff",{...Y,lineHeight:1.08}),O(665,565,300,"none",{stroke:"#d7ff85",strokeWidth:3}),O(715,615,200,"#d7ff85"),N("star",759,659,112,"#4134b6"),b("INTRODUCING",70,603,555,"#e7d8ff"),p(`[Product
-name]`,65,656,590,75,"#ffffff",M),E(70,905,940,"#d1a7df"),p("[Launch date]  /  [Website]",70,957,855,28,"#ffffff"),N("arrow-right",943,945,60,"#d7ff85")]),L("Customer Spotlight","Social","Customer testimonial",1080,1080,"#f8f7f2",[b("[YOUR BRAND]",80,70,920,"#353b37"),E(80,132,920,"#c4cbc3"),b("CUSTOMER SPOTLIGHT",80,204,920,"#527961"),p("\u201C",65,278,250,194,"#adc7ae",M),p(`[Share a short
-customer quote
-here.]`,85,435,910,72,"#353b37",{...M,lineHeight:1.16}),y(80,808,8,120,"#527961"),p("[Customer name]",120,815,850,33,"#353b37",Y),p("[Role / company]",120,872,850,27,"#687269"),p("[Your website]",80,990,920,22,"#687269")]),L("We\u2019re Hiring","Business","Recruitment poster",1080,1350,"#e5edff",[b("[YOUR COMPANY]",65,67,760,"#17316b"),N("arrow-right",904,60,100,"#335ee8",{rotation:-45}),p(`GOOD PEOPLE.
-BIG IDEAS.`,60,222,960,109,"#17316b",_),y(65,540,950,142,"#335ee8"),p("WE\u2019RE HIRING",90,563,900,82,"#ffffff",_),b("OPEN POSITION",65,754,950,"#335ee8"),p("[Job title]",65,807,950,64,"#17316b",Y),p("[Location]  /  [Work arrangement]",65,909,950,29,"#4c6189"),E(65,1030,950,"#a5b5d8"),b("LET\u2019S BUILD SOMETHING TOGETHER",65,1077,950,"#17316b",{fontSize:19}),p(`Apply: [Email / careers URL]
-Applications close: [Date]`,65,1142,950,28,"#17316b",{lineHeight:1.6})]),L("Services & Pricing","Business","Service pricing sheet",1080,1500,"#f3eee6",[b("[YOUR BUSINESS]",75,74,930,"#443b33"),p(`Good work.
-Clear pricing.`,70,195,940,97,"#443b33",{...M,lineHeight:1.06}),p("[A short introduction to your services]",75,462,930,28,"#75695c"),...["01","02","03"].flatMap((i,e)=>{let t=570+e*232;return[E(75,t,930,"#baad9b"),b(i,75,t+42,90,"#9a6546"),p("[Service name]",195,t+34,555,39,"#443b33",M),p("[Price]",780,t+43,225,31,"#443b33",F),p("[What\u2019s included in this service]",195,t+111,790,27,"#75695c")]}),y(75,1280,930,145,"#443b33"),b("LET\u2019S FIND THE RIGHT FIT",105,1312,870,"#f3eee6",{fontSize:18}),p("[Contact email]  /  [Website]",105,1363,870,27,"#f3eee6")]),L("Simple Invoice","Business","Invoice document",1240,1754,"#ffffff",[y(75,75,60,60,"#242424"),b("[YOUR BUSINESS]",165,95,940,"#242424",{fontSize:26}),p("INVOICE",75,235,1090,112,"#242424",Y),E(75,403,1090,"#242424"),b("BILL TO",75,454,510,"#686868",{fontSize:18}),p(`[Client name]
-[Client address]
-[Client email]`,75,502,530,28,"#242424",{lineHeight:1.6}),p(`Invoice: [Number]
-Issued: [Date]
-Due: [Date]`,735,502,430,28,"#242424",{...F,lineHeight:1.6}),y(75,718,1090,72,"#242424"),b("DESCRIPTION",100,743,540,"#ffffff",{fontSize:18}),b("QTY",660,743,100,"#ffffff",{...F,fontSize:18}),b("RATE",800,743,145,"#ffffff",{...F,fontSize:18}),b("AMOUNT",975,743,165,"#ffffff",{...F,fontSize:18}),...[0,1,2].flatMap(i=>{let e=832+i*100;return[p("[Service / item]",100,e,530,28,"#242424"),p("[Qty]",655,e,105,25,"#242424",F),p("[Rate]",800,e,145,25,"#242424",F),p("[Amount]",975,e,165,25,"#242424",F),E(75,e+65,1090,"#dedede")]}),p(`Subtotal
-Tax`,735,1160,190,26,"#686868",{lineHeight:1.8}),p(`[Amount]
-[Amount]`,955,1160,185,26,"#242424",{...F,lineHeight:1.8}),y(715,1282,450,84,"#f0f0ee"),b("TOTAL",738,1312,185,"#242424"),p("[Amount]",945,1309,195,28,"#242424",{...Y,...F}),b("PAYMENT DETAILS",75,1440,1090,"#686868",{fontSize:18}),p(`[Payment instructions]
-[Currency / payment terms]`,75,1487,1090,27,"#242424",{lineHeight:1.5}),E(75,1635,1090,"#dedede"),p("[Business email]  /  [Phone number]",75,1665,1090,24,"#686868")]),L("Birthday Celebration","Events","Birthday invitation",1080,1500,"#f8c8d5",[...[[95,145,-20],[900,228,23],[90,1050,15],[923,956,-15]].map(([i,e,t])=>y(i,e,22,72,"#bb443d",{rotation:t})),O(845,520,65,"#f4a92f"),O(138,660,40,"#6d4aa1"),N("star",825,750,96,"#6d4aa1",{rotation:18}),b("YOU\u2019RE INVITED",155,90,770,"#65394e",w),p(`Let\u2019s
-celebrate!`,135,213,810,110,"#65394e",{...M,...w,lineHeight:1.06}),p("[Age]",195,530,690,244,"#bb443d",{..._,...w}),p("[Name]\u2019s birthday",145,870,790,55,"#65394e",{...M,...w}),y(170,1010,740,350,"#fff2d5",{radius:32}),b("[DAY / MONTH / YEAR]",205,1060,670,"#65394e",{...w,fontSize:23}),p(`[Time]  /  [Venue]
-[Address]`,205,1130,670,29,"#65394e",{...w,lineHeight:1.6}),p("RSVP: [Contact]",205,1270,670,26,"#65394e",w),b("BRING YOUR PARTY SPIRIT",150,1420,780,"#65394e",{...w,fontSize:17})]),L("Live Webinar","Events","Webinar invitation",1080,1500,"#121d31",[...[0,1,2,3,4].map(i=>y(700+i*63,0,1,495,"#2c3b55")),...[0,1,2,3,4].map(i=>E(700,65+i*82,315,"#2c3b55")),y(65,65,257,60,"#b7f28f",{radius:30}),b("LIVE WEBINAR",82,86,223,"#121d31",{...w,fontSize:17}),p(`[Webinar
-title]`,60,235,940,122,"#f0f4fc",{...Y,lineHeight:1.08}),p("Fresh perspectives. Practical ideas.",65,565,950,34,"#aebed7"),E(65,673,950,"#41516b"),b("YOUR SPEAKER",65,730,740,"#b7f28f"),p("[Speaker name]",65,785,760,54,"#f0f4fc",M),p("[Role / organization]",65,865,760,29,"#aebed7"),N("chat",869,776,116,"#b7f28f",{iconStyle:"outline"}),b("ON THE AGENDA",65,993,950,"#b7f28f"),p("[Topic one]  /  [Topic two]  /  Q&A",65,1048,950,29,"#f0f4fc"),p("[Date]  /  [Time & timezone]",65,1166,950,32,"#f0f4fc"),y(65,1290,950,135,"#b7f28f",{radius:12}),b("SAVE YOUR SEAT",100,1320,760,"#121d31"),p("[Registration URL]",100,1366,760,27,"#121d31"),N("arrow-right",898,1330,70,"#121d31")]),L("Recipe Card","Lifestyle","Recipe card",1080,1500,"#f9f0de",[b("FROM THE KITCHEN OF [NAME]",70,70,940,"#6f492f",{fontSize:18}),p(`[Recipe
-name]`,65,175,930,110,"#6f492f",{...M,lineHeight:1.06}),E(70,476,940,"#b99b76"),p("Prep: [Time]   /   Cook: [Time]   /   Serves: [#]",70,515,940,25,"#6f492f"),y(70,619,352,594,"#ebdfbf",{radius:12}),b("INGREDIENTS",97,656,295,"#6f492f",{fontSize:17}),...[0,1,2,3,4].flatMap(i=>[O(99,735+i*82,8,"#8c703c"),p("[Qty / ingredient]",122,723+i*82,273,24,"#6f492f")]),b("THE METHOD",480,656,530,"#6f492f"),...[0,1,2].flatMap(i=>[b(`0${i+1}`,480,732+i*158,60,"#a7613f"),p(`[Add a short
-instruction here.]`,555,725+i*158,455,28,"#6f492f",{lineHeight:1.4})]),E(70,1290,940,"#b99b76"),p("Kitchen notes",70,1327,940,34,"#6f492f",{...M,italic:!0}),p("[A serving suggestion or useful tip]",70,1390,940,25,"#8c7359")]),L("Weekly Planner","Lifestyle","Weekly planner",1600,1130,"#f5f3ed",[p("A little room for everything.",60,60,1480,71,"#3d514d",M),b("WEEK OF [DATE]",65,181,1465,"#73847a",{fontSize:22}),...["MON","TUE","WED","THU","FRI","SAT","SUN"].flatMap((i,e)=>{let t=65+e*211;return[y(t,275,195,535,"#ffffff",{radius:10}),y(t,275,195,64,e>4?"#d8dfca":"#dbe7e1",{radius:10}),b(i,t+16,297,163,"#3d514d",{...w,fontSize:17}),p("[Plans]",t+16,370,163,24,"#73847a"),...[0,1,2,3,4].map(r=>E(t+16,447+r*69,163,"#e1e6df"))]}),b("THIS WEEK\u2019S PRIORITY",65,879,640,"#3d514d"),p("[One thing to focus on]",65,935,640,29,"#73847a"),b("NOTES & LITTLE REMINDERS",820,879,715,"#3d514d"),p("[Your notes]",820,935,715,29,"#73847a"),E(65,1035,650,"#c9d2c8"),E(820,1035,715,"#c9d2c8")]),L("Fitness Tracker","Lifestyle","Weekly fitness tracker",1600,1130,"#edf1e8",[y(0,0,1600,250,"#253e36"),p("SHOW UP FOR YOU.",60,48,1480,99,"#d5f589",_),b("WEEK OF [DATE] / YOUR PACE. YOUR PROGRESS.",65,183,1470,"#edf1e8",{fontSize:21}),y(65,314,1470,62,"#d5f589"),b("ACTIVITY",90,335,450,"#253e36",{fontSize:18}),...["M","T","W","T","F","S","S"].map((i,e)=>b(i,580+e*132,335,110,"#253e36",{...w,fontSize:18})),...["[Activity one]","[Activity two]","[Activity three]","[Activity four]"].flatMap((i,e)=>{let t=412+e*112;return[p(i,90,t+9,450,32,"#253e36"),...[0,1,2,3,4,5,6].map(r=>y(613+r*132,t,44,44,"none",{stroke:"#8da395",strokeWidth:2,radius:7})),E(65,t+78,1470,"#c9d3c7")]}),b("MY WEEKLY GOAL",65,915,660,"#253e36"),p("[A goal that works for you]",65,972,660,31,"#61776c"),b("HOW I FEEL",875,915,660,"#253e36"),p("[Energy, wins & reflections]",875,972,660,31,"#61776c")]),L("Lesson Plan","Education","Lesson plan worksheet",1240,1754,"#fbfaf6",[y(0,0,1240,245,"#294c68"),b("[SCHOOL / TEACHER]",75,62,1090,"#d8ebeb",{fontSize:22}),p("Lesson plan",70,117,1100,80,"#ffffff",M),p("Subject: [Subject]   /   Grade: [Grade]",75,304,1090,29,"#294c68"),p("Date: [Date]   /   Duration: [Time]",75,365,1090,29,"#294c68"),...[["01","LEARNING OBJECTIVES","[What will students know or be able to do?]",470,240],["02","MATERIALS & PREPARATION","[Resources, equipment, and setup]",745,225],["03","ACTIVITIES & TIMING","[Warm-up]  /  [Main activity]  /  [Wrap-up]",1005,300],["04","ASSESSMENT & REFLECTION","[How will you check understanding?]",1340,285]].flatMap(([i,e,t,r,o])=>[y(75,r,1090,o,"#eef2ef",{radius:8}),b(i,102,r+30,65,"#668b8b"),b(e,182,r+30,945,"#294c68",{fontSize:21}),p(t,105,r+91,1030,27,"#617a83"),E(105,r+o-42,1030,"#c8d7d5")]),p("[Additional notes / follow-up]",75,1672,1090,24,"#617a83")]),L("Study Planner","Education","Study schedule planner",1240,1754,"#efedf6",[b("ONE SESSION AT A TIME",75,70,1090,"#75628e",{fontSize:22}),p(`Make room
-to learn.`,70,174,1090,115,"#40334f",{...M,lineHeight:1.05}),p("Week of [Date]  /  [Subject or course]",75,486,1090,30,"#75628e"),y(75,584,1090,186,"#dcd4ed",{radius:16}),b("MY TOP PRIORITY",110,622,1020,"#40334f"),p("[What do you want to understand?]",110,682,1020,33,"#40334f"),b("WHEN",95,843,255,"#75628e"),b("SUBJECT / TASK",382,843,575,"#75628e"),b("DONE",1022,843,125,"#75628e",w),...[0,1,2,3,4].flatMap(i=>{let e=903+i*109;return[E(75,e,1090,"#c4b9d5"),p("[Day / time]",95,e+35,265,27,"#40334f"),p("[Topic to study]",382,e+35,580,29,"#40334f"),y(1067,e+34,34,34,"none",{stroke:"#9585ac",strokeWidth:2,radius:5})]}),E(75,1448,1090,"#c4b9d5"),b("WHAT I LEARNED",75,1514,1090,"#75628e"),p("[Key takeaways / questions to revisit]",75,1579,1090,30,"#40334f"),E(75,1675,1090,"#c4b9d5")]),L("Classroom Rules","Education","Classroom rules poster",1080,1350,"#fff7df",[b("[CLASS / SCHOOL NAME]",65,65,950,"#243d68",w),p(`OUR CLASS,
-OUR KIND OF COOL.`,65,159,950,90,"#243d68",{..._,...w,lineHeight:1.1}),...[["Listen with care","Let others finish their thoughts.","chat","#f6d776"],["Be kind","Use words that help and include.","heart","#f2b9b0"],["Stay curious","Ask questions. Try new things.","star","#bfccec"],["Look after our space","Leave it ready for the next person.","home","#c2dabb"],["Give it a go","Progress starts with trying.","check","#f0cd9d"]].flatMap(([i,e,t,r],o)=>{let n=455+o*150;return[y(65,n,950,128,r,{radius:16}),p(`0${o+1}`,89,n+38,90,38,"#243d68",Y),p(i,208,n+25,675,33,"#243d68",Y),p(e,208,n+78,675,23,"#243d68"),N(t,923,n+45,43,"#243d68")]}),b("WE LEARN BETTER TOGETHER",65,1270,950,"#243d68",{...w,fontSize:19})]),L("Volunteer Call","Community","Volunteer recruitment poster",1080,1350,"#f2efdf",[b("[ORGANIZATION / COMMUNITY GROUP]",65,65,950,"#31584c",{fontSize:18}),p(`A little time.
-A lot of good.`,60,168,960,109,"#31584c",{...M,lineHeight:1.05}),O(115,525,150,"#d6906d"),O(465,500,150,"#caab75"),O(815,525,150,"#9e725b"),y(75,691,230,163,"#e1b14f",{radius:70}),y(425,666,230,188,"#89ab94",{radius:70}),y(775,691,230,163,"#d88c6e",{radius:70}),N("heart",492,710,95,"#31584c"),y(65,910,950,85,"#31584c"),b("VOLUNTEERS WELCOME",90,940,900,"#f2efdf",{...w,fontSize:23}),p("[Activity / cause]",65,1036,950,41,"#31584c",M),p("[Date & time]  /  [Location]",65,1114,950,29,"#617266"),E(65,1200,950,"#acb6a6"),p("Join us: [Signup URL / contact]",65,1240,950,28,"#31584c",Y)]),L("Fundraiser","Community","Fundraiser announcement",1080,1350,"#922f3f",[b("[ORGANIZATION NAME]",65,65,950,"#ffe9d3"),p(`TOGETHER,
-WE CAN.`,60,176,960,158,"#ffe9d3",_),p("Help support [cause].",65,572,950,48,"#ffe9d3",M),y(65,704,950,213,"#ffe9d3",{radius:16}),b("OUR FUNDRAISING GOAL",100,742,800,"#922f3f",{fontSize:19}),p("[Goal amount]",100,793,715,64,"#922f3f",Y),N("heart",859,788,90,"#922f3f"),p("[How contributions will be used]",65,976,950,30,"#ffe9d3"),p("[Event date / campaign deadline]",65,1050,950,28,"#f0b7ac"),E(65,1150,950,"#c7797d"),b("TAKE PART",65,1192,950,"#ffe9d3"),p("[Donation URL / contact]",65,1245,950,32,"#ffe9d3")]),L("Neighborhood Meetup","Community","Neighborhood meetup notice",1080,1350,"#d4dfed",[y(53,66,974,1218,"#b4c2d3",{rotation:-2}),y(65,65,950,1218,"#fff8e7"),y(400,43,280,55,"#e2b168",{rotation:-3}),b("[NEIGHBORHOOD NAME]",110,155,860,"#354d69",w),p(`Hello,
-neighbour!`,110,267,860,112,"#354d69",{...M,...w,lineHeight:1.06}),...[0,1,2].flatMap(i=>[y(273+i*180,693,130,140,["#d98668","#83a38f","#e1b168"][i]),{type:"triangle",x:258+i*180,y:606,w:160,h:100,fill:"#354d69"},y(320+i*180,760,36,73,"#fff8e7")]),p("Good company starts close to home.",120,889,840,32,"#354d69",{...M,...w}),E(125,979,830,"#c3c9c7"),b("[MEETUP / ACTIVITY]",125,1020,830,"#354d69",{...w,fontSize:24}),p("[Date & time]  /  [Meeting place]",125,1088,830,27,"#354d69",w),p("Say hello: [Contact]",125,1170,830,26,"#354d69",w)])];var ke=["Poppins:wght@400;600;700;800","Inter:wght@400;600;700;800","Montserrat:wght@400;600;700;800","Playfair+Display:wght@400;700","Lobster","Bebas+Neue","Rubik:wght@400;600;700"],At=["Poppins","Inter","Montserrat","Playfair Display","Lobster","Bebas Neue","Rubik","Arial","Georgia","Times New Roman","Courier New","Verdana","Impact"],Tt=["#ffffff","#f1f5f9","#cbd5e1","#64748b","#1e293b","#000000","#fecaca","#ef4444","#b91c1c","#fed7aa","#f97316","#c2410c","#fde68a","#f59e0b","#b45309","#fef08a","#eab308","#84cc16","#a7f3d0","#10b981","#047857","#99f6e4","#14b8a6","#0f766e","#bae6fd","#0ea5e9","#0369a1","#c7d2fe","#6366f1","#4338ca","#e9d5ff","#a855f7","#7d2ae8","#fbcfe8","#ec4899","#be185d"],Ct=[{from:"#b45309",to:"#f59e0b",angle:135},{from:"#0ea5e9",to:"#22d3ee",angle:135},{from:"#f59e0b",to:"#ef4444",angle:135},{from:"#10b981",to:"#84cc16",angle:135},{from:"#6366f1",to:"#ec4899",angle:160},{from:"#0f172a",to:"#475569",angle:135},{from:"#fda4af",to:"#fed7aa",angle:135},{from:"#111111",to:"#333333",angle:90}],ue=i=>`<path d="${K[i]}" />`,Lt=[{type:"rect",label:"Square",svg:'<rect x="12" y="12" width="76" height="76" />'},{type:"rect",label:"Rounded",props:{radius:40},svg:'<rect x="12" y="12" width="76" height="76" rx="15.2" />'},{type:"ellipse",label:"Circle",svg:ue("ellipse")},{type:"triangle",label:"Triangle",svg:ue("triangle")},{type:"star",label:"Star",svg:ue("star")},{type:"hexagon",label:"Hexagon",svg:ue("hexagon")},{type:"diamond",label:"Diamond",svg:ue("diamond")},{type:"heart",label:"Heart",svg:ue("heart")},{type:"line",label:"Line",props:{w:260,h:0,strokeWidth:6},svg:'<line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" stroke-width="6" fill="none" />'},{type:"line",label:"Arrow",props:{w:260,h:0,arrow:!0,strokeWidth:6},svg:'<path d="M10 50H66" stroke="currentColor" stroke-width="6" stroke-linecap="round" fill="none"/><path d="M88 50L66 40V60Z" />'},...vt],di={star:"M12 1.8l3 6.4 7 .9-5.2 4.8 1.4 6.9L12 17.4 5.8 20.8l1.4-6.9L2 9.1l7-.9z",heart:"M12 21.2S3.6 15.8 1.9 10.4C.7 6.6 3.2 3 6.8 3 9 3 10.9 4.2 12 6c1.1-1.8 3-3 5.2-3 3.6 0 6.1 3.6 4.9 7.4C20.4 15.8 12 21.2 12 21.2z",check:"M2.5 12.5L5.5 9.5L9 13L18.5 3.5L21.5 6.5L9 19Z","arrow-right":"M3 9.5H13V3L22 12L13 21V14.5H3Z",sun:"M12 6.5A5.5 5.5 0 1 1 6.5 12 5.5 5.5 0 0 1 12 6.5zm0-5.5l1.8 3.4h-3.6zM12 23l-1.8-3.4h3.6zM1 12l3.4-1.8v3.6zM23 12l-3.4 1.8v-3.6zM4.2 4.2l3.8 1.5-2.3 2.3zM19.8 19.8L16 18.3l2.3-2.3zM19.8 4.2l-1.5 3.8L16 5.7zM4.2 19.8l1.5-3.8 2.3 2.3z",moon:"M20.4 14.2A8.8 8.8 0 0 1 9.8 3.6 9.2 9.2 0 1 0 20.4 14.2z",cloud:"M6.5 19a4.5 4.5 0 0 1-.4-9A6 6 0 0 1 17.8 8.6 4 4 0 0 1 17.5 19z",home:"M12 3l9 8h-2.5v9.5H14V15h-4v5.5H5.5V11H3z",mail:"M4 4H20A2 2 0 0 1 22 6V18A2 2 0 0 1 20 20H4A2 2 0 0 1 2 18V6A2 2 0 0 1 4 4ZM4 6.5L12 12L20 6.5V8.7L12 14.2L4 8.7Z",phone:"M6.6 3c.5 0 1 .3 1.2.8l1.7 3.6c.2.5.1 1.1-.3 1.5L7.8 10.3a13.4 13.4 0 0 0 5.9 5.9l1.4-1.4c.4-.4 1-.5 1.5-.3l3.6 1.7c.5.2.8.7.8 1.2v3.1c0 .8-.6 1.4-1.4 1.4C10.2 21.9 2.1 13.8 2.1 4.4 2.1 3.6 2.7 3 3.5 3z",camera:"M9 4l-1.5 2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.5L15 4zm3 5.5A4.5 4.5 0 1 1 7.5 14 4.5 4.5 0 0 1 12 9.5zm0 2A2.5 2.5 0 1 0 14.5 14 2.5 2.5 0 0 0 12 11.5z",user:"M12 4a4 4 0 1 1-4 4 4 4 0 0 1 4-4zm0 9c4.4 0 8 2.2 8 5v2H4v-2c0-2.8 3.6-5 8-5z",calendar:"M7 2H9V4H15V2H17V4H19A2 2 0 0 1 21 6V20A2 2 0 0 1 19 22H5A2 2 0 0 1 3 20V6A2 2 0 0 1 5 4H7ZM5 8V10H19V8ZM6 12V14H8V12ZM11 12V14H13V12ZM16 12V14H18V12ZM6 17V19H8V17ZM11 17V19H13V17ZM16 17V19H18V17Z",clock:"M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 5v5.2l4 2.4-.8 1.4L11 13V7z",chat:"M5 3H19Q22 3 22 6V15Q22 18 19 18H8L3 22V6Q3 3 5 3ZM7 7H17A1 1 0 0 1 17 9H7A1 1 0 0 1 7 7ZM7 11H14A1 1 0 0 1 14 13H7A1 1 0 0 1 7 11Z",search:"M10 2A8 8 0 1 0 14.2 16.8L19.9 22.5L22.5 19.9L16.8 14.2A8 8 0 0 0 10 2ZM10 5.5A4.5 4.5 0 1 1 10 14.5A4.5 4.5 0 1 1 10 5.5Z",bell:"M12 2a6 6 0 0 1 6 6v4l2 3v1H4v-1l2-3V8a6 6 0 0 1 6-6zm-2.5 16h5A2.5 2.5 0 0 1 12 21.5 2.5 2.5 0 0 1 9.5 18z",gear:Xe,trash:"M9 3h6l1 2h4v2H4V5h4zM5 8h14l-1 13H6z",chart:"M4 20V4h2v14h14v2zm3-3V9h3v8zm5 0V5h3v12zm5 0v-6h3v6z"},hi=Object.fromEntries([...Object.entries(di),...Object.entries(Mt)].map(([i,e])=>[i,{solid:e,outline:de[i]||e}])),Pe=Object.fromEntries(Object.entries(hi).map(([i,e])=>[i,e.solid])),pi={undo:'<path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11" />',redo:'<path d="m15 14 5-5-5-5" /><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13" />',"zoom-in":'<circle cx="11" cy="11" r="8" /><line x1="21" x2="16.65" y1="21" y2="16.65" /><line x1="11" x2="11" y1="8" y2="14" /><line x1="8" x2="14" y1="11" y2="11" />',"zoom-out":'<circle cx="11" cy="11" r="8" /><line x1="21" x2="16.65" y1="21" y2="16.65" /><line x1="8" x2="14" y1="11" y2="11" />',fit:'<path d="M8 3H5a2 2 0 0 0-2 2v3" /><path d="M21 8V5a2 2 0 0 0-2-2h-3" /><path d="M3 16v3a2 2 0 0 0 2 2h3" /><path d="M16 21h3a2 2 0 0 0 2-2v-3" />',download:'<path d="M12 15V3" /><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="m7 10 5 5 5-5" />',trash:'<path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />',copy:'<rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />',lock:'<rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />',unlock:'<rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 9.9-1" />',eye:'<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" /><circle cx="12" cy="12" r="3" />',"eye-off":'<path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" /><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" /><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" /><path d="m2 2 20 20" />',front:'<rect x="8" y="8" width="8" height="8" rx="2" /><path d="M4 10a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" /><path d="M14 20a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2" />',back:'<rect x="14" y="14" width="8" height="8" rx="2" /><rect x="2" y="2" width="8" height="8" rx="2" /><path d="M7 14v1a2 2 0 0 0 2 2h1" /><path d="M14 7h1a2 2 0 0 1 2 2v1" />',plus:'<path d="M5 12h14" /><path d="M12 5v14" />',close:'<path d="M18 6 6 18" /><path d="m6 6 12 12" />',chevron:'<path d="m6 9 6 6 6-6" />',chart:'<path d="M3 3v18h18" /><path d="M7 17v-5M12 17V7M17 17V4" />',image:'<rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />',layers:'<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" /><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" /><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" />',text:'<path d="M12 4v16" /><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2" /><path d="M9 20h6" />',shapes:'<path d="M8.3 10a.7.7 0 0 1-.626-1.079L11.4 3a.7.7 0 0 1 1.198-.043L16.3 8.9a.7.7 0 0 1-.572 1.1Z" /><rect x="3" y="14" width="7" height="7" rx="1" /><circle cx="17.5" cy="17.5" r="3.5" />',templates:'<rect width="18" height="7" x="3" y="3" rx="1" /><rect width="9" height="7" x="3" y="14" rx="1" /><rect width="5" height="7" x="16" y="14" rx="1" />',upload:'<path d="M12 3v12" /><path d="m17 8-5-5-5 5" /><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />',palette:'<path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /><circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /><circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /><circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /><circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />',alignLeft:'<path d="M21 5H3" /><path d="M15 12H3" /><path d="M17 19H3" />',alignCenter:'<path d="M21 5H3" /><path d="M17 12H7" /><path d="M19 19H5" />',alignRight:'<path d="M21 5H3" /><path d="M21 12H9" /><path d="M21 19H7" />',bold:'<path d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8" />',italic:'<line x1="19" x2="10" y1="4" y2="4" /><line x1="14" x2="5" y1="20" y2="20" /><line x1="15" x2="9" y1="4" y2="20" />',underline:'<path d="M6 4v6a6 6 0 0 0 12 0V4" /><line x1="4" x2="20" y1="20" y2="20" />',grid:'<rect width="18" height="18" x="3" y="3" rx="2" /><path d="M3 9h18" /><path d="M3 15h18" /><path d="M9 3v18" /><path d="M15 3v18" />',duplicate:'<rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />',sun:'<circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" />',moon:'<path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" />'},A=Object.fromEntries(Object.entries(pi).map(([i,e])=>[i,`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${e}</svg>`]));var Se=(i,e)=>Array.isArray(i)?i:e;function Ht(i={}){return{templates:[...et,...fi(i.templates)],fonts:[...new Set([...At,...Se(i.fonts,[])])],googleFonts:[...ke,...Se(i.googleFonts,[])],palette:Se(i.palette,[...Tt]),gradients:Se(i.gradients,[...Ct]),shapes:[...Lt],icons:{...Pe},iconOutlines:{...de},shapePaths:{...K},elementRenderers:{},chartRenderers:{},backgroundPainters:{},imageSources:Se(i.imageSources,[])}}function fi(i){return Array.isArray(i)?i.map(e=>JSON.parse(JSON.stringify(e))):[]}var X="#d97706",It="Arial",q={from:"#ffffff",to:"#eeeeee"},Oe="Inter, Arial, sans-serif";var ui={x:0,y:0,w:200,h:200,rotation:0,opacity:1,locked:!1,hidden:!1,flipX:!1,flipY:!1},tt={text:{text:"Your text here",fontSize:48,fontFamily:"Poppins",fontWeight:600,italic:!1,underline:!1,align:"left",color:"#111827",lineHeight:1.3,letterSpacing:0,w:420,h:64},rect:{fill:X,stroke:"",strokeWidth:0,radius:0},ellipse:{fill:X,stroke:"",strokeWidth:0},triangle:{fill:X,stroke:"",strokeWidth:0},star:{fill:"#f59e0b",stroke:"",strokeWidth:0},hexagon:{fill:X,stroke:"",strokeWidth:0},diamond:{fill:X,stroke:"",strokeWidth:0},heart:{fill:"#ef4444",stroke:"",strokeWidth:0},line:{stroke:"#111827",strokeWidth:4,arrow:!1,w:220,h:0},image:{src:""},icon:{icon:"star",iconStyle:"solid",fill:"#111827",w:120,h:120},shape:{shape:"pentagon",fill:X,stroke:"",strokeWidth:0},chart:{w:600,h:400}};var he={text:{name:i=>{let e=(i.text||"").trim().replace(/\s+/g," ");return e?e.length>22?e.slice(0,22)+"\u2026":e:"Text"},layerIcon:"text",edit:"text",autoFitHeight:!0,toolbar:["text","opacity"],create:(i,e)=>{e.h||(i.h=Math.round(i.fontSize*i.lineHeight)+8)}},rect:{name:"Rectangle",toolbar:["fill","opacity"],radius:!0},ellipse:{name:"Ellipse",toolbar:["fill","opacity"]},triangle:{name:"Triangle",toolbar:["fill","opacity"]},star:{name:"Star",toolbar:["fill","opacity"]},hexagon:{name:"Hexagon",toolbar:["fill","opacity"]},diamond:{name:"Diamond",toolbar:["fill","opacity"]},heart:{name:"Heart",toolbar:["fill","opacity"]},line:{name:"Line",hitTest:"segment",toolbar:["line"]},image:{name:"Image",layerIcon:"image",toolbar:["opacity"],preloadProps:["src"]},icon:{name:i=>"Icon ("+i.icon+")",toolbar:["fill","iconStyle","opacity"]},shape:{name:i=>(i.shape||"Shape").replace(/-/g," ").replace(/^./,e=>e.toUpperCase()),toolbar:["fill","opacity"]},chart:{name:i=>i.chart?.title||`${ie.find(e=>e.type===i.chart?.type)?.label||"Data"} chart`,layerIcon:"chart",edit:"chart",toolbar:["chartEdit","opacity"],create:(i,e)=>{i.chart=ne(e.chart?j(e.chart):ve())},exclusiveProps:{chart:i=>j(ne(j(i)))}}};function W(i){return he[i]||{}}function it(i,e={}){if(typeof i!="string"||!i)throw new Error("ezyreka: registerElementManifest needs a type name");if(typeof e!="object"||!e)throw new Error("ezyreka: manifest must be an object");he[i]={...he[i],...e}}function Rt(i,{defaults:e={},manifest:t={}}={}){if(typeof i!="string"||!/^[a-z][a-z0-9-]*$/i.test(i))throw new Error("ezyreka: element type names must be simple identifiers");if(tt[i])throw new Error(`ezyreka: element type "${i}" already exists`);if(typeof e!="object"||!e)throw new Error("ezyreka: element type defaults must be an object");tt[i]=e,it(i,{name:i,...t})}function ee(i,e={}){let t=tt[i];if(!t)throw new Error(`ezyreka: unknown element type "${i}"`);let r={...ui,...JSON.parse(JSON.stringify(t)),...e,id:e.id||D(i),type:i},o=W(i).create;return o&&o(r,e),r}function Ee(i){let e=W(i.type).name;return typeof e=="function"?e(i):e||i.type}function ge(i){return{x:i.x+i.w/2,y:i.y+i.h/2}}function gi(i){let e=ge(i),t=J(i.rotation||0);return[{x:i.x,y:i.y},{x:i.x+i.w,y:i.y},{x:i.x+i.w,y:i.y+i.h},{x:i.x,y:i.y+i.h}].map(o=>te(o.x,o.y,e.x,e.y,t))}function Ne(i){if(!i.rotation)return{x:i.x,y:i.y,w:i.w,h:i.h};let e=gi(i),t=e.map(a=>a.x),r=e.map(a=>a.y),o=Math.min(...t),n=Math.min(...r);return{x:o,y:n,w:Math.max(...t)-o,h:Math.max(...r)-n}}function me(i){let e=i.map(Ne),t=Math.min(...e.map(a=>a.x)),r=Math.min(...e.map(a=>a.y)),o=Math.max(...e.map(a=>a.x+a.w)),n=Math.max(...e.map(a=>a.y+a.h));return{x:t,y:r,w:o-t,h:n-r}}function Me(i,e,t,r=4){if(i.hidden||i.locked)return!1;let o=ge(i),n=te(e,t,o.x,o.y,J(-(i.rotation||0)));if(n.x-=i.x,n.y-=i.y,W(i.type).hitTest==="segment"){let a=Math.max(10,(i.strokeWidth||4)+r);return mi(n.x,n.y,0,0,i.w,i.h)<=a}return n.x>=-r&&n.y>=-r&&n.x<=i.w+r&&n.y<=i.h+r}function mi(i,e,t,r,o,n){let a=o-t,s=n-r,l=a*a+s*s,c=l?((i-t)*a+(e-r)*s)/l:0;c=Math.max(0,Math.min(1,c));let d=t+c*a,h=r+c*s;return Math.hypot(i-d,e-h)}function Pt(i,e){return i.x<e.x+e.w&&i.x+i.w>e.x&&i.y<e.y+e.h&&i.y+i.h>e.y}var De=i=>new Intl.NumberFormat("en",{notation:Math.abs(i)>=1e4?"compact":"standard",maximumFractionDigits:2}).format(i);function Q(i,e,t,r,o,n="left"){i.textAlign=n;let a=String(e);if(i.measureText(a).width>o){for(;a.length&&i.measureText(a+"\u2026").width>o;)a=a.slice(0,-1);a+="\u2026"}i.fillText(a,t,r)}var rt=(i,e,t,r,o)=>bi(i,e,r,o),ae=(i,e,t,r,o,n)=>zi(i,e,t,n,o),Ot={bar:ae,row:ae,"grouped-bar":ae,line:ae,"multi-line":ae,area:ae,"stacked-area":ae,pie:rt,donut:rt};function Nt(i,e){if(typeof i!="string"||!i)throw new Error("ezyreka: chart renderer needs a type name");if(typeof e!="function")throw new Error("ezyreka: chart renderer must be a function");Ot[i]=e}function Ve(i,e,t={}){let r=j(e.chart),o=Math.max(1,e.w),n=Math.max(1,e.h),a=Math.min(r.fontSize,Math.max(6,Math.min(o/12,n/10)));i.save(),i.beginPath(),i.rect(0,0,o,n),i.clip(),i.font=`${a}px ${Oe}`,i.textBaseline="middle",i.fillStyle=r.textColor;let s="";try{ne(r)}catch(g){s=g.message}let l=oe(r.type)?r.series:r.series.slice(0,1);if(s||!r.categories.length||!l.some(g=>g.values.some(u=>u!==null))){Q(i,s||"No data to display",o/2,n/2,o-16,"center"),i.restore();return}let c=14,d=14;if(r.title&&(i.font=`600 ${a*1.25}px ${Oe}`,Q(i,r.title,o/2,14+a/2,o-24,"center"),i.font=`${a}px ${Oe}`,c+=a*2),r.showLegend){let g=ce(r.type)?r.categories.map((x,m)=>({name:x,color:r.categoryColors[m]})):l,u=Math.min(150,Math.max(80,o/Math.min(3,g.length))),z=Math.max(1,Math.floor((o-16)/u)),S=Math.min(Math.ceil(g.length/z),Math.max(1,Math.floor(n*.22/(a*1.6))));d+=S*a*1.6,g.slice(0,S*z).forEach((x,m)=>{let T=10+m%z*u,C=n-d+12+Math.floor(m/z)*a*1.6;i.fillStyle=x.color,i.fillRect(T,C-a/3,a*.65,a*.65),i.fillStyle=r.textColor,Q(i,x.name,T+a,C,u-a-8)})}(t.chartRenderers&&t.chartRenderers[r.type]||Ot[r.type]||(ce(r.type)?rt:ae))(i,r,l,{x:12,y:c,w:o-24,h:Math.max(1,n-c-d)},a,{w:o,h:n,top:c,bottom:d}),i.restore()}function bi(i,e,t,r){let o=e.series[0].values,n=o.reduce((g,u)=>Math.max(g,u||0),0);if(!n){i.fillStyle=e.textColor,Q(i,"No data to display",t.x+t.w/2,t.y+t.h/2,t.w,"center");return}let a=o.reduce((g,u)=>g+(u||0)/n,0),s=t.x+t.w/2,l=t.y+t.h/2,c=Math.max(1,Math.min(t.w,t.h)/2-4),d=e.type==="donut"?c*.55:0,h=-Math.PI/2;o.forEach((g,u)=>{if(!g)return;let z=g/n/a*Math.PI*2,S=h+z;if(i.beginPath(),i.arc(s,l,c,h,S),d?i.arc(s,l,d,S,h,!0):i.lineTo(s,l),i.closePath(),i.fillStyle=e.categoryColors[u],i.fill(),e.showValues&&z*c>r*2){let x=h+z/2,m=d?c*.78:c*.65;i.fillStyle=e.textColor,Q(i,De(g),s+Math.cos(x)*m,l+Math.sin(x)*m,c*.55,"center")}h=S})}function zi(i,e,t,r,o){let n=re(e.type)||{},a=n.horizontal===!0,s=n.kind==="bar",l=e.showAxes?Math.min(r.w*.28,o*(a?6:4)):12,c=r.top+(e.showValues?o:0),d=Math.max(1,r.w-l-16),h=Math.max(1,r.h-c-r.bottom-(e.showAxes?o*2:0)),[g,u]=xt(e),z=Math.max(Math.abs(g),Math.abs(u),1),S=k=>(k/z-g/z)/(u/z-g/z),x=k=>a?l+S(k)*d:c+(1-S(k))*h,m=e.categories.length,T=k=>a?c+(k+.5)*h/m:s?l+(k+.5)*d/m:l+(m===1?.5:k/(m-1))*d;i.lineWidth=1;for(let k=0;k<=4;k++){let I=k/4,R=(g/z*(1-I)+u/z*I)*z,P=a?l+I*d:c+(1-I)*h;e.showGrid&&(i.save(),i.globalAlpha*=.15,i.strokeStyle=e.textColor,i.beginPath(),a?(i.moveTo(P,c),i.lineTo(P,c+h)):(i.moveTo(l,P),i.lineTo(l+d,P)),i.stroke(),i.restore()),e.showAxes&&(i.fillStyle=e.textColor,a?Q(i,De(R),P,c+h+o,d/5,"center"):Q(i,De(R),l-8,P,l-10,"right"))}if(e.showAxes){i.strokeStyle=e.textColor,i.beginPath(),a?(i.moveTo(x(0),c),i.lineTo(x(0),c+h)):(i.moveTo(l,x(0)),i.lineTo(l+d,x(0))),i.stroke(),i.fillStyle=e.textColor;let k=Math.max(1,Math.ceil(m/Math.max(1,Math.floor((a?h:d)/(o*(a?1.8:4))))));e.categories.forEach((I,R)=>{R%k||(a?Q(i,I,l-8,T(R),l-12,"right"):Q(i,I,T(R),c+h+o,Math.min(o*6,d*k/m),"center"))})}let C=n.kind==="stacked-area"?Re(e):null,v=[];i.save(),i.beginPath(),i.rect(l,c,d,h),i.clip(),t.forEach((k,I)=>{if(i.fillStyle=k.color,i.strokeStyle=k.color,i.lineWidth=Math.max(1,o/6),s){let H=(a?h:d)/m,$=H*.72/t.length;k.values.forEach((G,Qt)=>{if(G===null)return;let Te=T(Qt)-H*.36+$*(I+.5),fe=x(G),Ce=x(0);a?i.fillRect(Math.min(fe,Ce),Te-$*.45,Math.abs(fe-Ce),$*.9):i.fillRect(Te-$*.45,Math.min(fe,Ce),$*.9,Math.abs(fe-Ce)),v.push({value:G,x:a?fe+(G<0?-4:4):Te,y:a?Te:fe+(G<0?o*.7:-o*.7),align:a?G<0?"right":"left":"center",width:a?d/4:H/t.length})});return}let R=[],P=()=>{R.length&&((n.kind==="area"||C)&&(i.save(),i.globalAlpha*=C?.9:.35,i.beginPath(),R.forEach((H,$)=>$?i.lineTo(H.x,H.y):i.moveTo(H.x,H.y)),[...R].reverse().forEach(H=>i.lineTo(H.x,H.base)),i.closePath(),i.fill(),i.restore()),i.beginPath(),R.forEach((H,$)=>$?i.lineTo(H.x,H.y):i.moveTo(H.x,H.y)),i.stroke(),R.forEach(H=>{i.beginPath(),i.arc(H.x,H.y,Math.max(1.5,o/5),0,Math.PI*2),i.fill(),v.push({value:H.value,x:H.x,y:H.y-o*.8,align:"center",width:d/Math.max(m,2)})}),R=[])};k.values.forEach((H,$)=>{if(H===null){P();return}let G=C?.[I][$];R.push({x:T($),y:x(G?G.end:H),base:x(G?G.start:0),value:H})}),P()}),i.restore(),e.showValues&&(i.fillStyle=e.textColor,v.forEach(k=>Q(i,De(k.value),k.x,k.y,Math.max(10,k.width),k.align)))}var Dt=new Map,ot=new Map;function nt(i){if(!i)return null;let e=Dt.get(i);if(!e){let t=new Image;e={img:t,loaded:!1},t.onload=()=>{e.loaded=!0,e.resolve?.()},t.onerror=()=>{e.error=!0,e.resolve?.()},t.crossOrigin="anonymous",t.src=i,Dt.set(i,e)}return e}function _t(i){let e=i.map(t=>nt(t)).filter(Boolean);return Promise.all(e.map(t=>new Promise(r=>{if(t.loaded||t.error)return r();t.resolve=r,setTimeout(r,8e3)})))}function _e(i){return ot.has(i)||ot.set(i,new Path2D(i)),ot.get(i)}function at(i,e,t,r,o="#000000"){if(!e||e.type!=="gradient")return typeof e=="string"&&e?e:o;let n=J(e.angle??135),a=Math.cos(n),s=Math.sin(n),l=(Math.abs(a)*t+Math.abs(s)*r)/2,c=i.createLinearGradient(t/2-a*l,r/2-s*l,t/2+a*l,r/2+s*l);return(Array.isArray(e.stops)&&e.stops.length?e.stops.map(h=>({color:B(h?.color,"#000000"),offset:V(Number(h?.offset??0),0,1)})):[{color:B(e.from,q.from),offset:0},{color:B(e.to,q.to),offset:1}]).forEach(h=>c.addColorStop(h.offset,h.color)),c}function Ae(i,e,t={}){let r=e.width||1080,o=e.height||1080,n=!!t.transparent;yi(i,e.background,r,o,n,t.registry||{});let a=e.elements||[];for(let s of a)s.hidden||xi(i,s,t)}var Zt={solid(i,e,t,r){i.fillStyle=e&&e.color||"#ffffff",i.fill()},gradient(i,e,t,r){i.fillStyle=at(i,e,t,r),i.fill()},image(i,e,t,r){i.fillStyle="#ffffff",i.fill();let o=nt(e.src);if(o&&o.loaded&&o.img.naturalWidth){let n=Math.max(t/o.img.naturalWidth,r/o.img.naturalHeight),a=o.img.naturalWidth*n,s=o.img.naturalHeight*n;i.drawImage(o.img,(t-a)/2,(r-s)/2,a,s)}}};function Ft(i,e){if(typeof i!="string"||!i)throw new Error("ezyreka: background painter needs a type name");if(typeof e!="function")throw new Error("ezyreka: background painter must be a function");Zt[i]=e}function yi(i,e,t,r,o,n={}){if(o)return;i.save(),i.beginPath(),i.rect(0,0,t,r);let a=e&&e.type||"solid",s={...Zt,...n.backgroundPainters||{}};(s[a]||s.solid)(i,e,t,r),i.restore()}var $t={chart:Ve,text:Ai,rect:wi,ellipse:(i,e,t)=>be(i,e,"ellipse",t),triangle:(i,e,t)=>be(i,e,"triangle",t),star:(i,e,t)=>be(i,e,"star",t),hexagon:(i,e,t)=>be(i,e,"hexagon",t),diamond:(i,e,t)=>be(i,e,"diamond",t),heart:(i,e,t)=>be(i,e,"heart",t),line:Si,image:Ei,icon:Mi,shape:ki};function st(i,e){if(typeof i!="string"||!i)throw new Error("ezyreka: element renderer needs a type name");if(typeof e!="function")throw new Error("ezyreka: element renderer must be a function");$t[i]=e}function xi(i,e,t={}){let r=t.registry||{},o=r.elementRenderers&&r.elementRenderers[e.type]||$t[e.type];i.save(),i.globalAlpha=Math.max(0,Math.min(1,e.opacity??1));let n=e.x+e.w/2,a=e.y+e.h/2;i.translate(n,a),e.rotation&&i.rotate(J(e.rotation)),i.scale(e.flipX?-1:1,e.flipY?-1:1),i.translate(-e.w/2,-e.h/2),o?o(i,e,r):vi(e.type),i.restore()}var Vt=new Set;function vi(i){Vt.has(i)||(Vt.add(i),console.warn(`ezyreka: no renderer for element type "${i}" \u2014 the element is skipped. Register a renderer or use a supported type.`))}function lt(i,e,t,r="nonzero"){e.fill!=="none"&&(i.fillStyle=at(i,e.fill,e.w,e.h),i.fill(t,r)),e.strokeWidth>0&&e.stroke!=="none"&&(i.lineWidth=e.strokeWidth,i.strokeStyle=e.stroke||"#000000",i.stroke(t))}function wi(i,e){let t=Math.min(e.radius||0,e.w/2,e.h/2),r=new Path2D;t>0?(r.moveTo(t,0),r.arcTo(e.w,0,e.w,e.h,t),r.arcTo(e.w,e.h,0,e.h,t),r.arcTo(0,e.h,0,0,t),r.arcTo(0,0,e.w,0,t),r.closePath()):r.rect(0,0,e.w,e.h),lt(i,e,r)}function ki(i,e,t={}){let r=t.shapePaths||K,o=_e(r[e.shape]||r.pentagon),n=new Path2D;n.addPath(o,new DOMMatrix().scale(e.w/100,e.h/100)),i.lineJoin="round",lt(i,e,n,"evenodd")}function be(i,e,t,r={}){let o=r.shapePaths||K,n=_e(o[t]||o.pentagon),a=new Path2D;a.addPath(n,new DOMMatrix().scale(e.w/100,e.h/100)),i.lineJoin="round",lt(i,e,a)}function Si(i,e){i.strokeStyle=e.stroke||"#111827",i.lineWidth=e.strokeWidth||4,i.lineCap="round";let t=Math.hypot(e.w,e.h),r=e.arrow?Math.min(t,Math.max(10,i.lineWidth*4)):0;if(!e.arrow||t>r){let o=e.arrow?(t-r)/t:1;i.beginPath(),i.moveTo(0,0),i.lineTo(e.w*o,e.h*o),i.stroke()}if(e.arrow&&t>0){let o=Math.atan2(e.h,e.w);i.save(),i.translate(e.w,e.h),i.rotate(o),i.fillStyle=e.stroke||"#111827",i.beginPath(),i.moveTo(0,0),i.lineTo(-r,-r/2.4),i.lineTo(-r,r/2.4),i.closePath(),i.fill(),i.restore()}}function Ei(i,e){let t=nt(e.src);if(!t||!t.loaded||!t.img.naturalWidth){i.fillStyle="#e5e7eb",i.fillRect(0,0,e.w,e.h);return}let r=t.img.naturalWidth,o=t.img.naturalHeight,n=Math.max(e.w/r,e.h/o),a=e.w/n,s=e.h/n;i.drawImage(t.img,(r-a)/2,(o-s)/2,a,s,0,0,e.w,e.h)}function Mi(i,e,t={}){let r=e.iconStyle==="outline",o=r?t.iconOutlines||de:t.icons||Pe,n=o[e.icon]||o.star,a=e.fill==="none"?null:at(i,e.fill,e.w,e.h,"#111827");i.save(),i.scale(e.w/24,e.h/24),e.fill!=="none"&&(r?(i.strokeStyle=a,i.lineWidth=1.75,i.lineCap="round",i.lineJoin="round",i.stroke(_e(n))):(i.fillStyle=a,i.fill(_e(n),"evenodd"))),i.restore()}function Bt(i){return`${i.italic?"italic ":""}${i.fontWeight||400} ${i.fontSize||48}px ${i.fontFamily||It}`}function Ut(i,e,t){let r=[];for(let o of String(e??"").split(`
-`)){if(!o){r.push("");continue}let n=o.split(/(\s+)/),a="";for(let s of n){let l=a+s;i.measureText(l).width>t&&a.trim()?(r.push(a.trimEnd()),a=s.trimStart()):a=l}r.push(a)}return r}function Wt(i,e){i.save(),i.font=Bt(e);try{"letterSpacing"in i&&(i.letterSpacing=(e.letterSpacing||0)+"px")}catch{}let t=Ut(i,e.text,e.w);return i.restore(),t}function Ai(i,e){i.save(),i.font=Bt(e);try{"letterSpacing"in i&&(i.letterSpacing=(e.letterSpacing||0)+"px")}catch{}i.textBaseline="top",i.fillStyle=e.color||"#111827";let t=Ut(i,e.text,e.w),r=(e.fontSize||48)*(e.lineHeight||1.3);t.forEach((o,n)=>{let a=i.measureText(o).width,s=0;e.align==="center"?s=(e.w-a)/2:e.align==="right"&&(s=e.w-a);let l=n*r+(r-(e.fontSize||48))/2;i.fillText(o,s,l),e.underline&&o&&i.fillRect(s,l+(e.fontSize||48)*1.02,a,Math.max(1,(e.fontSize||48)/15))}),i.restore()}var Ti=6,Ze=class{constructor(e){this.editor=e,this.drag=null,this.spaceDown=!1,e._isActive=!0,this._bind()}_bind(){let e=this.editor;this._onDocPointerDown=t=>{e._isActive=e.container.contains(t.target)},this._onPointerMove=t=>this.onPointerMove(t),this._onPointerUp=t=>this.onPointerUp(t),this._onKeyDown=t=>this.onKeyDown(t),this._onKeyUp=t=>{t.code==="Space"&&(this.spaceDown=!1,e.viewport.classList.remove("ez-panning"))},e.canvas.addEventListener("pointerdown",t=>this.onPointerDown(t)),e.overlay.addEventListener("pointerdown",t=>{t.target===e.overlay&&this.onPointerDown(t)}),window.addEventListener("pointermove",this._onPointerMove),window.addEventListener("pointerup",this._onPointerUp),e.viewport.addEventListener("wheel",t=>this.onWheel(t),{passive:!1}),window.addEventListener("keydown",this._onKeyDown),window.addEventListener("keyup",this._onKeyUp),document.addEventListener("pointerdown",this._onDocPointerDown,!0),e.canvas.addEventListener("dblclick",t=>this.onDblClick(t)),e.viewport.addEventListener("dragover",t=>t.preventDefault()),e.viewport.addEventListener("drop",t=>this.onDrop(t))}destroy(){let e=this.editor;window.removeEventListener("pointermove",this._onPointerMove),window.removeEventListener("pointerup",this._onPointerUp),window.removeEventListener("keydown",this._onKeyDown),window.removeEventListener("keyup",this._onKeyUp),document.removeEventListener("pointerdown",this._onDocPointerDown,!0),e.viewport.classList.remove("ez-panning"),this.drag=null}clientToWorld(e){let t=this.editor.canvas.getBoundingClientRect();return{x:(e.clientX-t.left)/this.editor.zoom,y:(e.clientY-t.top)/this.editor.zoom}}onWheel(e){let t=this.editor;if(e.ctrlKey||e.metaKey){e.preventDefault();let r=Math.exp(-e.deltaY*.0015);t.setZoom(V(t.zoom*r,.05,5),{x:e.clientX,y:e.clientY})}}onDrop(e){e.preventDefault();let t=this.editor,r=[...e.dataTransfer?.files||[]].filter(n=>n.type.startsWith("image/"));if(!r.length)return;let o=this.clientToWorld(e);r.forEach(async(n,a)=>{let s=await t.addUpload(n);t.addElement({type:"image",src:s,name:n.name,x:o.x-100+a*30,y:o.y-100+a*30})})}onDblClick(e){let t=this.editor,r=this.clientToWorld(e),o=t.getElements();for(let n=o.length-1;n>=0;n--)if(Me(o[n],r.x,r.y)){t.select([o[n].id]);let a=W(o[n].type).edit;a==="chart"?t.ui.sidepanel?.charts?.open():a==="text"&&t.startTextEdit(o[n]);return}}onPointerDown(e){let t=this.editor;if(e.button===1||this.spaceDown){this.startPan(e);return}if(e.button!==0)return;t._editing&&t.commitTextEdit();let r=this.clientToWorld(e),o=t.getElements();for(let n=o.length-1;n>=0;n--)if(Me(o[n],r.x,r.y)){let a=o[n];e.shiftKey?t.toggleSelect(a.id):t.selection.has(a.id)||t.select([a.id]),a.locked||this.startMove(e);return}e.shiftKey||t.clearSelection(),this.startRubberBand(e)}startPan(e){let t=this.editor;e.preventDefault(),this.drag={mode:"pan",startX:e.clientX,startY:e.clientY,scrollLeft:t.viewport.scrollLeft,scrollTop:t.viewport.scrollTop},t.viewport.classList.add("ez-panning")}startMove(e){let r=this.editor.getSelected(),o=this.clientToWorld(e);this.drag={mode:"move",start:o,originals:r.map(n=>({el:n,x:n.x,y:n.y})),moved:!1}}startRubberBand(e){let t=this.editor,r=this.clientToWorld(e);t.updateOverlay(),this.drag={mode:"band",start:r};let o=document.createElement("div");o.className="ez-band",t.overlay.appendChild(o),this.drag.band=o}startResize(e,t){let o=this.editor.getSelected()[0];if(!o||o.locked)return;e.stopPropagation(),e.preventDefault();let n=ge(o),a={nw:"se",n:"s",ne:"sw",e:"w",se:"nw",s:"n",sw:"ne",w:"e"}[t],s=this.handlePoint(o,a);this.drag={mode:"resize",dir:t,el:o,c0:n,anchor:s,aspect:o.w/Math.max(1,o.h),startW:o.w,startH:o.h}}startRotate(e){let r=this.editor.getSelected()[0];if(!r||r.locked)return;e.stopPropagation(),e.preventDefault();let o=ge(r),n=this.clientToWorld(e),a=Math.atan2(n.y-o.y,n.x-o.x);this.drag={mode:"rotate",el:r,center:o,startAngle:a,startRotation:r.rotation||0}}handlePoint(e,t){let r=ge(e),o=J(e.rotation||0),n={nw:{x:e.x,y:e.y},n:{x:r.x,y:e.y},ne:{x:e.x+e.w,y:e.y},e:{x:e.x+e.w,y:r.y},se:{x:e.x+e.w,y:e.y+e.h},s:{x:r.x,y:e.y+e.h},sw:{x:e.x,y:e.y+e.h},w:{x:e.x,y:r.y}}[t];return te(n.x,n.y,r.x,r.y,o)}onPointerMove(e){let t=this.drag;if(!t)return;let r=this.editor;if(t.mode==="pan"){r.viewport.scrollLeft=t.scrollLeft-(e.clientX-t.startX),r.viewport.scrollTop=t.scrollTop-(e.clientY-t.startY);return}if(t.mode==="band"){let o=this.clientToWorld(e),n=Ci(t.start,o);t.rect=n,Object.assign(t.band.style,{left:n.x*r.zoom+"px",top:n.y*r.zoom+"px",width:n.w*r.zoom+"px",height:n.h*r.zoom+"px",display:"block"});return}if(t.mode==="move"){let o=this.clientToWorld(e),n=o.x-t.start.x,a=o.y-t.start.y;Math.abs(n)+Math.abs(a)>2&&(t.moved=!0),e.shiftKey&&(Math.abs(n)>Math.abs(a)?a=0:n=0);let s=t.originals,l=me(s.map(h=>({...h.el,x:h.x+n,y:h.y+a}))),c=r.getElements().filter(h=>!r.selection.has(h.id)&&!h.hidden&&!h.locked),d=Hi(l,c,r.getPage(),e.altKey?0:Ti);n+=d.dx,a+=d.dy;for(let h of s)h.el.x=h.x+n,h.el.y=h.y+a;r.setGuides(d.guides),r.markDirty();return}if(t.mode==="resize"){let o=this.clientToWorld(e);Li(t,o,e.shiftKey),r.markDirty();return}if(t.mode==="rotate"){let o=this.clientToWorld(e),n=Math.atan2(o.y-t.center.y,o.x-t.center.x),a=t.startRotation+pt(n-t.startAngle),s=Math.round(a/15)*15;Math.abs(a-s)<4&&(a=s),t.el.rotation=(a%360+360)%360,r.markDirty()}}onPointerUp(e){let t=this.drag;if(!t)return;let r=this.editor;if(this.drag=null,t.mode==="pan"){r.viewport.classList.remove("ez-panning");return}if(t.mode==="band"){if(t.band.remove(),r.markDirty(),t.rect){let o=r.getElements().filter(n=>!n.hidden&&!n.locked&&Pt(t.rect,Ne(n)));if(o.length)if(e.shiftKey){let n=new Set(r.selection);o.forEach(a=>n.add(a.id)),r.select([...n])}else r.select(o.map(n=>n.id))}return}if(t.mode==="move"){r.setGuides([]),t.moved&&(r.markDirty(),r.commit());return}(t.mode==="resize"||t.mode==="rotate")&&(W(t.el.type).autoFitHeight&&r.fitTextHeight(t.el),r.markDirty(),r.commit())}onKeyDown(e){let t=this.editor;if(!t._isActive)return;let r=e.target;if(r&&(r.isContentEditable||["INPUT","TEXTAREA","SELECT"].includes(r.tagName))||t._editing)return;if(e.code==="Space"&&!this.spaceDown){e.preventDefault(),this.spaceDown=!0,t.viewport.classList.add("ez-panning");return}let n=e.ctrlKey||e.metaKey,a=e.key.toLowerCase();if(n&&a==="z"){e.preventDefault(),e.shiftKey?t.redo():t.undo();return}if(n&&a==="y"){e.preventDefault(),t.redo();return}if(n&&e.shiftKey&&a==="l")return e.preventDefault(),t.toggleTheme();if(n&&a==="c")return t.copy();if(n&&a==="x")return t.cut();if(n&&a==="v")return t.paste();if(n&&a==="d")return e.preventDefault(),t.duplicateSelected();if(n&&a==="a")return e.preventDefault(),t.select(t.getElements().filter(s=>!s.locked&&!s.hidden).map(s=>s.id));if(a==="delete"||a==="backspace"){t.selection.size&&(e.preventDefault(),t.deleteSelected());return}if(a==="escape")return t.clearSelection();if(["arrowleft","arrowright","arrowup","arrowdown"].includes(a)){if(!t.selection.size)return;e.preventDefault();let s=e.shiftKey?10:1,l=a==="arrowleft"?-s:a==="arrowright"?s:0,c=a==="arrowup"?-s:a==="arrowdown"?s:0;t.getSelected().forEach(d=>{d.x+=l,d.y+=c}),t.markDirty(),t.commit();return}n&&(a==="="||a==="+")&&(e.preventDefault(),t.setZoom(t.zoom*1.2)),n&&a==="-"&&(e.preventDefault(),t.setZoom(t.zoom/1.2)),n&&a==="0"&&(e.preventDefault(),t.zoomFit()),n&&a==="s"&&(e.preventDefault(),t.downloadJSON())}};function Ci(i,e){return{x:Math.min(i.x,e.x),y:Math.min(i.y,e.y),w:Math.abs(e.x-i.x),h:Math.abs(e.y-i.y)}}function Li(i,e,t){let{el:r,c0:o,anchor:n,dir:a}=i,s=J(-(r.rotation||0)),l=te(e.x,e.y,o.x,o.y,s),c=te(n.x,n.y,o.x,o.y,s),d=a.includes("e")||a.includes("w"),h=a.includes("n")||a.includes("s"),g=a.includes("w")?-1:1,u=a.includes("n")?-1:1,z=d?Math.max(8,g*(l.x-c.x)):i.startW,S=h?Math.max(8,u*(l.y-c.y)):i.startH;t&&d&&h&&(z=Math.max(z,8*i.aspect),S=z/i.aspect);let x={x:c.x+(d?g*z/2:0),y:c.y+(h?u*S/2:0)},m=te(x.x,x.y,o.x,o.y,-s);r.w=z,r.h=S,r.x=m.x-z/2,r.y=m.y-S/2}function Hi(i,e,t,r){let o={dx:0,dy:0,guides:[]};if(!r)return o;let n=t.width,a=t.height,s=[],l=[];for(let g of e){let u=Ne(g);s.push({v:u.x,a:u.y,b:u.y+u.h}),s.push({v:u.x+u.w/2,a:u.y,b:u.y+u.h}),s.push({v:u.x+u.w,a:u.y,b:u.y+u.h}),l.push({v:u.y,a:u.x,b:u.x+u.w}),l.push({v:u.y+u.h/2,a:u.x,b:u.x+u.w}),l.push({v:u.y+u.h,a:u.x,b:u.x+u.w})}s.push({v:0,a:0,b:a},{v:n/2,a:0,b:a},{v:n,a:0,b:a}),l.push({v:0,a:0,b:n},{v:a/2,a:0,b:n},{v:a,a:0,b:n});let c=(g,u)=>[0,u/2,u],d=null;for(let g of c(0,i.w))for(let u of s){let z=u.v-(i.x+g);Math.abs(z)<r&&(!d||Math.abs(z)<Math.abs(d.d))&&(d={d:z,v:u.v,a:u.a,b:u.b})}let h=null;for(let g of c(0,i.h))for(let u of l){let z=u.v-(i.y+g);Math.abs(z)<r&&(!h||Math.abs(z)<Math.abs(h.d))&&(h={d:z,v:u.v,a:u.a,b:u.b})}return d&&(o.dx=d.d,o.guides.push({axis:"x",v:d.v,from:Math.min(d.a,i.y)-12,to:Math.max(d.b,i.y+i.h)+12})),h&&(o.dy=h.d,o.guides.push({axis:"y",v:h.v,from:Math.min(h.a,i.x)-12,to:Math.max(h.b,i.x+i.w)+12})),o}function $e(i,e,t,r){pe(i);let o=i.container,n=o.getBoundingClientRect(),a=f("div","ez-menu",o);for(let c of r){if(c==="-"){f("div","ez-menu-sep",a);continue}let d=f("div","ez-menu-item"+(c.danger?" ez-danger":""),a);d.innerHTML=`${c.icon?c.icon:""}<span>${xe(c.label)}</span>${c.shortcut?`<span class="ez-menu-shortcut">${xe(c.shortcut)}</span>`:""}`,c.disabled?d.classList.add("ez-disabled"):d.addEventListener("click",()=>{pe(i),c.action?.()})}a.style.left="0px",a.style.top="0px";let s=a.offsetWidth,l=a.offsetHeight;return a.style.left=jt(e-n.left,4,n.width-s-4)+"px",a.style.top=jt(t-n.top,4,n.height-l-4)+"px",i._openMenu=a,setTimeout(()=>{let c=d=>{a.contains(d.target)||(pe(i),window.removeEventListener("pointerdown",c,!0))};window.addEventListener("pointerdown",c,!0)},0),a}function pe(i){i._openMenu&&(i._openMenu.remove(),i._openMenu=null)}function jt(i,e,t){return Math.max(e,Math.min(t,i))}var Fe=class{constructor(e){this.editor=e,e.canvas.addEventListener("contextmenu",t=>{t.preventDefault();let r=e.interactions.clientToWorld(t),o=e.getElements(),n=null;for(let l=o.length-1;l>=0;l--)if(e.hitTestElement(o[l],r.x,r.y)){n=o[l];break}n&&!e.selection.has(n.id)&&e.select([n.id]);let a=e.selection.size>0,s=[];a?s.push({label:"Copy",shortcut:"Ctrl+C",action:()=>e.copy()},{label:"Paste",shortcut:"Ctrl+V",action:()=>e.paste()},{label:"Duplicate",shortcut:"Ctrl+D",action:()=>e.duplicateSelected()},{label:"Delete",shortcut:"Del",danger:!0,action:()=>e.deleteSelected()},"-",{label:"Bring to front",action:()=>e.bringToFront()},{label:"Bring forward",action:()=>e.bringForward()},{label:"Send backward",action:()=>e.sendBackward()},{label:"Send to back",action:()=>e.sendToBack()},"-",{label:"Flip horizontal",action:()=>e.updateSelected({flipX:!e.getSelected()[0].flipX})},{label:"Flip vertical",action:()=>e.updateSelected({flipY:!e.getSelected()[0].flipY})},{label:e.getSelected().some(l=>l.locked)?"Unlock":"Lock",action:()=>e.toggleLock()}):s.push({label:"Paste",shortcut:"Ctrl+V",disabled:!e.clipboard.length,action:()=>e.paste()},"-",{label:"Select all",shortcut:"Ctrl+A",action:()=>e.selectAll()}),$e(e,t.clientX,t.clientY,s)})}};var ct=[{group:"Social media",sizes:[{id:"social-square",label:"Square post",width:1080,height:1080},{id:"social-portrait",label:"Portrait post (4:5)",width:1080,height:1350},{id:"social-story",label:"Story / Reel (9:16)",width:1080,height:1920},{id:"social-landscape",label:"Landscape post (16:9)",width:1920,height:1080}]},{group:"Print",sizes:[{id:"print-a5",label:"A5",width:1748,height:2480},{id:"print-a4",label:"A4",width:2480,height:3508},{id:"print-a3",label:"A3",width:3508,height:4961},{id:"print-letter",label:"US Letter",width:2550,height:3300},{id:"print-business-card",label:"Business card (3.5 \xD7 2 in)",width:1050,height:600}]},{group:"Presentation",sizes:[{id:"presentation-wide",label:"Widescreen (16:9)",width:1920,height:1080},{id:"presentation-standard",label:"Standard (4:3)",width:1024,height:768},{id:"presentation-wide-16-10",label:"Widescreen (16:10)",width:1920,height:1200}]}],Be=class{constructor(e){this.editor=e,this.root=e.topbarEl,this.render()}render(){let e=this.editor;this.root.innerHTML=`
+var Ezyreka = (() => {
+  var __defProp = Object.defineProperty;
+  var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  var __getOwnPropNames = Object.getOwnPropertyNames;
+  var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __export = (target, all) => {
+    for (var name in all)
+      __defProp(target, name, { get: all[name], enumerable: true });
+  };
+  var __copyProps = (to, from, except, desc) => {
+    if (from && typeof from === "object" || typeof from === "function") {
+      for (let key of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(to, key) && key !== except)
+          __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+    }
+    return to;
+  };
+  var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+  // src/index.js
+  var index_exports = {};
+  __export(index_exports, {
+    Editor: () => Editor,
+    default: () => index_default,
+    version: () => version
+  });
+
+  // src/core/utils.js
+  var uid = (prefix = "el") => prefix + "_" + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
+  var clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+  var deg2rad = (d) => d * Math.PI / 180;
+  var rad2deg = (r) => r * 180 / Math.PI;
+  function rotatePoint(px, py, cx, cy, rad) {
+    const s = Math.sin(rad);
+    const c = Math.cos(rad);
+    const dx = px - cx;
+    const dy = py - cy;
+    return { x: cx + dx * c - dy * s, y: cy + dx * s + dy * c };
+  }
+  function deepClone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+  }
+  function readAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+  }
+  function downloadDataURL(dataURL, filename) {
+    const a = document.createElement("a");
+    a.href = dataURL;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    downloadDataURL(url, filename);
+    setTimeout(() => URL.revokeObjectURL(url), 2e3);
+  }
+  function el(tag, className, parent) {
+    const n = document.createElement(tag);
+    if (className) n.className = className;
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    })[c]);
+  }
+  var Emitter = class {
+    constructor() {
+      this._listeners = /* @__PURE__ */ new Map();
+    }
+    on(event, fn) {
+      if (!this._listeners.has(event)) this._listeners.set(event, /* @__PURE__ */ new Set());
+      this._listeners.get(event).add(fn);
+      return () => this.off(event, fn);
+    }
+    once(event, fn) {
+      const off = this.on(event, (payload) => {
+        off();
+        fn(payload);
+      });
+      return off;
+    }
+    off(event, fn) {
+      this._listeners.get(event)?.delete(fn);
+    }
+    emit(event, payload) {
+      this._listeners.get(event)?.forEach((fn) => {
+        try {
+          fn(payload);
+        } catch (err) {
+          console.error("ezyreka listener error:", err);
+        }
+      });
+      this._listeners.get("*")?.forEach((fn) => {
+        try {
+          fn(event, payload);
+        } catch (err) {
+          console.error("ezyreka listener error:", err);
+        }
+      });
+    }
+  };
+  var HEX6 = /^#([0-9a-f]{6})$/i;
+  var HEX3 = /^#([0-9a-f]{3})$/i;
+  function isHexColor(value) {
+    return typeof value === "string" && (HEX6.test(value) || HEX3.test(value));
+  }
+  function normalizeHexColor(value) {
+    if (typeof value !== "string") return null;
+    if (HEX6.test(value)) return value.toLowerCase();
+    if (HEX3.test(value)) {
+      const [r, g, b] = value.slice(1);
+      return ("#" + r + r + g + g + b + b).toLowerCase();
+    }
+    return null;
+  }
+  function hexOr(value, fallback) {
+    return normalizeHexColor(value) || fallback;
+  }
+
+  // src/core/history.js
+  var History = class {
+    constructor(limit = 100) {
+      this.limit = limit;
+      this._undoStack = [];
+      this._redoStack = [];
+    }
+    push(snapshot) {
+      this._undoStack.push(deepClone(snapshot));
+      if (this._undoStack.length > this.limit) this._undoStack.shift();
+      this._redoStack.length = 0;
+    }
+    undo(current) {
+      if (this._undoStack.length < 2) return null;
+      this._redoStack.push(deepClone(current));
+      this._undoStack.pop();
+      return this._undoStack.pop();
+    }
+    redo(current) {
+      if (!this._redoStack.length) return null;
+      this._undoStack.push(deepClone(current));
+      return this._redoStack.pop();
+    }
+    canUndo() {
+      return this._undoStack.length >= 2;
+    }
+    canRedo() {
+      return this._redoStack.length > 0;
+    }
+    reset() {
+      this._undoStack.length = 0;
+      this._redoStack.length = 0;
+    }
+  };
+
+  // src/core/charts.js
+  var CHART_COLORS = ["#477cf5", "#aa87ef", "#f6b966", "#ffdf58", "#41bda7", "#ed759b"];
+  var activeChartColors = CHART_COLORS;
+  function setChartColors(colors) {
+    if (!Array.isArray(colors)) return;
+    const valid = colors.map((c) => normalizeHexColor(c)).filter(Boolean);
+    if (valid.length) activeChartColors = valid;
+  }
+  var rejectNegativeFirstSeries = (chart) => {
+    if (chart.series[0]?.values.some((v) => v !== null && v < 0)) {
+      throw new Error("Pie and donut charts need non-negative values in the first series.");
+    }
+  };
+  var rejectOverflowingStacks = (chart) => {
+    if (chartStacks(chart).some((series) => series.some((v) => v && !Number.isFinite(v.end)))) {
+      throw new Error("Stacked totals are too large. Use smaller values.");
+    }
+  };
+  var CHART_PRESETS = [
+    { type: "bar", label: "Bar", group: "Bar charts", kind: "bar" },
+    { type: "row", label: "Row", group: "Bar charts", kind: "bar", horizontal: true },
+    { type: "grouped-bar", label: "Grouped bar", group: "Bar charts", kind: "bar", multiSeries: true },
+    { type: "line", label: "Line", group: "Line charts", kind: "line" },
+    { type: "multi-line", label: "Multi-line", group: "Line charts", kind: "line", multiSeries: true },
+    { type: "pie", label: "Pie", group: "Pie and donut charts", kind: "circular", circular: true, validate: rejectNegativeFirstSeries },
+    { type: "donut", label: "Donut", group: "Pie and donut charts", kind: "circular", circular: true, validate: rejectNegativeFirstSeries },
+    { type: "area", label: "Area", group: "Area charts", kind: "area" },
+    { type: "stacked-area", label: "Stacked area", group: "Area charts", kind: "stacked-area", multiSeries: true, validate: rejectOverflowingStacks }
+  ];
+  var chartPreset = (type) => CHART_PRESETS.find((p) => p.type === type) || null;
+  function registerChartPreset(preset) {
+    if (!preset || typeof preset.type !== "string" || !preset.label) {
+      throw new Error("ezyreka: chart presets need { type, label }");
+    }
+    if (chartPreset(preset.type)) {
+      throw new Error(`ezyreka: chart type "${preset.type}" already exists`);
+    }
+    CHART_PRESETS.push({ group: "Other charts", ...preset });
+    return preset;
+  }
+  var isCircularChart = (type) => chartPreset(type)?.circular === true;
+  var isMultiSeriesChart = (type) => chartPreset(type)?.multiSeries === true;
+  var chartColor = (index) => activeChartColors[index % activeChartColors.length];
+  function sampleChart(type = "bar") {
+    return normalizeChart({
+      type,
+      categories: ["Jan", "Feb", "Mar", "Apr", "May"],
+      series: (isMultiSeriesChart(type) ? [[24, 42, 35, 64, 80], [16, 28, 44, 52, 65], [10, 18, 24, 32, 48]] : [[24, 42, 35, 64, 80]]).map((values, i) => ({ name: `Series ${i + 1}`, values, color: chartColor(i) }))
+    });
+  }
+  function normalizeChart(input = {}) {
+    input = input && typeof input === "object" ? input : {};
+    const type = chartPreset(input.type) ? input.type : "bar";
+    const categories = Array.isArray(input.categories) ? input.categories.map((v) => String(v ?? "")) : ["Jan", "Feb", "Mar"];
+    const source = Array.isArray(input.series) ? input.series : [{ name: "Series 1", values: [24, 42, 35] }];
+    return {
+      type,
+      categories,
+      series: source.map((s, i) => ({
+        name: String(s?.name ?? `Series ${i + 1}`),
+        color: hexOr(s?.color, chartColor(i)),
+        values: categories.map((_, r) => Number.isFinite(s?.values?.[r]) ? s.values[r] : null)
+      })),
+      categoryColors: categories.map((_, i) => hexOr(input.categoryColors?.[i], chartColor(i))),
+      title: String(input.title ?? ""),
+      showLegend: input.showLegend ?? (isMultiSeriesChart(type) || isCircularChart(type)),
+      showValues: input.showValues ?? false,
+      showAxes: input.showAxes ?? true,
+      showGrid: input.showGrid ?? true,
+      fontSize: Number.isFinite(input.fontSize) ? Math.max(8, Math.min(72, input.fontSize)) : 16,
+      textColor: hexOr(input.textColor, "#374151")
+    };
+  }
+  function validateChart(chart) {
+    chartPreset(chart.type)?.validate?.(chart);
+    return chart;
+  }
+  function parseChartValue(text3) {
+    if (String(text3).trim() === "") return null;
+    const value = Number(String(text3).trim());
+    if (!Number.isFinite(value)) throw new Error("Enter a finite number, or leave the value blank.");
+    return value;
+  }
+  function parseChartPaste(text3) {
+    const rows = [];
+    let row = [], cell = "", quoted = false;
+    text3 = String(text3).replace(/\r\n?/g, "\n");
+    for (let i = 0; i < text3.length; i++) {
+      const ch = text3[i];
+      if (ch === '"' && (quoted || cell === "")) {
+        if (quoted && text3[i + 1] === '"') {
+          cell += '"';
+          i++;
+        } else quoted = !quoted;
+      } else if (!quoted && (ch === "	" || ch === "\n")) {
+        row.push(cell);
+        cell = "";
+        if (ch === "\n") {
+          rows.push(row);
+          row = [];
+        }
+      } else cell += ch;
+    }
+    if (quoted) throw new Error("The pasted table contains an unclosed quote.");
+    if (cell !== "" || row.length || !text3.endsWith("\n")) {
+      row.push(cell);
+      rows.push(row);
+    }
+    if (!rows.length || rows.some((r) => r.length !== rows[0].length)) throw new Error("Paste a rectangular table with the same number of columns in every row.");
+    return rows;
+  }
+  function pasteChartData(chart, text3, row, column) {
+    const cells = parseChartPaste(text3);
+    const next = normalizeChart(chart);
+    const rowCount = Math.max(next.categories.length, row + cells.length - 1);
+    const seriesCount = Math.max(next.series.length, column + cells[0].length - 1);
+    while (next.categories.length < rowCount) next.categories.push(`Item ${next.categories.length + 1}`);
+    while (next.series.length < seriesCount) next.series.push({ name: `Series ${next.series.length + 1}`, values: [], color: chartColor(next.series.length) });
+    next.series.forEach((s) => {
+      while (s.values.length < rowCount) s.values.push(null);
+    });
+    cells.forEach((values, r) => values.forEach((value, c) => {
+      const rr = row + r, cc = column + c;
+      if (rr === 0) {
+        if (cc > 0) next.series[cc - 1].name = value;
+      } else if (cc === 0) next.categories[rr - 1] = value;
+      else next.series[cc - 1].values[rr - 1] = parseChartValue(value);
+    }));
+    return validateChart(normalizeChart(next));
+  }
+  function chartStacks(chart) {
+    const positive = chart.categories.map(() => 0), negative = [...positive];
+    return chart.series.map((s) => s.values.map((value, i) => {
+      if (value === null) return null;
+      const totals = value >= 0 ? positive : negative;
+      const start = totals[i];
+      totals[i] += value;
+      return { start, end: totals[i] };
+    }));
+  }
+  function chartDomain(chart) {
+    let low = 0, high = 0;
+    const add = (value) => {
+      if (Number.isFinite(value)) {
+        low = Math.min(low, value);
+        high = Math.max(high, value);
+      }
+    };
+    const kind = chartPreset(chart.type)?.kind;
+    if (kind === "stacked-area") chartStacks(chart).forEach((s) => s.forEach((v) => {
+      if (v) {
+        add(v.start);
+        add(v.end);
+      }
+    }));
+    else (isMultiSeriesChart(chart.type) ? chart.series : chart.series.slice(0, 1)).forEach((s) => s.values.forEach(add));
+    if (low === high) return [0, 1];
+    const magnitude = Math.max(Math.abs(low), Math.abs(high));
+    const step = 10 ** Math.floor(Math.log10(magnitude)) / 2;
+    if (!Number.isFinite(step) || step === 0) return [low, high];
+    const roundedLow = Math.floor(low / step) * step, roundedHigh = Math.ceil(high / step) * step;
+    return [Number.isFinite(roundedLow) ? roundedLow : low, Number.isFinite(roundedHigh) ? roundedHigh : high];
+  }
+
+  // src/core/element-artwork.js
+  var polygon = (sides, inner = 1) => {
+    const count = inner === 1 ? sides : sides * 2;
+    return Array.from({ length: count }, (_, i) => {
+      const angle = -Math.PI / 2 + i * Math.PI * 2 / count;
+      const radius = 48 * (i % 2 ? inner : 1);
+      return `${i ? "L" : "M"}${(50 + Math.cos(angle) * radius).toFixed(3)} ${(50 + Math.sin(angle) * radius).toFixed(3)}`;
+    }).join(" ") + "Z";
+  };
+  var GEAR_PATH = Array.from({ length: 32 }, (_, i) => {
+    const angle = (i - 0.5) * Math.PI / 16;
+    const radius = i % 4 < 2 ? 10 : 8;
+    return `${i ? "L" : "M"}${(12 + Math.cos(angle) * radius).toFixed(3)} ${(12 + Math.sin(angle) * radius).toFixed(3)}`;
+  }).join(" ") + "ZM16 12A4 4 0 1 1 8 12A4 4 0 1 1 16 12Z";
+  var SHAPE_PATHS = {
+    // Primitives live here too, so their geometry has a single home shared by
+    // the canvas renderer, the Elements panel previews and custom registries.
+    ellipse: "M0 50A50 50 0 1 1 100 50A50 50 0 1 1 0 50Z",
+    triangle: "M50 0L100 100L0 100Z",
+    star: "M50 6L61 38L95 38L67 59L78 92L50 72L22 92L33 59L5 38L39 38Z",
+    hexagon: "M26 8L74 8L96 50L74 92L26 92L4 50Z",
+    diamond: "M50 0L100 50L50 100L0 50Z",
+    heart: "M50 86C22 64 8 47 8 31C8 17 19 9 30 9C39 9 46 15 50 23C54 15 61 9 70 9C81 9 92 17 92 31C92 47 78 64 50 86Z",
+    pentagon: polygon(5),
+    octagon: polygon(8),
+    "star-six": polygon(6, 0.52),
+    "star-eight": polygon(8, 0.55),
+    burst: polygon(16, 0.8),
+    sparkle: "M50 2C55 34 66 45 98 50C66 55 55 66 50 98C45 66 34 55 2 50C34 45 45 34 50 2Z",
+    arch: "M0 100V50A50 50 0 0 1 100 50V100Z",
+    semicircle: "M0 100A50 100 0 0 1 100 100Z",
+    "quarter-circle": "M0 0A100 100 0 0 1 100 100H0Z",
+    ring: "M50 0A50 50 0 1 1 50 100A50 50 0 1 1 50 0ZM50 22A28 28 0 1 0 50 78A28 28 0 1 0 50 22Z",
+    crescent: "M78 4A50 50 0 1 0 78 96A48 48 0 0 1 78 4Z",
+    droplet: "M50 0C42 15 10 48 10 65A40 35 0 0 0 90 65C90 48 58 15 50 0Z",
+    leaf: "M3 97C-9 26 26-9 97 3C109 74 74 109 3 97Z",
+    blob: "M51 2C76-5 101 17 98 43C95 66 83 97 57 99C28 102 0 84 2 58C4 33 24 9 51 2Z",
+    pebble: "M16 15C36-3 72-6 89 16C106 38 99 76 79 92C57 108 21 98 7 75C-6 52 0 30 16 15Z",
+    "speech-bubble": "M18 4H82Q98 4 98 20V63Q98 79 82 79H42L16 98V79Q2 79 2 63V20Q2 4 18 4Z",
+    ribbon: "M0 12H100L82 50L100 88H0L18 50Z",
+    chevron: "M0 0H52L100 50L52 100H0L48 50Z",
+    cross: "M34 0H66V34H100V66H66V100H34V66H0V34H34Z",
+    "arrow-block": "M0 32H58V0L100 50L58 100V68H0Z"
+  };
+  var PRIMITIVE_SHAPE_KEYS = ["ellipse", "triangle", "star", "hexagon", "diamond", "heart"];
+  var EXTRA_SHAPES = [
+    { type: "rect", label: "Rectangle", props: { w: 280, h: 160 }, svg: '<rect x="8" y="26" width="84" height="48" />' },
+    { type: "rect", label: "Pill", props: { w: 280, h: 140, radius: 70 }, svg: '<rect x="8" y="29" width="84" height="42" rx="21" />' },
+    { type: "ellipse", label: "Oval", props: { w: 280, h: 160 }, svg: '<ellipse cx="50" cy="50" rx="42" ry="24" />' },
+    ...Object.keys(SHAPE_PATHS).filter((name) => !PRIMITIVE_SHAPE_KEYS.includes(name)).map((name) => ({
+      type: "shape",
+      label: name.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase()),
+      props: { shape: name, ...name === "semicircle" ? { w: 240, h: 120 } : {} },
+      svg: `<path d="${SHAPE_PATHS[name]}" transform="${name === "semicircle" ? "translate(8 29) scale(.84 .42)" : "translate(8 8) scale(.84)"}" fill-rule="evenodd" />`
+    }))
+  ];
+  var FLOWER_PATH = "M8.75 6.371A3.5 3.5 0 1 1 15.25 6.371A3.5 3.5 0 1 1 18.5 12A3.5 3.5 0 1 1 15.25 17.629A3.5 3.5 0 1 1 8.75 17.629A3.5 3.5 0 1 1 5.5 12A3.5 3.5 0 1 1 8.75 6.371ZM15 12A3 3 0 1 1 9 12A3 3 0 1 1 15 12Z";
+  var ROCKET_HULL = "M8 10C11 4.5 15.5 2 21 3C22 8.5 19.5 13 14 16V19L9 21.5L10 16L8 14L2.5 15L5 10Z";
+  var ROCKET_WINDOW = "M18 8A2 2 0 1 1 14 8A2 2 0 1 1 18 8Z";
+  var ROCKET_FLAME = "M6.5 17.5C4.5 16.5 2.5 19 2.5 21.5C5 21.5 7.5 19.5 6.5 17.5Z";
+  var EXTRA_ICONS = {
+    bolt: "M13 2L3 14H10L9 22L21 9H14L15 2Z",
+    sparkle: "M12 2C13 8 16 11 22 12C16 13 13 16 12 22C11 16 8 13 2 12C8 11 11 8 12 2Z",
+    location: "M12 2A8 8 0 0 0 4 10C4 15 12 22 12 22S20 15 20 10A8 8 0 0 0 12 2ZM12 6A3 3 0 1 1 12 12A3 3 0 1 1 12 6Z",
+    bookmark: "M6 2H18A1 1 0 0 1 19 3V22L12 17L5 22V3A1 1 0 0 1 6 2Z",
+    flag: "M4 2H6V3C11 0 14 6 21 3V15C14 18 11 12 6 15V22H4Z",
+    shield: "M12 2L21 6V11C21 17 17 20 12 22C7 20 3 17 3 11V6ZM10.5 15.5L17 9L15.5 7.5L10.5 12.5L8 10L6.5 11.5Z",
+    trophy: "M7 2H17V4H22V8A5 5 0 0 1 17 13H16.6A5 5 0 0 1 13 16V19H17V22H7V19H11V16A5 5 0 0 1 7.4 13H7A5 5 0 0 1 2 8V4H7ZM4 6V8A3 3 0 0 0 7 11V6ZM17 6V11A3 3 0 0 0 20 8V6Z",
+    crown: "M2 6L7 10L12 3L17 10L22 6L19 18H5ZM5 20H19V22H5Z",
+    gift: "M12 5C8-2 1 3 5 7H2V12H11V7H13V12H22V7H19C23 3 16-2 12 5ZM10 7H7C3 7 5 2 8 5ZM14 7L16 5C19 2 21 7 17 7ZM3 14H11V22H3ZM13 14H21V22H13Z",
+    bag: "M8 7V6A4 4 0 0 1 16 6V7H20L22 22H2L4 7ZM10 7H14V6A2 2 0 0 0 10 6Z",
+    tag: "M3 2H12L22 12L12 22L2 12V3A1 1 0 0 1 3 2ZM7 5A2 2 0 1 0 7 9A2 2 0 1 0 7 5Z",
+    play: "M6 3Q6 2 7 2.6L21 11Q22.5 12 21 13L7 21.4Q6 22 6 21Z",
+    music: "M10 4L21 2V17A4 3 0 1 1 19 14.4V7L12 8.3V19A4 3 0 1 1 10 16.4Z",
+    headphones: "M2 12A10 10 0 0 1 22 12V19A3 3 0 0 1 19 22H16V12H20A8 8 0 0 0 4 12H8V22H5A3 3 0 0 1 2 19Z",
+    coffee: "M3 6H17V7H19A4 4 0 0 1 19 15H16.5A6 6 0 0 1 11 19H9A6 6 0 0 1 3 13ZM17 9V13H19A2 2 0 0 0 19 9ZM2 20H20V22H2ZM6 2H8V5H6ZM11 2H13V5H11Z",
+    leaf: "M3 21C-1 7 7 0 22 2C24 17 16 25 3 21ZM6 18L17 7L15.6 5.6L4.6 16.6Z",
+    flower: FLOWER_PATH,
+    globe: "M12 2A10 10 0 1 0 12 22A10 10 0 1 0 12 2ZM11 4.5C9.8 6 9.2 8.5 9 11H11ZM13 4.5V11H15C14.8 8.5 14.2 6 13 4.5ZM4.1 11H7C7.2 8.8 7.5 6.9 8.2 5A8 8 0 0 0 4.1 11ZM15.8 5C16.5 6.9 16.8 8.8 17 11H19.9A8 8 0 0 0 15.8 5ZM4.1 13A8 8 0 0 0 8.2 19C7.5 17.1 7.2 15.2 7 13ZM9 13C9.2 15.5 9.8 18 11 19.5V13ZM13 13V19.5C14.2 18 14.8 15.5 15 13ZM17 13C16.8 15.2 16.5 17.1 15.8 19A8 8 0 0 0 19.9 13Z",
+    rocket: ROCKET_HULL + ROCKET_WINDOW + ROCKET_FLAME,
+    briefcase: "M8 3H16A2 2 0 0 1 18 5V7H21A1 1 0 0 1 22 8V13H14V11H10V13H2V8A1 1 0 0 1 3 7H6V5A2 2 0 0 1 8 3ZM8 5V7H16V5ZM2 15H10V17H14V15H22V21H2Z"
+  };
+  var ICON_OUTLINES = {
+    star: "M12 2L15.1 8.3L22 9.3L17 14.2L18.2 21.1L12 17.8L5.8 21.1L7 14.2L2 9.3L8.9 8.3Z",
+    heart: "M20.8 4.6A5.5 5.5 0 0 0 12 6A5.5 5.5 0 0 0 3.2 4.6C-2 10 6 17 12 21C18 17 26 10 20.8 4.6Z",
+    check: "M4 12L9 17L20 6",
+    "arrow-right": "M3 12H21M14 5L21 12L14 19",
+    sun: "M16 12A4 4 0 1 1 8 12A4 4 0 1 1 16 12ZM12 2V4M12 20V22M2 12H4M20 12H22M5 5L6.5 6.5M17.5 17.5L19 19M5 19L6.5 17.5M17.5 6.5L19 5",
+    moon: "M21 13.5A9 9 0 1 1 10.5 3A7 7 0 0 0 21 13.5Z",
+    cloud: "M7 19A5 5 0 1 1 7 9A6 6 0 0 1 18.5 8.5A5.3 5.3 0 0 1 18 19Z",
+    home: "M3 10L12 3L21 10M5 9V21H10V15H14V21H19V9",
+    mail: "M4 4H20Q22 4 22 6V18Q22 20 20 20H4Q2 20 2 18V6Q2 4 4 4ZM2 6L12 13L22 6",
+    phone: "M5 3H8L10 8L7.5 10A14 14 0 0 0 14 16.5L16 14L21 16V19Q21 22 18 21C10 20 4 14 3 6Q2 3 5 3Z",
+    camera: "M8 6L10 3H14L16 6H20Q22 6 22 8V19Q22 21 20 21H4Q2 21 2 19V8Q2 6 4 6ZM16 13A4 4 0 1 1 8 13A4 4 0 1 1 16 13Z",
+    user: "M16 7A4 4 0 1 1 8 7A4 4 0 1 1 16 7ZM4 21V19C4 12 20 12 20 19V21",
+    calendar: "M5 4H19A2 2 0 0 1 21 6V20A2 2 0 0 1 19 22H5A2 2 0 0 1 3 20V6A2 2 0 0 1 5 4ZM8 2V6M16 2V6M3 9H21M6.5 12.5H7.5V13.5H6.5ZM11.5 12.5H12.5V13.5H11.5ZM16.5 12.5H17.5V13.5H16.5ZM6.5 17.5H7.5V18.5H6.5ZM11.5 17.5H12.5V18.5H11.5ZM16.5 17.5H17.5V18.5H16.5Z",
+    clock: "M22 12A10 10 0 1 1 2 12A10 10 0 1 1 22 12ZM12 6V12L16 15",
+    chat: "M5 3H19Q22 3 22 6V15Q22 18 19 18H8L3 22V6Q3 3 5 3ZM7 8H17M7 12H14",
+    search: "M18 10A8 8 0 1 1 2 10A8 8 0 1 1 18 10ZM16 16L22 22",
+    bell: "M18 8A6 6 0 0 0 6 8V12L3 17H21L18 12ZM9 21H15",
+    gear: GEAR_PATH,
+    trash: "M3 6H21M8 6V3H16V6M5 6L6 21H18L19 6M10 10V17M14 10V17",
+    chart: "M3 3V21H22M7 16V11M12 16V5M17 16V8",
+    bolt: "M13 2L3 14H10L9 22L21 9H14L15 2Z",
+    sparkle: "M12 2C13 8 16 11 22 12C16 13 13 16 12 22C11 16 8 13 2 12C8 11 11 8 12 2Z",
+    location: "M20 10C20 15 12 22 12 22S4 15 4 10A8 8 0 1 1 20 10ZM15 10A3 3 0 1 1 9 10A3 3 0 1 1 15 10Z",
+    bookmark: "M5 3H19V22L12 17L5 22Z",
+    flag: "M4 22V3C10 0 15 6 21 3V15C15 18 10 12 4 15",
+    shield: "M12 2L21 6V11C21 17 17 20 12 22C7 20 3 17 3 11V6ZM8 11L11 14L16 9",
+    trophy: "M7 3H17V11A5 5 0 0 1 7 11ZM7 5H3V8Q3 12 7 12M17 5H21V8Q21 12 17 12M12 16V21M7 21H17",
+    crown: "M2 5L7 10L12 3L17 10L22 5L19 18H5ZM5 22H19",
+    gift: "M3 8H21V12H3ZM4 12V22H20V12M12 8V22M12 8C3 9 3 2 7 2C10 2 12 8 12 8C21 9 21 2 17 2C14 2 12 8 12 8Z",
+    bag: "M4 7H20L22 22H2ZM8 9V6A4 4 0 0 1 16 6V9",
+    tag: "M3 2H12L22 12L12 22L2 12V3ZM8 7A1 1 0 1 1 6 7A1 1 0 1 1 8 7Z",
+    play: "M6 3L21 12L6 21Z",
+    music: "M10 18V4L21 2V16M10 8L21 6M10 18A3 3 0 1 1 4 18A3 3 0 1 1 10 18ZM21 16A3 3 0 1 1 15 16A3 3 0 1 1 21 16Z",
+    headphones: "M3 13V11A9 9 0 0 1 21 11V13M3 12H7V21H5Q3 21 3 19ZM21 12H17V21H19Q21 21 21 19Z",
+    coffee: "M3 7H17V13A6 6 0 0 1 11 19H9A6 6 0 0 1 3 13ZM17 8H19A3 3 0 0 1 19 14H17M2 22H20M7 2V4M12 2V4",
+    leaf: "M3 21C-1 7 7 0 22 2C24 17 16 25 3 21ZM3 21L16 8",
+    flower: FLOWER_PATH,
+    globe: "M22 12A10 10 0 1 1 2 12A10 10 0 1 1 22 12ZM2 12H22M12 2C6 7 6 17 12 22C18 17 18 7 12 2Z",
+    rocket: ROCKET_HULL + ROCKET_WINDOW + ROCKET_FLAME + "M8 10L14 16",
+    briefcase: "M3 7H21Q22 7 22 8V20Q22 21 21 21H3Q2 21 2 20V8Q2 7 3 7ZM8 7V3H16V7M2 13H10M14 13H22M10 11H14V16H10Z"
+  };
+
+  // src/core/templates.js
+  var text = (value, x, y, w, size, color, props = {}) => {
+    const style = { fontSize: size, fontFamily: "Arial", fontWeight: 400, lineHeight: 1.15, ...props };
+    return {
+      type: "text",
+      text: value,
+      x,
+      y,
+      w,
+      color,
+      h: Math.ceil(style.fontSize * style.lineHeight * value.split("\n").length + 8),
+      ...style
+    };
+  };
+  var label = (value, x, y, w, color, props = {}) => text(value, x, y, w, 20, color, { fontWeight: 700, letterSpacing: 2, ...props });
+  var box = (x, y, w, h, fill, props = {}) => ({ type: "rect", x, y, w, h, fill, ...props });
+  var circle = (x, y, size, fill, props = {}) => ({ type: "ellipse", x, y, w: size, h: size, fill, ...props });
+  var oval = (x, y, w, h, fill, props = {}) => ({ type: "ellipse", x, y, w, h, fill, ...props });
+  var rule = (x, y, w, color) => box(x, y, w, 2, color);
+  var icon = (name, x, y, size, fill, props = {}) => ({ type: "icon", icon: name, x, y, w: size, h: size, fill, ...props });
+  var gradient = (from, to, angle = 135) => ({ type: "gradient", from, to, angle });
+  var serif = { fontFamily: "Georgia" };
+  var bold = { fontWeight: 700 };
+  var display = { fontFamily: "Impact" };
+  var mono = { fontFamily: "Courier New" };
+  var centered = { align: "center" };
+  var right = { align: "right" };
+  var template = (name, category, format, width, height, background, elements) => ({
+    name,
+    category,
+    format,
+    page: { width, height, background: typeof background === "string" ? { type: "solid", color: background } : background, elements }
+  });
+  var TEMPLATES = [
+    template("Summer Social", "Social", "Square post", 1080, 1080, "#ff7048", [
+      box(36, 36, 1008, 1008, "none", { stroke: "#43251e", strokeWidth: 2 }),
+      label("[YOUR BRAND] / SUMMER EDIT", 70, 72, 890, "#43251e"),
+      rule(70, 123, 940, "#43251e"),
+      text("SUNNY", 60, 166, 950, 220, "#fff7cc", display),
+      text("SIDE UP.", 65, 392, 950, 180, "#43251e", display),
+      circle(718, 630, 250, "#ffde58"),
+      icon("sun", 749, 661, 188, "#43251e"),
+      text("Long days.\nLittle adventures.", 75, 690, 590, 48, "#43251e", serif),
+      box(75, 887, 505, 74, "#43251e", { radius: 37 }),
+      label("MAKE A LITTLE SUNSHINE", 98, 912, 460, "#fff7cc", { ...centered, fontSize: 18 }),
+      text("01 / THE GOOD DAYS", 730, 978, 280, 18, "#43251e", mono)
+    ]),
+    template("Words to Keep", "Social", "Quote card", 1080, 1080, "#f7f5ef", [
+      box(0, 0, 28, 1080, "#7460b0"),
+      label("WORDS TO KEEP", 85, 70, 700, "#53466f"),
+      text("\u201C", 65, 162, 280, 240, "#bcaed7", serif),
+      text("Make space\nfor what\nmatters.", 190, 306, 785, 108, "#30293c", { ...serif, lineHeight: 1.1 }),
+      box(192, 708, 280, 12, "#cbbfeb"),
+      text("A small reminder for a full life.", 195, 785, 740, 30, "#655e70"),
+      rule(85, 933, 910, "#c9c3d1"),
+      label("[AUTHOR / YOUR NAME]", 85, 969, 760, "#53466f", { fontSize: 17 }),
+      icon("star", 932, 960, 40, "#7460b0")
+    ]),
+    template("New Collection", "Social", "Portrait story", 1080, 1920, "#efe9df", [
+      label("[YOUR STUDIO]", 75, 84, 700, "#373a31"),
+      label("VOL. 01", 805, 84, 200, "#373a31", right),
+      text("Everyday\nobjects.", 72, 208, 936, 144, "#373a31", { ...serif, lineHeight: 1.05 }),
+      box(75, 565, 930, 795, "#b8c3aa", { radius: 430 }),
+      circle(623, 634, 235, "#e5d3a2"),
+      oval(220, 1170, 660, 100, "#8c9d80"),
+      box(305, 939, 270, 272, "#a5513e", { radius: 55 }),
+      oval(305, 905, 270, 90, "#bd7054"),
+      oval(329, 923, 222, 48, "#613f32"),
+      box(659, 865, 100, 334, "#f4e7c9", { radius: 40 }),
+      oval(629, 820, 160, 125, "#f4e7c9"),
+      box(703, 746, 10, 118, "#465941", { rotation: 12 }),
+      oval(712, 751, 105, 42, "#465941", { rotation: -25 }),
+      label("THE NEW COLLECTION", 78, 1443, 920, "#675b4b"),
+      text("Considered shapes.\nMade for your everyday.", 75, 1510, 930, 46, "#373a31", serif),
+      rule(75, 1690, 930, "#a7aa98"),
+      text("[Launch date]  /  [Your website]", 75, 1730, 830, 27, "#373a31"),
+      icon("arrow-right", 930, 1725, 58, "#373a31"),
+      label("EXPLORE THE COLLECTION", 75, 1830, 900, "#675b4b", { fontSize: 18 })
+    ]),
+    template("Open Conversations", "Social", "Podcast cover", 1080, 1080, "#102d36", [
+      box(48, 48, 984, 984, "none", { stroke: "#5e7b80", strokeWidth: 2 }),
+      label("[YOUR PODCAST NETWORK]", 85, 85, 890, "#baf2d1"),
+      text("OPEN", 75, 180, 910, 220, "#baf2d1", display),
+      text("conversations", 83, 420, 930, 84, "#fff3de", serif),
+      ...[70, 145, 220, 110, 270, 170, 95, 210, 140, 60].map((h, i) => box(95 + i * 52, 705 - h / 2, 26, h, "#baf2d1", { radius: 13 })),
+      circle(725, 580, 220, "#f18a65"),
+      icon("chat", 780, 635, 110, "#102d36"),
+      rule(85, 892, 910, "#5e7b80"),
+      text("Ideas worth listening to.", 85, 932, 680, 30, "#fff3de"),
+      label("[HOST NAME]", 735, 936, 245, "#baf2d1", { ...right, fontSize: 18 })
+    ]),
+    template("Studio Pitch", "Business", "Presentation", 1920, 1080, "#f4f2ec", [
+      box(1250, 0, 670, 1080, "#203fba"),
+      box(1345, 130, 475, 475, "none", { stroke: "#c8d1ff", strokeWidth: 3 }),
+      circle(1345, 130, 475, "#c8d1ff"),
+      box(1582, 368, 238, 237, "#203fba"),
+      box(1345, 650, 475, 210, "#b6e9c0"),
+      text("N", 1390, 661, 390, 155, "#203fba", { ...display, ...centered }),
+      label("[YOUR STUDIO]", 95, 88, 1030, "#203fba", { fontSize: 26 }),
+      text("Ideas into\nimpact.", 88, 250, 1110, 164, "#202633", { ...serif, lineHeight: 1.05 }),
+      text("A clear vision for your next chapter.", 98, 650, 1030, 39, "#5c626d"),
+      rule(98, 839, 1040, "#b8bcc4"),
+      label("STRATEGY / IDENTITY / EXPERIENCE", 98, 885, 1060, "#203fba"),
+      text("[Client name]  /  [Presentation date]", 98, 961, 1060, 25, "#5c626d"),
+      label("01", 1700, 945, 115, "#ffffff", { ...right, fontSize: 32 })
+    ]),
+    template("Studio Business Card", "Business", "Business card", 1050, 600, "#202b27", [
+      box(32, 32, 986, 536, "none", { stroke: "#728b77", strokeWidth: 2 }),
+      circle(68, 65, 92, "#d6eea6"),
+      icon("star", 90, 87, 48, "#202b27"),
+      label("[YOUR STUDIO]", 195, 97, 760, "#d6eea6", { fontSize: 17 }),
+      text("[Your Name]", 65, 222, 920, 74, "#f8f4e9", serif),
+      text("[Your role / specialty]", 70, 328, 880, 26, "#a8b9aa"),
+      rule(70, 420, 910, "#728b77"),
+      text("[Email address]\n[Your website]", 70, 455, 560, 23, "#f8f4e9", { lineHeight: 1.5 }),
+      text("[Phone number]", 650, 485, 330, 23, "#d6eea6", right)
+    ]),
+    template("Project Proposal", "Business", "Document cover", 1240, 1754, "#f1f3f6", [
+      box(0, 0, 1240, 250, "#172c49"),
+      label("[YOUR COMPANY]", 90, 100, 900, "#ffffff", { fontSize: 28 }),
+      label("PROPOSAL / [YEAR]", 90, 333, 1060, "#345fea"),
+      text("A plan for\nwhat\u2019s next.", 82, 449, 1080, 132, "#172c49", { ...serif, lineHeight: 1.07 }),
+      text("[Project title]", 90, 795, 1060, 42, "#52617a"),
+      box(90, 953, 1060, 309, "#345fea"),
+      box(125, 988, 240, 239, "#9fb7ff"),
+      box(385, 1080, 300, 147, "#dce5ff"),
+      box(705, 1160, 410, 67, "#ffffff"),
+      label("PROJECT PROPOSAL", 90, 1365, 1060, "#345fea"),
+      rule(90, 1430, 1060, "#aab4c4"),
+      label("PREPARED FOR", 90, 1480, 510, "#52617a", { fontSize: 17 }),
+      label("PREPARED BY", 660, 1480, 490, "#52617a", { fontSize: 17 }),
+      text("[Client name]", 90, 1530, 510, 32, "#172c49"),
+      text("[Team name]", 660, 1530, 490, 32, "#172c49"),
+      text("[Date]  /  [Contact email]", 90, 1650, 1060, 25, "#52617a")
+    ]),
+    template("Certificate of Completion", "Business", "Certificate", 1600, 1130, "#faf7ed", [
+      box(0, 0, 215, 1130, "#233c36"),
+      rule(275, 65, 1250, "#b69a57"),
+      box(275, 1020, 1250, 3, "#b69a57"),
+      circle(44, 390, 128, "#b69a57"),
+      icon("star", 77, 423, 62, "#faf7ed"),
+      box(74, 510, 27, 145, "#b69a57"),
+      box(118, 510, 27, 145, "#b69a57"),
+      label("[ISSUING ORGANIZATION]", 300, 125, 1190, "#233c36", { ...centered, fontSize: 23 }),
+      text("Certificate", 290, 237, 1220, 120, "#233c36", { ...serif, ...centered }),
+      label("OF COMPLETION", 300, 397, 1190, "#8a713a", { ...centered, fontSize: 23 }),
+      text("This certificate is presented to", 300, 500, 1190, 29, "#63726a", centered),
+      text("[Participant Name]", 305, 578, 1180, 68, "#233c36", { ...serif, ...centered }),
+      rule(430, 686, 930, "#b69a57"),
+      text("For completing [Course or Workshop Name]", 310, 741, 1180, 30, "#63726a", centered),
+      rule(360, 917, 370, "#63726a"),
+      rule(1060, 917, 370, "#63726a"),
+      text("[Date]", 360, 940, 370, 24, "#233c36", centered),
+      text("[Signature / Name]", 1060, 940, 370, 24, "#233c36", centered)
+    ]),
+    template("Weekend Sale", "Events", "Sale poster", 1080, 1350, "#efefdf", [
+      label("[YOUR BRAND] / LIMITED-TIME OFFERS", 65, 65, 950, "#252525", { fontSize: 19 }),
+      rule(65, 116, 950, "#252525"),
+      text("WEEKEND", 55, 182, 980, 163, "#252525", display),
+      text("SALE", 52, 354, 976, 325, "#e14432", display),
+      box(65, 745, 950, 216, "#e14432"),
+      label("YOUR OFFER", 95, 779, 700, "#fff8e4"),
+      text("[Discount / deal]", 94, 827, 880, 69, "#fff8e4", bold),
+      text("Good finds. A fresh reason to shop.", 65, 1020, 950, 34, "#252525", serif),
+      rule(65, 1125, 950, "#252525"),
+      text("[Start date] \u2014 [End date]\n[Store address / website]", 65, 1171, 820, 28, "#252525", { lineHeight: 1.5 }),
+      icon("arrow-right", 935, 1195, 60, "#e14432")
+    ]),
+    template("After Hours", "Events", "Music flyer", 1080, 1350, "#151320", [
+      label("[PROMOTER] PRESENTS", 65, 65, 800, "#f9b7dc"),
+      ...[0, 1, 2, 3, 4].map((i) => oval(130 + i * 67, 185 + i * 50, 700 - i * 90, 480 - i * 52, "none", { stroke: ["#6254ed", "#8577ff", "#c298ff", "#edabec", "#ffd5b4"][i], strokeWidth: 22, rotation: -22 })),
+      text("AFTER", 62, 732, 950, 176, "#fcebd9", display),
+      text("HOURS", 63, 905, 950, 176, "#f9b7dc", display),
+      rule(65, 1133, 950, "#8577ff"),
+      text("[Artist / lineup]\n[Date] / [Time] / [Venue]", 65, 1170, 810, 29, "#fcebd9", { lineHeight: 1.5 }),
+      icon("star", 927, 1178, 72, "#f9b7dc")
+    ]),
+    template("Make Something", "Events", "Workshop invite", 1080, 1350, "#f7eecf", [
+      box(0, 0, 1080, 105, "#2b4791"),
+      label("[YOUR CREATIVE CLUB] PRESENTS", 65, 37, 950, "#f7eecf"),
+      text("MAKE", 63, 174, 950, 202, "#2b4791", display),
+      text("something", 65, 414, 950, 116, "#d95137", { ...serif, italic: true }),
+      text("YOUR OWN.", 65, 564, 950, 137, "#2b4791", display),
+      box(80, 778, 200, 200, "#e7b730", { rotation: -8 }),
+      icon("star", 369, 770, 230, "#d95137"),
+      circle(715, 786, 195, "#2b4791"),
+      circle(775, 846, 75, "#f7eecf"),
+      rule(65, 1065, 950, "#2b4791"),
+      text("[Workshop title]", 65, 1102, 950, 37, "#2b4791", bold),
+      text("[Date & time]  /  [Venue]\nReserve your spot: [Website / email]", 65, 1175, 950, 27, "#2b4791", { lineHeight: 1.5 })
+    ]),
+    template("Together Forever", "Events", "Wedding invitation", 1080, 1500, "#ede8df", [
+      box(65, 65, 950, 1370, "#f9f6ee", { radius: 440 }),
+      oval(470, 140, 140, 190, "none", { stroke: "#8a7756", strokeWidth: 3 }),
+      icon("heart", 510, 205, 60, "#8a7756"),
+      label("TOGETHER WITH THEIR FAMILIES", 160, 402, 760, "#675e4d", { ...centered, fontSize: 17 }),
+      text("[Name]", 140, 527, 800, 113, "#465443", { ...serif, ...centered }),
+      text("&", 140, 688, 800, 80, "#8a7756", { ...serif, ...centered, italic: true }),
+      text("[Name]", 140, 810, 800, 113, "#465443", { ...serif, ...centered }),
+      text("invite you to celebrate their wedding", 150, 984, 780, 27, "#675e4d", centered),
+      rule(407, 1076, 266, "#a99b80"),
+      label("[DAY / MONTH / YEAR]", 180, 1130, 720, "#465443", { ...centered, fontSize: 21 }),
+      text("[Time]  /  [Venue]\n[City]", 200, 1203, 680, 27, "#675e4d", { ...centered, lineHeight: 1.5 }),
+      text("RSVP: [Contact]", 240, 1330, 600, 22, "#675e4d", centered)
+    ]),
+    template("Coffee & Company", "Lifestyle", "Caf\xE9 post", 1080, 1080, "#f3dfb7", [
+      box(35, 35, 1010, 1010, "none", { stroke: "#743c29", strokeWidth: 3 }),
+      label("[YOUR CAF\xC9]", 75, 73, 930, "#743c29", centered),
+      text("Coffee first.", 68, 180, 940, 125, "#743c29", { ...serif, ...centered }),
+      text("Good company always.", 85, 344, 910, 38, "#743c29", { ...serif, ...centered, italic: true }),
+      oval(239, 760, 600, 90, "#d2ad7c"),
+      circle(683, 550, 180, "none", { stroke: "#466056", strokeWidth: 38 }),
+      box(292, 530, 438, 261, "#466056", { radius: 90 }),
+      oval(292, 504, 438, 92, "#658073"),
+      oval(318, 521, 386, 54, "#382d24"),
+      text("c.", 430, 612, 180, 104, "#f3dfb7", { ...serif, ...centered, italic: true }),
+      rule(85, 903, 910, "#b1845f"),
+      text("[Opening hours]  /  [Your address]", 85, 949, 910, 27, "#743c29", centered)
+    ]),
+    template("Seasonal Table", "Lifestyle", "Restaurant menu", 1080, 1500, "#f9f3e5", [
+      box(35, 35, 1010, 1430, "none", { stroke: "#354e3c", strokeWidth: 2 }),
+      label("[YOUR RESTAURANT]", 85, 84, 910, "#354e3c", centered),
+      text("Seasonal\ntable", 85, 173, 910, 107, "#354e3c", { ...serif, ...centered, lineHeight: 1.03 }),
+      rule(85, 455, 910, "#354e3c"),
+      ...[
+        ["TO START", "Garden salad", "Roasted tomato soup"],
+        ["THE MAIN EVENT", "Wild mushroom pasta", "Herb-roasted vegetables"],
+        ["SOMETHING SWEET", "Lemon & almond cake", "Seasonal fruit bowl"]
+      ].flatMap(([heading, first, second], i) => {
+        const y = 500 + i * 245;
+        return [
+          label(heading, 85, y, 910, "#a05b3e"),
+          text(first, 85, y + 58, 715, 34, "#354e3c", serif),
+          text("[Price]", 810, y + 63, 185, 25, "#354e3c", right),
+          text(second, 85, y + 124, 715, 34, "#354e3c", serif),
+          text("[Price]", 810, y + 129, 185, 25, "#354e3c", right)
+        ];
+      }),
+      rule(85, 1265, 910, "#354e3c"),
+      text("Fresh ingredients. Thoughtfully prepared.", 85, 1310, 910, 28, "#354e3c", { ...serif, ...centered, italic: true }),
+      text("[Address]  /  [Contact]", 85, 1389, 910, 22, "#68745e", centered)
+    ]),
+    template("A Moment of Calm", "Lifestyle", "Wellness post", 1080, 1080, "#dce5dd", [
+      box(580, 45, 455, 990, "#a9bdac", { radius: 225 }),
+      circle(657, 161, 300, "#f1e6c9"),
+      oval(640, 790, 335, 118, "#45665d"),
+      oval(683, 688, 250, 117, "#739080"),
+      oval(729, 601, 159, 100, "#cad2b9"),
+      label("[YOUR WELLNESS STUDIO]", 65, 73, 930, "#304e46", { fontSize: 18 }),
+      text("A softer\nstart.", 62, 281, 640, 111, "#304e46", { ...serif, lineHeight: 1.08 }),
+      text("Pause. Breathe.\nCome back to yourself.", 67, 596, 480, 33, "#304e46", { lineHeight: 1.4 }),
+      rule(67, 813, 405, "#839b87"),
+      text("[Class / session]\n[Date & time]", 67, 853, 465, 27, "#304e46", { lineHeight: 1.5 }),
+      label("FIND YOUR MOMENT", 67, 986, 450, "#304e46", { fontSize: 17 })
+    ]),
+    template("Take the Scenic Route", "Lifestyle", "Travel poster", 1080, 1350, "#f6e3bb", [
+      label("[DESTINATION / TRAVEL BRAND]", 65, 65, 950, "#284c46", centered),
+      text("THE SCENIC", 62, 171, 956, 136, "#284c46", { ...display, ...centered }),
+      text("ROUTE", 65, 309, 950, 216, "#284c46", { ...display, ...centered }),
+      box(65, 590, 950, 470, "#b2c9bb"),
+      circle(717, 630, 155, "#ec8c46"),
+      { type: "triangle", x: 75, y: 670, w: 640, h: 390, fill: "#668876" },
+      { type: "triangle", x: 425, y: 756, w: 570, h: 304, fill: "#284c46" },
+      box(65, 990, 950, 70, "#284c46"),
+      text("Less hurry. More wonder.", 65, 1115, 950, 42, "#284c46", { ...serif, ...centered, italic: true }),
+      rule(65, 1210, 950, "#9ca784"),
+      text("[Travel dates]  /  [Booking website]", 65, 1252, 950, 27, "#284c46", centered)
+    ]),
+    // New purposes: each composition is designed for its content and canvas format.
+    template("Product Launch", "Social", "Product launch announcement", 1080, 1080, gradient("#4134b6", "#ba4b9b"), [
+      label("[YOUR BRAND]", 70, 65, 760, "#ffffff"),
+      box(778, 60, 232, 52, "#d7ff85", { radius: 26 }),
+      label("JUST DROPPED", 788, 77, 212, "#28254b", { ...centered, fontSize: 15 }),
+      text("Meet your\nnext favourite.", 65, 204, 940, 104, "#ffffff", { ...bold, lineHeight: 1.08 }),
+      circle(665, 565, 300, "none", { stroke: "#d7ff85", strokeWidth: 3 }),
+      circle(715, 615, 200, "#d7ff85"),
+      icon("star", 759, 659, 112, "#4134b6"),
+      label("INTRODUCING", 70, 603, 555, "#e7d8ff"),
+      text("[Product\nname]", 65, 656, 590, 75, "#ffffff", serif),
+      rule(70, 905, 940, "#d1a7df"),
+      text("[Launch date]  /  [Website]", 70, 957, 855, 28, "#ffffff"),
+      icon("arrow-right", 943, 945, 60, "#d7ff85")
+    ]),
+    template("Customer Spotlight", "Social", "Customer testimonial", 1080, 1080, "#f8f7f2", [
+      label("[YOUR BRAND]", 80, 70, 920, "#353b37"),
+      rule(80, 132, 920, "#c4cbc3"),
+      label("CUSTOMER SPOTLIGHT", 80, 204, 920, "#527961"),
+      text("\u201C", 65, 278, 250, 194, "#adc7ae", serif),
+      text("[Share a short\ncustomer quote\nhere.]", 85, 435, 910, 72, "#353b37", { ...serif, lineHeight: 1.16 }),
+      box(80, 808, 8, 120, "#527961"),
+      text("[Customer name]", 120, 815, 850, 33, "#353b37", bold),
+      text("[Role / company]", 120, 872, 850, 27, "#687269"),
+      text("[Your website]", 80, 990, 920, 22, "#687269")
+    ]),
+    template("We\u2019re Hiring", "Business", "Recruitment poster", 1080, 1350, "#e5edff", [
+      label("[YOUR COMPANY]", 65, 67, 760, "#17316b"),
+      icon("arrow-right", 904, 60, 100, "#335ee8", { rotation: -45 }),
+      text("GOOD PEOPLE.\nBIG IDEAS.", 60, 222, 960, 109, "#17316b", display),
+      box(65, 540, 950, 142, "#335ee8"),
+      text("WE\u2019RE HIRING", 90, 563, 900, 82, "#ffffff", display),
+      label("OPEN POSITION", 65, 754, 950, "#335ee8"),
+      text("[Job title]", 65, 807, 950, 64, "#17316b", bold),
+      text("[Location]  /  [Work arrangement]", 65, 909, 950, 29, "#4c6189"),
+      rule(65, 1030, 950, "#a5b5d8"),
+      label("LET\u2019S BUILD SOMETHING TOGETHER", 65, 1077, 950, "#17316b", { fontSize: 19 }),
+      text("Apply: [Email / careers URL]\nApplications close: [Date]", 65, 1142, 950, 28, "#17316b", { lineHeight: 1.6 })
+    ]),
+    template("Services & Pricing", "Business", "Service pricing sheet", 1080, 1500, "#f3eee6", [
+      label("[YOUR BUSINESS]", 75, 74, 930, "#443b33"),
+      text("Good work.\nClear pricing.", 70, 195, 940, 97, "#443b33", { ...serif, lineHeight: 1.06 }),
+      text("[A short introduction to your services]", 75, 462, 930, 28, "#75695c"),
+      ...["01", "02", "03"].flatMap((n, i) => {
+        const y = 570 + i * 232;
+        return [
+          rule(75, y, 930, "#baad9b"),
+          label(n, 75, y + 42, 90, "#9a6546"),
+          text("[Service name]", 195, y + 34, 555, 39, "#443b33", serif),
+          text("[Price]", 780, y + 43, 225, 31, "#443b33", right),
+          text("[What\u2019s included in this service]", 195, y + 111, 790, 27, "#75695c")
+        ];
+      }),
+      box(75, 1280, 930, 145, "#443b33"),
+      label("LET\u2019S FIND THE RIGHT FIT", 105, 1312, 870, "#f3eee6", { fontSize: 18 }),
+      text("[Contact email]  /  [Website]", 105, 1363, 870, 27, "#f3eee6")
+    ]),
+    template("Simple Invoice", "Business", "Invoice document", 1240, 1754, "#ffffff", [
+      box(75, 75, 60, 60, "#242424"),
+      label("[YOUR BUSINESS]", 165, 95, 940, "#242424", { fontSize: 26 }),
+      text("INVOICE", 75, 235, 1090, 112, "#242424", bold),
+      rule(75, 403, 1090, "#242424"),
+      label("BILL TO", 75, 454, 510, "#686868", { fontSize: 18 }),
+      text("[Client name]\n[Client address]\n[Client email]", 75, 502, 530, 28, "#242424", { lineHeight: 1.6 }),
+      text("Invoice: [Number]\nIssued: [Date]\nDue: [Date]", 735, 502, 430, 28, "#242424", { ...right, lineHeight: 1.6 }),
+      box(75, 718, 1090, 72, "#242424"),
+      label("DESCRIPTION", 100, 743, 540, "#ffffff", { fontSize: 18 }),
+      label("QTY", 660, 743, 100, "#ffffff", { ...right, fontSize: 18 }),
+      label("RATE", 800, 743, 145, "#ffffff", { ...right, fontSize: 18 }),
+      label("AMOUNT", 975, 743, 165, "#ffffff", { ...right, fontSize: 18 }),
+      ...[0, 1, 2].flatMap((i) => {
+        const y = 832 + i * 100;
+        return [
+          text("[Service / item]", 100, y, 530, 28, "#242424"),
+          text("[Qty]", 655, y, 105, 25, "#242424", right),
+          text("[Rate]", 800, y, 145, 25, "#242424", right),
+          text("[Amount]", 975, y, 165, 25, "#242424", right),
+          rule(75, y + 65, 1090, "#dedede")
+        ];
+      }),
+      text("Subtotal\nTax", 735, 1160, 190, 26, "#686868", { lineHeight: 1.8 }),
+      text("[Amount]\n[Amount]", 955, 1160, 185, 26, "#242424", { ...right, lineHeight: 1.8 }),
+      box(715, 1282, 450, 84, "#f0f0ee"),
+      label("TOTAL", 738, 1312, 185, "#242424"),
+      text("[Amount]", 945, 1309, 195, 28, "#242424", { ...bold, ...right }),
+      label("PAYMENT DETAILS", 75, 1440, 1090, "#686868", { fontSize: 18 }),
+      text("[Payment instructions]\n[Currency / payment terms]", 75, 1487, 1090, 27, "#242424", { lineHeight: 1.5 }),
+      rule(75, 1635, 1090, "#dedede"),
+      text("[Business email]  /  [Phone number]", 75, 1665, 1090, 24, "#686868")
+    ]),
+    template("Birthday Celebration", "Events", "Birthday invitation", 1080, 1500, "#f8c8d5", [
+      ...[[95, 145, -20], [900, 228, 23], [90, 1050, 15], [923, 956, -15]].map(([x, y, rotation]) => box(x, y, 22, 72, "#bb443d", { rotation })),
+      circle(845, 520, 65, "#f4a92f"),
+      circle(138, 660, 40, "#6d4aa1"),
+      icon("star", 825, 750, 96, "#6d4aa1", { rotation: 18 }),
+      label("YOU\u2019RE INVITED", 155, 90, 770, "#65394e", centered),
+      text("Let\u2019s\ncelebrate!", 135, 213, 810, 110, "#65394e", { ...serif, ...centered, lineHeight: 1.06 }),
+      text("[Age]", 195, 530, 690, 244, "#bb443d", { ...display, ...centered }),
+      text("[Name]\u2019s birthday", 145, 870, 790, 55, "#65394e", { ...serif, ...centered }),
+      box(170, 1010, 740, 350, "#fff2d5", { radius: 32 }),
+      label("[DAY / MONTH / YEAR]", 205, 1060, 670, "#65394e", { ...centered, fontSize: 23 }),
+      text("[Time]  /  [Venue]\n[Address]", 205, 1130, 670, 29, "#65394e", { ...centered, lineHeight: 1.6 }),
+      text("RSVP: [Contact]", 205, 1270, 670, 26, "#65394e", centered),
+      label("BRING YOUR PARTY SPIRIT", 150, 1420, 780, "#65394e", { ...centered, fontSize: 17 })
+    ]),
+    template("Live Webinar", "Events", "Webinar invitation", 1080, 1500, "#121d31", [
+      ...[0, 1, 2, 3, 4].map((i) => box(700 + i * 63, 0, 1, 495, "#2c3b55")),
+      ...[0, 1, 2, 3, 4].map((i) => rule(700, 65 + i * 82, 315, "#2c3b55")),
+      box(65, 65, 257, 60, "#b7f28f", { radius: 30 }),
+      label("LIVE WEBINAR", 82, 86, 223, "#121d31", { ...centered, fontSize: 17 }),
+      text("[Webinar\ntitle]", 60, 235, 940, 122, "#f0f4fc", { ...bold, lineHeight: 1.08 }),
+      text("Fresh perspectives. Practical ideas.", 65, 565, 950, 34, "#aebed7"),
+      rule(65, 673, 950, "#41516b"),
+      label("YOUR SPEAKER", 65, 730, 740, "#b7f28f"),
+      text("[Speaker name]", 65, 785, 760, 54, "#f0f4fc", serif),
+      text("[Role / organization]", 65, 865, 760, 29, "#aebed7"),
+      icon("chat", 869, 776, 116, "#b7f28f", { iconStyle: "outline" }),
+      label("ON THE AGENDA", 65, 993, 950, "#b7f28f"),
+      text("[Topic one]  /  [Topic two]  /  Q&A", 65, 1048, 950, 29, "#f0f4fc"),
+      text("[Date]  /  [Time & timezone]", 65, 1166, 950, 32, "#f0f4fc"),
+      box(65, 1290, 950, 135, "#b7f28f", { radius: 12 }),
+      label("SAVE YOUR SEAT", 100, 1320, 760, "#121d31"),
+      text("[Registration URL]", 100, 1366, 760, 27, "#121d31"),
+      icon("arrow-right", 898, 1330, 70, "#121d31")
+    ]),
+    template("Recipe Card", "Lifestyle", "Recipe card", 1080, 1500, "#f9f0de", [
+      label("FROM THE KITCHEN OF [NAME]", 70, 70, 940, "#6f492f", { fontSize: 18 }),
+      text("[Recipe\nname]", 65, 175, 930, 110, "#6f492f", { ...serif, lineHeight: 1.06 }),
+      rule(70, 476, 940, "#b99b76"),
+      text("Prep: [Time]   /   Cook: [Time]   /   Serves: [#]", 70, 515, 940, 25, "#6f492f"),
+      box(70, 619, 352, 594, "#ebdfbf", { radius: 12 }),
+      label("INGREDIENTS", 97, 656, 295, "#6f492f", { fontSize: 17 }),
+      ...[0, 1, 2, 3, 4].flatMap((i) => [circle(99, 735 + i * 82, 8, "#8c703c"), text("[Qty / ingredient]", 122, 723 + i * 82, 273, 24, "#6f492f")]),
+      label("THE METHOD", 480, 656, 530, "#6f492f"),
+      ...[0, 1, 2].flatMap((i) => [label(`0${i + 1}`, 480, 732 + i * 158, 60, "#a7613f"), text("[Add a short\ninstruction here.]", 555, 725 + i * 158, 455, 28, "#6f492f", { lineHeight: 1.4 })]),
+      rule(70, 1290, 940, "#b99b76"),
+      text("Kitchen notes", 70, 1327, 940, 34, "#6f492f", { ...serif, italic: true }),
+      text("[A serving suggestion or useful tip]", 70, 1390, 940, 25, "#8c7359")
+    ]),
+    template("Weekly Planner", "Lifestyle", "Weekly planner", 1600, 1130, "#f5f3ed", [
+      text("A little room for everything.", 60, 60, 1480, 71, "#3d514d", serif),
+      label("WEEK OF [DATE]", 65, 181, 1465, "#73847a", { fontSize: 22 }),
+      ...["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"].flatMap((day, i) => {
+        const x = 65 + i * 211;
+        return [
+          box(x, 275, 195, 535, "#ffffff", { radius: 10 }),
+          box(x, 275, 195, 64, i > 4 ? "#d8dfca" : "#dbe7e1", { radius: 10 }),
+          label(day, x + 16, 297, 163, "#3d514d", { ...centered, fontSize: 17 }),
+          text("[Plans]", x + 16, 370, 163, 24, "#73847a"),
+          ...[0, 1, 2, 3, 4].map((j) => rule(x + 16, 447 + j * 69, 163, "#e1e6df"))
+        ];
+      }),
+      label("THIS WEEK\u2019S PRIORITY", 65, 879, 640, "#3d514d"),
+      text("[One thing to focus on]", 65, 935, 640, 29, "#73847a"),
+      label("NOTES & LITTLE REMINDERS", 820, 879, 715, "#3d514d"),
+      text("[Your notes]", 820, 935, 715, 29, "#73847a"),
+      rule(65, 1035, 650, "#c9d2c8"),
+      rule(820, 1035, 715, "#c9d2c8")
+    ]),
+    template("Fitness Tracker", "Lifestyle", "Weekly fitness tracker", 1600, 1130, "#edf1e8", [
+      box(0, 0, 1600, 250, "#253e36"),
+      text("SHOW UP FOR YOU.", 60, 48, 1480, 99, "#d5f589", display),
+      label("WEEK OF [DATE] / YOUR PACE. YOUR PROGRESS.", 65, 183, 1470, "#edf1e8", { fontSize: 21 }),
+      box(65, 314, 1470, 62, "#d5f589"),
+      label("ACTIVITY", 90, 335, 450, "#253e36", { fontSize: 18 }),
+      ...["M", "T", "W", "T", "F", "S", "S"].map((day, i) => label(day, 580 + i * 132, 335, 110, "#253e36", { ...centered, fontSize: 18 })),
+      ...["[Activity one]", "[Activity two]", "[Activity three]", "[Activity four]"].flatMap((activity, row) => {
+        const y = 412 + row * 112;
+        return [text(activity, 90, y + 9, 450, 32, "#253e36"), ...[0, 1, 2, 3, 4, 5, 6].map((i) => box(613 + i * 132, y, 44, 44, "none", { stroke: "#8da395", strokeWidth: 2, radius: 7 })), rule(65, y + 78, 1470, "#c9d3c7")];
+      }),
+      label("MY WEEKLY GOAL", 65, 915, 660, "#253e36"),
+      text("[A goal that works for you]", 65, 972, 660, 31, "#61776c"),
+      label("HOW I FEEL", 875, 915, 660, "#253e36"),
+      text("[Energy, wins & reflections]", 875, 972, 660, 31, "#61776c")
+    ]),
+    template("Lesson Plan", "Education", "Lesson plan worksheet", 1240, 1754, "#fbfaf6", [
+      box(0, 0, 1240, 245, "#294c68"),
+      label("[SCHOOL / TEACHER]", 75, 62, 1090, "#d8ebeb", { fontSize: 22 }),
+      text("Lesson plan", 70, 117, 1100, 80, "#ffffff", serif),
+      text("Subject: [Subject]   /   Grade: [Grade]", 75, 304, 1090, 29, "#294c68"),
+      text("Date: [Date]   /   Duration: [Time]", 75, 365, 1090, 29, "#294c68"),
+      ...[
+        ["01", "LEARNING OBJECTIVES", "[What will students know or be able to do?]", 470, 240],
+        ["02", "MATERIALS & PREPARATION", "[Resources, equipment, and setup]", 745, 225],
+        ["03", "ACTIVITIES & TIMING", "[Warm-up]  /  [Main activity]  /  [Wrap-up]", 1005, 300],
+        ["04", "ASSESSMENT & REFLECTION", "[How will you check understanding?]", 1340, 285]
+      ].flatMap(([n, title, prompt, y, h]) => [
+        box(75, y, 1090, h, "#eef2ef", { radius: 8 }),
+        label(n, 102, y + 30, 65, "#668b8b"),
+        label(title, 182, y + 30, 945, "#294c68", { fontSize: 21 }),
+        text(prompt, 105, y + 91, 1030, 27, "#617a83"),
+        rule(105, y + h - 42, 1030, "#c8d7d5")
+      ]),
+      text("[Additional notes / follow-up]", 75, 1672, 1090, 24, "#617a83")
+    ]),
+    template("Study Planner", "Education", "Study schedule planner", 1240, 1754, "#efedf6", [
+      label("ONE SESSION AT A TIME", 75, 70, 1090, "#75628e", { fontSize: 22 }),
+      text("Make room\nto learn.", 70, 174, 1090, 115, "#40334f", { ...serif, lineHeight: 1.05 }),
+      text("Week of [Date]  /  [Subject or course]", 75, 486, 1090, 30, "#75628e"),
+      box(75, 584, 1090, 186, "#dcd4ed", { radius: 16 }),
+      label("MY TOP PRIORITY", 110, 622, 1020, "#40334f"),
+      text("[What do you want to understand?]", 110, 682, 1020, 33, "#40334f"),
+      label("WHEN", 95, 843, 255, "#75628e"),
+      label("SUBJECT / TASK", 382, 843, 575, "#75628e"),
+      label("DONE", 1022, 843, 125, "#75628e", centered),
+      ...[0, 1, 2, 3, 4].flatMap((i) => {
+        const y = 903 + i * 109;
+        return [
+          rule(75, y, 1090, "#c4b9d5"),
+          text("[Day / time]", 95, y + 35, 265, 27, "#40334f"),
+          text("[Topic to study]", 382, y + 35, 580, 29, "#40334f"),
+          box(1067, y + 34, 34, 34, "none", { stroke: "#9585ac", strokeWidth: 2, radius: 5 })
+        ];
+      }),
+      rule(75, 1448, 1090, "#c4b9d5"),
+      label("WHAT I LEARNED", 75, 1514, 1090, "#75628e"),
+      text("[Key takeaways / questions to revisit]", 75, 1579, 1090, 30, "#40334f"),
+      rule(75, 1675, 1090, "#c4b9d5")
+    ]),
+    template("Classroom Rules", "Education", "Classroom rules poster", 1080, 1350, "#fff7df", [
+      label("[CLASS / SCHOOL NAME]", 65, 65, 950, "#243d68", centered),
+      text("OUR CLASS,\nOUR KIND OF COOL.", 65, 159, 950, 90, "#243d68", { ...display, ...centered, lineHeight: 1.1 }),
+      ...[
+        ["Listen with care", "Let others finish their thoughts.", "chat", "#f6d776"],
+        ["Be kind", "Use words that help and include.", "heart", "#f2b9b0"],
+        ["Stay curious", "Ask questions. Try new things.", "star", "#bfccec"],
+        ["Look after our space", "Leave it ready for the next person.", "home", "#c2dabb"],
+        ["Give it a go", "Progress starts with trying.", "check", "#f0cd9d"]
+      ].flatMap(([title, detail, symbol, color], i) => {
+        const y = 455 + i * 150;
+        return [
+          box(65, y, 950, 128, color, { radius: 16 }),
+          text(`0${i + 1}`, 89, y + 38, 90, 38, "#243d68", bold),
+          text(title, 208, y + 25, 675, 33, "#243d68", bold),
+          text(detail, 208, y + 78, 675, 23, "#243d68"),
+          icon(symbol, 923, y + 45, 43, "#243d68")
+        ];
+      }),
+      label("WE LEARN BETTER TOGETHER", 65, 1270, 950, "#243d68", { ...centered, fontSize: 19 })
+    ]),
+    template("Volunteer Call", "Community", "Volunteer recruitment poster", 1080, 1350, "#f2efdf", [
+      label("[ORGANIZATION / COMMUNITY GROUP]", 65, 65, 950, "#31584c", { fontSize: 18 }),
+      text("A little time.\nA lot of good.", 60, 168, 960, 109, "#31584c", { ...serif, lineHeight: 1.05 }),
+      circle(115, 525, 150, "#d6906d"),
+      circle(465, 500, 150, "#caab75"),
+      circle(815, 525, 150, "#9e725b"),
+      box(75, 691, 230, 163, "#e1b14f", { radius: 70 }),
+      box(425, 666, 230, 188, "#89ab94", { radius: 70 }),
+      box(775, 691, 230, 163, "#d88c6e", { radius: 70 }),
+      icon("heart", 492, 710, 95, "#31584c"),
+      box(65, 910, 950, 85, "#31584c"),
+      label("VOLUNTEERS WELCOME", 90, 940, 900, "#f2efdf", { ...centered, fontSize: 23 }),
+      text("[Activity / cause]", 65, 1036, 950, 41, "#31584c", serif),
+      text("[Date & time]  /  [Location]", 65, 1114, 950, 29, "#617266"),
+      rule(65, 1200, 950, "#acb6a6"),
+      text("Join us: [Signup URL / contact]", 65, 1240, 950, 28, "#31584c", bold)
+    ]),
+    template("Fundraiser", "Community", "Fundraiser announcement", 1080, 1350, "#922f3f", [
+      label("[ORGANIZATION NAME]", 65, 65, 950, "#ffe9d3"),
+      text("TOGETHER,\nWE CAN.", 60, 176, 960, 158, "#ffe9d3", display),
+      text("Help support [cause].", 65, 572, 950, 48, "#ffe9d3", serif),
+      box(65, 704, 950, 213, "#ffe9d3", { radius: 16 }),
+      label("OUR FUNDRAISING GOAL", 100, 742, 800, "#922f3f", { fontSize: 19 }),
+      text("[Goal amount]", 100, 793, 715, 64, "#922f3f", bold),
+      icon("heart", 859, 788, 90, "#922f3f"),
+      text("[How contributions will be used]", 65, 976, 950, 30, "#ffe9d3"),
+      text("[Event date / campaign deadline]", 65, 1050, 950, 28, "#f0b7ac"),
+      rule(65, 1150, 950, "#c7797d"),
+      label("TAKE PART", 65, 1192, 950, "#ffe9d3"),
+      text("[Donation URL / contact]", 65, 1245, 950, 32, "#ffe9d3")
+    ]),
+    template("Neighborhood Meetup", "Community", "Neighborhood meetup notice", 1080, 1350, "#d4dfed", [
+      box(53, 66, 974, 1218, "#b4c2d3", { rotation: -2 }),
+      box(65, 65, 950, 1218, "#fff8e7"),
+      box(400, 43, 280, 55, "#e2b168", { rotation: -3 }),
+      label("[NEIGHBORHOOD NAME]", 110, 155, 860, "#354d69", centered),
+      text("Hello,\nneighbour!", 110, 267, 860, 112, "#354d69", { ...serif, ...centered, lineHeight: 1.06 }),
+      ...[0, 1, 2].flatMap((i) => [
+        box(273 + i * 180, 693, 130, 140, ["#d98668", "#83a38f", "#e1b168"][i]),
+        { type: "triangle", x: 258 + i * 180, y: 606, w: 160, h: 100, fill: "#354d69" },
+        box(320 + i * 180, 760, 36, 73, "#fff8e7")
+      ]),
+      text("Good company starts close to home.", 120, 889, 840, 32, "#354d69", { ...serif, ...centered }),
+      rule(125, 979, 830, "#c3c9c7"),
+      label("[MEETUP / ACTIVITY]", 125, 1020, 830, "#354d69", { ...centered, fontSize: 24 }),
+      text("[Date & time]  /  [Meeting place]", 125, 1088, 830, 27, "#354d69", centered),
+      text("Say hello: [Contact]", 125, 1170, 830, 26, "#354d69", centered)
+    ])
+  ];
+
+  // src/core/assets.js
+  var GOOGLE_FONT_FAMILIES = [
+    "Poppins:wght@400;600;700;800",
+    "Inter:wght@400;600;700;800",
+    "Montserrat:wght@400;600;700;800",
+    "Playfair+Display:wght@400;700",
+    "Lobster",
+    "Bebas+Neue",
+    "Rubik:wght@400;600;700"
+  ];
+  var FONTS = [
+    "Poppins",
+    "Inter",
+    "Montserrat",
+    "Playfair Display",
+    "Lobster",
+    "Bebas Neue",
+    "Rubik",
+    "Arial",
+    "Georgia",
+    "Times New Roman",
+    "Courier New",
+    "Verdana",
+    "Impact"
+  ];
+  var PALETTE = [
+    "#ffffff",
+    "#f1f5f9",
+    "#cbd5e1",
+    "#64748b",
+    "#1e293b",
+    "#000000",
+    "#fecaca",
+    "#ef4444",
+    "#b91c1c",
+    "#fed7aa",
+    "#f97316",
+    "#c2410c",
+    "#fde68a",
+    "#f59e0b",
+    "#b45309",
+    "#fef08a",
+    "#eab308",
+    "#84cc16",
+    "#a7f3d0",
+    "#10b981",
+    "#047857",
+    "#99f6e4",
+    "#14b8a6",
+    "#0f766e",
+    "#bae6fd",
+    "#0ea5e9",
+    "#0369a1",
+    "#c7d2fe",
+    "#6366f1",
+    "#4338ca",
+    "#e9d5ff",
+    "#a855f7",
+    "#7d2ae8",
+    "#fbcfe8",
+    "#ec4899",
+    "#be185d"
+  ];
+  var GRADIENTS = [
+    { from: "#b45309", to: "#f59e0b", angle: 135 },
+    { from: "#0ea5e9", to: "#22d3ee", angle: 135 },
+    { from: "#f59e0b", to: "#ef4444", angle: 135 },
+    { from: "#10b981", to: "#84cc16", angle: 135 },
+    { from: "#6366f1", to: "#ec4899", angle: 160 },
+    { from: "#0f172a", to: "#475569", angle: 135 },
+    { from: "#fda4af", to: "#fed7aa", angle: 135 },
+    { from: "#111111", to: "#333333", angle: 90 }
+  ];
+  var shapePreview = (name) => `<path d="${SHAPE_PATHS[name]}" />`;
+  var SHAPES = [
+    { type: "rect", label: "Square", svg: '<rect x="12" y="12" width="76" height="76" />' },
+    { type: "rect", label: "Rounded", props: { radius: 40 }, svg: '<rect x="12" y="12" width="76" height="76" rx="15.2" />' },
+    { type: "ellipse", label: "Circle", svg: shapePreview("ellipse") },
+    { type: "triangle", label: "Triangle", svg: shapePreview("triangle") },
+    { type: "star", label: "Star", svg: shapePreview("star") },
+    { type: "hexagon", label: "Hexagon", svg: shapePreview("hexagon") },
+    { type: "diamond", label: "Diamond", svg: shapePreview("diamond") },
+    { type: "heart", label: "Heart", svg: shapePreview("heart") },
+    { type: "line", label: "Line", props: { w: 260, h: 0, strokeWidth: 6 }, svg: '<line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" stroke-width="6" fill="none" />' },
+    { type: "line", label: "Arrow", props: { w: 260, h: 0, arrow: true, strokeWidth: 6 }, svg: '<path d="M10 50H66" stroke="currentColor" stroke-width="6" stroke-linecap="round" fill="none"/><path d="M88 50L66 40V60Z" />' },
+    ...EXTRA_SHAPES
+  ];
+  var BASE_ICONS = {
+    star: "M12 1.8l3 6.4 7 .9-5.2 4.8 1.4 6.9L12 17.4 5.8 20.8l1.4-6.9L2 9.1l7-.9z",
+    heart: "M12 21.2S3.6 15.8 1.9 10.4C.7 6.6 3.2 3 6.8 3 9 3 10.9 4.2 12 6c1.1-1.8 3-3 5.2-3 3.6 0 6.1 3.6 4.9 7.4C20.4 15.8 12 21.2 12 21.2z",
+    check: "M2.5 12.5L5.5 9.5L9 13L18.5 3.5L21.5 6.5L9 19Z",
+    "arrow-right": "M3 9.5H13V3L22 12L13 21V14.5H3Z",
+    sun: "M12 6.5A5.5 5.5 0 1 1 6.5 12 5.5 5.5 0 0 1 12 6.5zm0-5.5l1.8 3.4h-3.6zM12 23l-1.8-3.4h3.6zM1 12l3.4-1.8v3.6zM23 12l-3.4 1.8v-3.6zM4.2 4.2l3.8 1.5-2.3 2.3zM19.8 19.8L16 18.3l2.3-2.3zM19.8 4.2l-1.5 3.8L16 5.7zM4.2 19.8l1.5-3.8 2.3 2.3z",
+    moon: "M20.4 14.2A8.8 8.8 0 0 1 9.8 3.6 9.2 9.2 0 1 0 20.4 14.2z",
+    cloud: "M6.5 19a4.5 4.5 0 0 1-.4-9A6 6 0 0 1 17.8 8.6 4 4 0 0 1 17.5 19z",
+    home: "M12 3l9 8h-2.5v9.5H14V15h-4v5.5H5.5V11H3z",
+    mail: "M4 4H20A2 2 0 0 1 22 6V18A2 2 0 0 1 20 20H4A2 2 0 0 1 2 18V6A2 2 0 0 1 4 4ZM4 6.5L12 12L20 6.5V8.7L12 14.2L4 8.7Z",
+    phone: "M6.6 3c.5 0 1 .3 1.2.8l1.7 3.6c.2.5.1 1.1-.3 1.5L7.8 10.3a13.4 13.4 0 0 0 5.9 5.9l1.4-1.4c.4-.4 1-.5 1.5-.3l3.6 1.7c.5.2.8.7.8 1.2v3.1c0 .8-.6 1.4-1.4 1.4C10.2 21.9 2.1 13.8 2.1 4.4 2.1 3.6 2.7 3 3.5 3z",
+    camera: "M9 4l-1.5 2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.5L15 4zm3 5.5A4.5 4.5 0 1 1 7.5 14 4.5 4.5 0 0 1 12 9.5zm0 2A2.5 2.5 0 1 0 14.5 14 2.5 2.5 0 0 0 12 11.5z",
+    user: "M12 4a4 4 0 1 1-4 4 4 4 0 0 1 4-4zm0 9c4.4 0 8 2.2 8 5v2H4v-2c0-2.8 3.6-5 8-5z",
+    calendar: "M7 2H9V4H15V2H17V4H19A2 2 0 0 1 21 6V20A2 2 0 0 1 19 22H5A2 2 0 0 1 3 20V6A2 2 0 0 1 5 4H7ZM5 8V10H19V8ZM6 12V14H8V12ZM11 12V14H13V12ZM16 12V14H18V12ZM6 17V19H8V17ZM11 17V19H13V17ZM16 17V19H18V17Z",
+    clock: "M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 5v5.2l4 2.4-.8 1.4L11 13V7z",
+    chat: "M5 3H19Q22 3 22 6V15Q22 18 19 18H8L3 22V6Q3 3 5 3ZM7 7H17A1 1 0 0 1 17 9H7A1 1 0 0 1 7 7ZM7 11H14A1 1 0 0 1 14 13H7A1 1 0 0 1 7 11Z",
+    search: "M10 2A8 8 0 1 0 14.2 16.8L19.9 22.5L22.5 19.9L16.8 14.2A8 8 0 0 0 10 2ZM10 5.5A4.5 4.5 0 1 1 10 14.5A4.5 4.5 0 1 1 10 5.5Z",
+    bell: "M12 2a6 6 0 0 1 6 6v4l2 3v1H4v-1l2-3V8a6 6 0 0 1 6-6zm-2.5 16h5A2.5 2.5 0 0 1 12 21.5 2.5 2.5 0 0 1 9.5 18z",
+    gear: GEAR_PATH,
+    trash: "M9 3h6l1 2h4v2H4V5h4zM5 8h14l-1 13H6z",
+    chart: "M4 20V4h2v14h14v2zm3-3V9h3v8zm5 0V5h3v12zm5 0v-6h3v6z"
+  };
+  var ICON_PATHS = Object.fromEntries(
+    [...Object.entries(BASE_ICONS), ...Object.entries(EXTRA_ICONS)].map(([name, solid]) => [name, { solid, outline: ICON_OUTLINES[name] || solid }])
+  );
+  var ICONS = Object.fromEntries(
+    Object.entries(ICON_PATHS).map(([name, pair]) => [name, pair.solid])
+  );
+  var UI_ICON_PATHS = {
+    "undo": '<path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11" />',
+    "redo": '<path d="m15 14 5-5-5-5" /><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13" />',
+    "zoom-in": '<circle cx="11" cy="11" r="8" /><line x1="21" x2="16.65" y1="21" y2="16.65" /><line x1="11" x2="11" y1="8" y2="14" /><line x1="8" x2="14" y1="11" y2="11" />',
+    "zoom-out": '<circle cx="11" cy="11" r="8" /><line x1="21" x2="16.65" y1="21" y2="16.65" /><line x1="8" x2="14" y1="11" y2="11" />',
+    "fit": '<path d="M8 3H5a2 2 0 0 0-2 2v3" /><path d="M21 8V5a2 2 0 0 0-2-2h-3" /><path d="M3 16v3a2 2 0 0 0 2 2h3" /><path d="M16 21h3a2 2 0 0 0 2-2v-3" />',
+    "download": '<path d="M12 15V3" /><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="m7 10 5 5 5-5" />',
+    "trash": '<path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />',
+    "copy": '<rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />',
+    "lock": '<rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />',
+    "unlock": '<rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 9.9-1" />',
+    "eye": '<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" /><circle cx="12" cy="12" r="3" />',
+    "eye-off": '<path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" /><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" /><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" /><path d="m2 2 20 20" />',
+    "front": '<rect x="8" y="8" width="8" height="8" rx="2" /><path d="M4 10a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" /><path d="M14 20a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2" />',
+    "back": '<rect x="14" y="14" width="8" height="8" rx="2" /><rect x="2" y="2" width="8" height="8" rx="2" /><path d="M7 14v1a2 2 0 0 0 2 2h1" /><path d="M14 7h1a2 2 0 0 1 2 2v1" />',
+    "plus": '<path d="M5 12h14" /><path d="M12 5v14" />',
+    "close": '<path d="M18 6 6 18" /><path d="m6 6 12 12" />',
+    "chevron": '<path d="m6 9 6 6 6-6" />',
+    "chart": '<path d="M3 3v18h18" /><path d="M7 17v-5M12 17V7M17 17V4" />',
+    "image": '<rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />',
+    "layers": '<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" /><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" /><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" />',
+    "text": '<path d="M12 4v16" /><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2" /><path d="M9 20h6" />',
+    "shapes": '<path d="M8.3 10a.7.7 0 0 1-.626-1.079L11.4 3a.7.7 0 0 1 1.198-.043L16.3 8.9a.7.7 0 0 1-.572 1.1Z" /><rect x="3" y="14" width="7" height="7" rx="1" /><circle cx="17.5" cy="17.5" r="3.5" />',
+    "templates": '<rect width="18" height="7" x="3" y="3" rx="1" /><rect width="9" height="7" x="3" y="14" rx="1" /><rect width="5" height="7" x="16" y="14" rx="1" />',
+    "upload": '<path d="M12 3v12" /><path d="m17 8-5-5-5 5" /><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />',
+    "palette": '<path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /><circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /><circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /><circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /><circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />',
+    "alignLeft": '<path d="M21 5H3" /><path d="M15 12H3" /><path d="M17 19H3" />',
+    "alignCenter": '<path d="M21 5H3" /><path d="M17 12H7" /><path d="M19 19H5" />',
+    "alignRight": '<path d="M21 5H3" /><path d="M21 12H9" /><path d="M21 19H7" />',
+    "bold": '<path d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8" />',
+    "italic": '<line x1="19" x2="10" y1="4" y2="4" /><line x1="14" x2="5" y1="20" y2="20" /><line x1="15" x2="9" y1="4" y2="20" />',
+    "underline": '<path d="M6 4v6a6 6 0 0 0 12 0V4" /><line x1="4" x2="20" y1="20" y2="20" />',
+    "grid": '<rect width="18" height="18" x="3" y="3" rx="2" /><path d="M3 9h18" /><path d="M3 15h18" /><path d="M9 3v18" /><path d="M15 3v18" />',
+    "duplicate": '<rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />',
+    "sun": '<circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" />',
+    "moon": '<path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" />'
+  };
+  var UI_ICONS = Object.fromEntries(
+    Object.entries(UI_ICON_PATHS).map(([name, markup]) => [
+      name,
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${markup}</svg>`
+    ])
+  );
+
+  // src/core/registry.js
+  var asArray = (value, fallback) => Array.isArray(value) ? value : fallback;
+  function createRegistry(options = {}) {
+    return {
+      templates: [...TEMPLATES, ...deepList(options.templates)],
+      fonts: [.../* @__PURE__ */ new Set([...FONTS, ...asArray(options.fonts, [])])],
+      googleFonts: [...GOOGLE_FONT_FAMILIES, ...asArray(options.googleFonts, [])],
+      palette: asArray(options.palette, [...PALETTE]),
+      gradients: asArray(options.gradients, [...GRADIENTS]),
+      shapes: [...SHAPES],
+      icons: { ...ICONS },
+      iconOutlines: { ...ICON_OUTLINES },
+      shapePaths: { ...SHAPE_PATHS },
+      // Per-instance renderer overrides, consulted by renderer.js before the
+      // module-level registries.
+      elementRenderers: {},
+      chartRenderers: {},
+      backgroundPainters: {},
+      // Image source providers for the Uploads panel (stock/CDN/brand assets).
+      imageSources: asArray(options.imageSources, [])
+    };
+  }
+  function deepList(list) {
+    if (!Array.isArray(list)) return [];
+    return list.map((item) => JSON.parse(JSON.stringify(item)));
+  }
+
+  // src/core/constants.js
+  var ACCENT = "#d97706";
+  var DEFAULT_FONT = "Arial";
+  var GRADIENT_FALLBACKS = { from: "#ffffff", to: "#eeeeee" };
+  var CHART_FONT_STACK = "Inter, Arial, sans-serif";
+
+  // src/core/elements.js
+  var BASE = {
+    x: 0,
+    y: 0,
+    w: 200,
+    h: 200,
+    rotation: 0,
+    opacity: 1,
+    locked: false,
+    hidden: false,
+    flipX: false,
+    flipY: false
+  };
+  var TYPE_DEFAULTS = {
+    text: {
+      text: "Your text here",
+      fontSize: 48,
+      fontFamily: "Poppins",
+      fontWeight: 600,
+      italic: false,
+      underline: false,
+      align: "left",
+      color: "#111827",
+      lineHeight: 1.3,
+      letterSpacing: 0,
+      w: 420,
+      h: 64
+    },
+    rect: { fill: ACCENT, stroke: "", strokeWidth: 0, radius: 0 },
+    ellipse: { fill: ACCENT, stroke: "", strokeWidth: 0 },
+    triangle: { fill: ACCENT, stroke: "", strokeWidth: 0 },
+    star: { fill: "#f59e0b", stroke: "", strokeWidth: 0 },
+    hexagon: { fill: ACCENT, stroke: "", strokeWidth: 0 },
+    diamond: { fill: ACCENT, stroke: "", strokeWidth: 0 },
+    heart: { fill: "#ef4444", stroke: "", strokeWidth: 0 },
+    line: { stroke: "#111827", strokeWidth: 4, arrow: false, w: 220, h: 0 },
+    image: { src: "" },
+    icon: { icon: "star", iconStyle: "solid", fill: "#111827", w: 120, h: 120 },
+    shape: { shape: "pentagon", fill: ACCENT, stroke: "", strokeWidth: 0 },
+    chart: { w: 600, h: 400 }
+  };
+  var ELEMENT_MANIFESTS = {
+    text: {
+      name: (el2) => {
+        const t = (el2.text || "").trim().replace(/\s+/g, " ");
+        return t ? t.length > 22 ? t.slice(0, 22) + "\u2026" : t : "Text";
+      },
+      layerIcon: "text",
+      edit: "text",
+      autoFitHeight: true,
+      toolbar: ["text", "opacity"],
+      create: (el2, props) => {
+        if (!props.h) el2.h = Math.round(el2.fontSize * el2.lineHeight) + 8;
+      }
+    },
+    rect: { name: "Rectangle", toolbar: ["fill", "opacity"], radius: true },
+    ellipse: { name: "Ellipse", toolbar: ["fill", "opacity"] },
+    triangle: { name: "Triangle", toolbar: ["fill", "opacity"] },
+    star: { name: "Star", toolbar: ["fill", "opacity"] },
+    hexagon: { name: "Hexagon", toolbar: ["fill", "opacity"] },
+    diamond: { name: "Diamond", toolbar: ["fill", "opacity"] },
+    heart: { name: "Heart", toolbar: ["fill", "opacity"] },
+    line: { name: "Line", hitTest: "segment", toolbar: ["line"] },
+    image: { name: "Image", layerIcon: "image", toolbar: ["opacity"], preloadProps: ["src"] },
+    icon: {
+      name: (el2) => "Icon (" + el2.icon + ")",
+      toolbar: ["fill", "iconStyle", "opacity"]
+    },
+    shape: {
+      name: (el2) => (el2.shape || "Shape").replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase()),
+      toolbar: ["fill", "opacity"]
+    },
+    chart: {
+      name: (el2) => el2.chart?.title || `${CHART_PRESETS.find((p) => p.type === el2.chart?.type)?.label || "Data"} chart`,
+      layerIcon: "chart",
+      edit: "chart",
+      toolbar: ["chartEdit", "opacity"],
+      create: (el2, props) => {
+        el2.chart = validateChart(props.chart ? normalizeChart(props.chart) : sampleChart());
+      },
+      // Props in this map target only this type; the value normalizes them.
+      exclusiveProps: { chart: (c) => normalizeChart(validateChart(normalizeChart(c))) }
+    }
+  };
+  function manifestFor(type) {
+    return ELEMENT_MANIFESTS[type] || {};
+  }
+  function registerElementManifest(type, partial = {}) {
+    if (typeof type !== "string" || !type) {
+      throw new Error("ezyreka: registerElementManifest needs a type name");
+    }
+    if (typeof partial !== "object" || !partial) {
+      throw new Error("ezyreka: manifest must be an object");
+    }
+    ELEMENT_MANIFESTS[type] = { ...ELEMENT_MANIFESTS[type], ...partial };
+  }
+  function registerElementType(type, { defaults = {}, manifest = {} } = {}) {
+    if (typeof type !== "string" || !/^[a-z][a-z0-9-]*$/i.test(type)) {
+      throw new Error("ezyreka: element type names must be simple identifiers");
+    }
+    if (TYPE_DEFAULTS[type]) throw new Error(`ezyreka: element type "${type}" already exists`);
+    if (typeof defaults !== "object" || !defaults) {
+      throw new Error("ezyreka: element type defaults must be an object");
+    }
+    TYPE_DEFAULTS[type] = defaults;
+    registerElementManifest(type, { name: type, ...manifest });
+  }
+  function createElement(type, props = {}) {
+    const defaults = TYPE_DEFAULTS[type];
+    if (!defaults) throw new Error(`ezyreka: unknown element type "${type}"`);
+    const el2 = {
+      ...BASE,
+      ...JSON.parse(JSON.stringify(defaults)),
+      ...props,
+      id: props.id || uid(type),
+      type
+    };
+    const create = manifestFor(type).create;
+    if (create) create(el2, props);
+    return el2;
+  }
+  function elementName(el2) {
+    const name = manifestFor(el2.type).name;
+    return typeof name === "function" ? name(el2) : name || el2.type;
+  }
+  function elementCenter(el2) {
+    return { x: el2.x + el2.w / 2, y: el2.y + el2.h / 2 };
+  }
+  function elementCorners(el2) {
+    const c = elementCenter(el2);
+    const r = deg2rad(el2.rotation || 0);
+    const pts = [
+      { x: el2.x, y: el2.y },
+      { x: el2.x + el2.w, y: el2.y },
+      { x: el2.x + el2.w, y: el2.y + el2.h },
+      { x: el2.x, y: el2.y + el2.h }
+    ];
+    return pts.map((p) => rotatePoint(p.x, p.y, c.x, c.y, r));
+  }
+  function elementAABB(el2) {
+    if (!el2.rotation) return { x: el2.x, y: el2.y, w: el2.w, h: el2.h };
+    const pts = elementCorners(el2);
+    const xs = pts.map((p) => p.x);
+    const ys = pts.map((p) => p.y);
+    const minX = Math.min(...xs);
+    const minY = Math.min(...ys);
+    return { x: minX, y: minY, w: Math.max(...xs) - minX, h: Math.max(...ys) - minY };
+  }
+  function selectionBBox(elements) {
+    const boxes = elements.map(elementAABB);
+    const minX = Math.min(...boxes.map((b) => b.x));
+    const minY = Math.min(...boxes.map((b) => b.y));
+    const maxX = Math.max(...boxes.map((b) => b.x + b.w));
+    const maxY = Math.max(...boxes.map((b) => b.y + b.h));
+    return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+  }
+  function hitTest(el2, wx, wy, tolerance = 4) {
+    if (el2.hidden || el2.locked) return false;
+    const c = elementCenter(el2);
+    const p = rotatePoint(wx, wy, c.x, c.y, deg2rad(-(el2.rotation || 0)));
+    p.x -= el2.x;
+    p.y -= el2.y;
+    if (manifestFor(el2.type).hitTest === "segment") {
+      const tol = Math.max(10, (el2.strokeWidth || 4) + tolerance);
+      return distToSegment(p.x, p.y, 0, 0, el2.w, el2.h) <= tol;
+    }
+    return p.x >= -tolerance && p.y >= -tolerance && p.x <= el2.w + tolerance && p.y <= el2.h + tolerance;
+  }
+  function distToSegment(px, py, x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const lenSq = dx * dx + dy * dy;
+    let t = lenSq ? ((px - x1) * dx + (py - y1) * dy) / lenSq : 0;
+    t = Math.max(0, Math.min(1, t));
+    const cx = x1 + t * dx;
+    const cy = y1 + t * dy;
+    return Math.hypot(px - cx, py - cy);
+  }
+  function rectsIntersect(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  // src/core/chart-renderer.js
+  var formatValue = (value) => new Intl.NumberFormat("en", { notation: Math.abs(value) >= 1e4 ? "compact" : "standard", maximumFractionDigits: 2 }).format(value);
+  function text2(ctx, value, x, y, width, align = "left") {
+    ctx.textAlign = align;
+    let label2 = String(value);
+    if (ctx.measureText(label2).width > width) {
+      while (label2.length && ctx.measureText(label2 + "\u2026").width > width) label2 = label2.slice(0, -1);
+      label2 += "\u2026";
+    }
+    ctx.fillText(label2, x, y);
+  }
+  var circularPainter = (ctx, chart, series, box2, font) => drawCircular(ctx, chart, box2, font);
+  var cartesianPainter = (ctx, chart, series, box2, font, bounds) => drawCartesian(ctx, chart, series, bounds, font);
+  var chartRenderers = {
+    bar: cartesianPainter,
+    row: cartesianPainter,
+    "grouped-bar": cartesianPainter,
+    line: cartesianPainter,
+    "multi-line": cartesianPainter,
+    area: cartesianPainter,
+    "stacked-area": cartesianPainter,
+    pie: circularPainter,
+    donut: circularPainter
+  };
+  function registerChartRenderer(type, renderer) {
+    if (typeof type !== "string" || !type) throw new Error("ezyreka: chart renderer needs a type name");
+    if (typeof renderer !== "function") throw new Error("ezyreka: chart renderer must be a function");
+    chartRenderers[type] = renderer;
+  }
+  function drawChart(ctx, element, registry = {}) {
+    const chart = normalizeChart(element.chart);
+    const w = Math.max(1, element.w), h = Math.max(1, element.h);
+    const font = Math.min(chart.fontSize, Math.max(6, Math.min(w / 12, h / 10)));
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, w, h);
+    ctx.clip();
+    ctx.font = `${font}px ${CHART_FONT_STACK}`;
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = chart.textColor;
+    let invalid = "";
+    try {
+      validateChart(chart);
+    } catch (error) {
+      invalid = error.message;
+    }
+    const series = isMultiSeriesChart(chart.type) ? chart.series : chart.series.slice(0, 1);
+    if (invalid || !chart.categories.length || !series.some((s) => s.values.some((v) => v !== null))) {
+      text2(ctx, invalid || "No data to display", w / 2, h / 2, w - 16, "center");
+      ctx.restore();
+      return;
+    }
+    let top = 14, bottom = 14;
+    if (chart.title) {
+      ctx.font = `600 ${font * 1.25}px ${CHART_FONT_STACK}`;
+      text2(ctx, chart.title, w / 2, 14 + font / 2, w - 24, "center");
+      ctx.font = `${font}px ${CHART_FONT_STACK}`;
+      top += font * 2;
+    }
+    if (chart.showLegend) {
+      const entries = isCircularChart(chart.type) ? chart.categories.map((name, i) => ({ name, color: chart.categoryColors[i] })) : series;
+      const cellWidth = Math.min(150, Math.max(80, w / Math.min(3, entries.length)));
+      const columns = Math.max(1, Math.floor((w - 16) / cellWidth));
+      const rows = Math.min(Math.ceil(entries.length / columns), Math.max(1, Math.floor(h * 0.22 / (font * 1.6))));
+      bottom += rows * font * 1.6;
+      entries.slice(0, rows * columns).forEach((entry, i) => {
+        const x = 10 + i % columns * cellWidth, y = h - bottom + 12 + Math.floor(i / columns) * font * 1.6;
+        ctx.fillStyle = entry.color;
+        ctx.fillRect(x, y - font / 3, font * 0.65, font * 0.65);
+        ctx.fillStyle = chart.textColor;
+        text2(ctx, entry.name, x + font, y, cellWidth - font - 8);
+      });
+    }
+    const painter = registry.chartRenderers && registry.chartRenderers[chart.type] || chartRenderers[chart.type] || (isCircularChart(chart.type) ? circularPainter : cartesianPainter);
+    painter(ctx, chart, series, { x: 12, y: top, w: w - 24, h: Math.max(1, h - top - bottom) }, font, { w, h, top, bottom });
+    ctx.restore();
+  }
+  function drawCircular(ctx, chart, box2, font) {
+    const values = chart.series[0].values;
+    const max = values.reduce((result, value) => Math.max(result, value || 0), 0);
+    if (!max) {
+      ctx.fillStyle = chart.textColor;
+      text2(ctx, "No data to display", box2.x + box2.w / 2, box2.y + box2.h / 2, box2.w, "center");
+      return;
+    }
+    const total = values.reduce((sum, value) => sum + (value || 0) / max, 0);
+    const cx = box2.x + box2.w / 2, cy = box2.y + box2.h / 2;
+    const radius = Math.max(1, Math.min(box2.w, box2.h) / 2 - 4);
+    const inner = chart.type === "donut" ? radius * 0.55 : 0;
+    let angle = -Math.PI / 2;
+    values.forEach((value, i) => {
+      if (!value) return;
+      const sweep = value / max / total * Math.PI * 2, end = angle + sweep;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, angle, end);
+      if (inner) ctx.arc(cx, cy, inner, end, angle, true);
+      else ctx.lineTo(cx, cy);
+      ctx.closePath();
+      ctx.fillStyle = chart.categoryColors[i];
+      ctx.fill();
+      if (chart.showValues && sweep * radius > font * 2) {
+        const middle = angle + sweep / 2, distance = inner ? radius * 0.78 : radius * 0.65;
+        ctx.fillStyle = chart.textColor;
+        text2(ctx, formatValue(value), cx + Math.cos(middle) * distance, cy + Math.sin(middle) * distance, radius * 0.55, "center");
+      }
+      angle = end;
+    });
+  }
+  function drawCartesian(ctx, chart, series, bounds, font) {
+    const preset = chartPreset(chart.type) || {};
+    const horizontal = preset.horizontal === true;
+    const bar = preset.kind === "bar";
+    const x = chart.showAxes ? Math.min(bounds.w * 0.28, font * (horizontal ? 6 : 4)) : 12;
+    const y = bounds.top + (chart.showValues ? font : 0);
+    const w = Math.max(1, bounds.w - x - 16);
+    const h = Math.max(1, bounds.h - y - bounds.bottom - (chart.showAxes ? font * 2 : 0));
+    const [low, high] = chartDomain(chart);
+    const scale = Math.max(Math.abs(low), Math.abs(high), 1);
+    const unit = (value) => (value / scale - low / scale) / (high / scale - low / scale);
+    const valueAt = (value) => horizontal ? x + unit(value) * w : y + (1 - unit(value)) * h;
+    const count = chart.categories.length;
+    const categoryAt = (i) => horizontal ? y + (i + 0.5) * h / count : bar ? x + (i + 0.5) * w / count : x + (count === 1 ? 0.5 : i / (count - 1)) * w;
+    ctx.lineWidth = 1;
+    for (let tick = 0; tick <= 4; tick++) {
+      const fraction = tick / 4;
+      const value = (low / scale * (1 - fraction) + high / scale * fraction) * scale;
+      const position = horizontal ? x + fraction * w : y + (1 - fraction) * h;
+      if (chart.showGrid) {
+        ctx.save();
+        ctx.globalAlpha *= 0.15;
+        ctx.strokeStyle = chart.textColor;
+        ctx.beginPath();
+        if (horizontal) {
+          ctx.moveTo(position, y);
+          ctx.lineTo(position, y + h);
+        } else {
+          ctx.moveTo(x, position);
+          ctx.lineTo(x + w, position);
+        }
+        ctx.stroke();
+        ctx.restore();
+      }
+      if (chart.showAxes) {
+        ctx.fillStyle = chart.textColor;
+        if (horizontal) text2(ctx, formatValue(value), position, y + h + font, w / 5, "center");
+        else text2(ctx, formatValue(value), x - 8, position, x - 10, "right");
+      }
+    }
+    if (chart.showAxes) {
+      ctx.strokeStyle = chart.textColor;
+      ctx.beginPath();
+      if (horizontal) {
+        ctx.moveTo(valueAt(0), y);
+        ctx.lineTo(valueAt(0), y + h);
+      } else {
+        ctx.moveTo(x, valueAt(0));
+        ctx.lineTo(x + w, valueAt(0));
+      }
+      ctx.stroke();
+      ctx.fillStyle = chart.textColor;
+      const step = Math.max(1, Math.ceil(count / Math.max(1, Math.floor((horizontal ? h : w) / (font * (horizontal ? 1.8 : 4))))));
+      chart.categories.forEach((label2, i) => {
+        if (i % step) return;
+        if (horizontal) text2(ctx, label2, x - 8, categoryAt(i), x - 12, "right");
+        else text2(ctx, label2, categoryAt(i), y + h + font, Math.min(font * 6, w * step / count), "center");
+      });
+    }
+    const stacks = preset.kind === "stacked-area" ? chartStacks(chart) : null;
+    const labels = [];
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, y, w, h);
+    ctx.clip();
+    series.forEach((s, si) => {
+      ctx.fillStyle = s.color;
+      ctx.strokeStyle = s.color;
+      ctx.lineWidth = Math.max(1, font / 6);
+      if (bar) {
+        const slot = (horizontal ? h : w) / count;
+        const thickness = slot * 0.72 / series.length;
+        s.values.forEach((value, i) => {
+          if (value === null) return;
+          const center = categoryAt(i) - slot * 0.36 + thickness * (si + 0.5);
+          const position = valueAt(value), zero = valueAt(0);
+          if (horizontal) ctx.fillRect(Math.min(position, zero), center - thickness * 0.45, Math.abs(position - zero), thickness * 0.9);
+          else ctx.fillRect(center - thickness * 0.45, Math.min(position, zero), thickness * 0.9, Math.abs(position - zero));
+          labels.push({
+            value,
+            x: horizontal ? position + (value < 0 ? -4 : 4) : center,
+            y: horizontal ? center : position + (value < 0 ? font * 0.7 : -font * 0.7),
+            align: horizontal ? value < 0 ? "right" : "left" : "center",
+            width: horizontal ? w / 4 : slot / series.length
+          });
+        });
+        return;
+      }
+      let run = [];
+      const flush = () => {
+        if (!run.length) return;
+        if (preset.kind === "area" || stacks) {
+          ctx.save();
+          ctx.globalAlpha *= stacks ? 0.9 : 0.35;
+          ctx.beginPath();
+          run.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
+          [...run].reverse().forEach((p) => ctx.lineTo(p.x, p.base));
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
+        ctx.beginPath();
+        run.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
+        ctx.stroke();
+        run.forEach((p) => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, Math.max(1.5, font / 5), 0, Math.PI * 2);
+          ctx.fill();
+          labels.push({ value: p.value, x: p.x, y: p.y - font * 0.8, align: "center", width: w / Math.max(count, 2) });
+        });
+        run = [];
+      };
+      s.values.forEach((value, i) => {
+        if (value === null) {
+          flush();
+          return;
+        }
+        const stacked = stacks?.[si][i];
+        run.push({ x: categoryAt(i), y: valueAt(stacked ? stacked.end : value), base: valueAt(stacked ? stacked.start : 0), value });
+      });
+      flush();
+    });
+    ctx.restore();
+    if (chart.showValues) {
+      ctx.fillStyle = chart.textColor;
+      labels.forEach((p) => text2(ctx, formatValue(p.value), p.x, p.y, Math.max(10, p.width), p.align));
+    }
+  }
+
+  // src/core/renderer.js
+  var imageCache = /* @__PURE__ */ new Map();
+  var pathCache = /* @__PURE__ */ new Map();
+  function getImage(src) {
+    if (!src) return null;
+    let entry = imageCache.get(src);
+    if (!entry) {
+      const img = new Image();
+      entry = { img, loaded: false };
+      img.onload = () => {
+        entry.loaded = true;
+        entry.resolve?.();
+      };
+      img.onerror = () => {
+        entry.error = true;
+        entry.resolve?.();
+      };
+      img.crossOrigin = "anonymous";
+      img.src = src;
+      imageCache.set(src, entry);
+    }
+    return entry;
+  }
+  function whenImagesReady(srcs) {
+    const entries = srcs.map((s) => getImage(s)).filter(Boolean);
+    return Promise.all(
+      entries.map(
+        (e) => new Promise((res) => {
+          if (e.loaded || e.error) return res();
+          e.resolve = res;
+          setTimeout(res, 8e3);
+        })
+      )
+    );
+  }
+  function getPath(d) {
+    if (!pathCache.has(d)) pathCache.set(d, new Path2D(d));
+    return pathCache.get(d);
+  }
+  function resolveFill(ctx, fill, w, h, fallback = "#000000") {
+    if (!fill || fill.type !== "gradient") return typeof fill === "string" && fill ? fill : fallback;
+    const angle = deg2rad(fill.angle ?? 135);
+    const dx = Math.cos(angle);
+    const dy = Math.sin(angle);
+    const len = (Math.abs(dx) * w + Math.abs(dy) * h) / 2;
+    const gradient2 = ctx.createLinearGradient(
+      w / 2 - dx * len,
+      h / 2 - dy * len,
+      w / 2 + dx * len,
+      h / 2 + dy * len
+    );
+    const stops = Array.isArray(fill.stops) && fill.stops.length ? fill.stops.map((s) => ({ color: hexOr(s?.color, "#000000"), offset: clamp(Number(s?.offset ?? 0), 0, 1) })) : [
+      { color: hexOr(fill.from, GRADIENT_FALLBACKS.from), offset: 0 },
+      { color: hexOr(fill.to, GRADIENT_FALLBACKS.to), offset: 1 }
+    ];
+    stops.forEach((s) => gradient2.addColorStop(s.offset, s.color));
+    return gradient2;
+  }
+  function renderPage(ctx, page, opts = {}) {
+    const pw = page.width || 1080;
+    const ph = page.height || 1080;
+    const transparent = !!opts.transparent;
+    drawBackground(ctx, page.background, pw, ph, transparent, opts.registry || {});
+    const elements = page.elements || [];
+    for (const el2 of elements) {
+      if (!el2.hidden) drawElement(ctx, el2, opts);
+    }
+  }
+  var backgroundPainters = {
+    solid(ctx, bg, pw, ph) {
+      ctx.fillStyle = bg && bg.color || "#ffffff";
+      ctx.fill();
+    },
+    gradient(ctx, bg, pw, ph) {
+      ctx.fillStyle = resolveFill(ctx, bg, pw, ph);
+      ctx.fill();
+    },
+    image(ctx, bg, pw, ph) {
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
+      const entry = getImage(bg.src);
+      if (entry && entry.loaded && entry.img.naturalWidth) {
+        const scale = Math.max(pw / entry.img.naturalWidth, ph / entry.img.naturalHeight);
+        const dw = entry.img.naturalWidth * scale;
+        const dh = entry.img.naturalHeight * scale;
+        ctx.drawImage(entry.img, (pw - dw) / 2, (ph - dh) / 2, dw, dh);
+      }
+    }
+  };
+  function registerBackgroundPainter(type, painter) {
+    if (typeof type !== "string" || !type) throw new Error("ezyreka: background painter needs a type name");
+    if (typeof painter !== "function") throw new Error("ezyreka: background painter must be a function");
+    backgroundPainters[type] = painter;
+  }
+  function drawBackground(ctx, bg, pw, ph, transparent, registry = {}) {
+    if (transparent) return;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, pw, ph);
+    const type = bg && bg.type || "solid";
+    const painters = { ...backgroundPainters, ...registry.backgroundPainters || {} };
+    const painter = painters[type] || painters.solid;
+    painter(ctx, bg, pw, ph);
+    ctx.restore();
+  }
+  var elementRenderers = {
+    chart: drawChart,
+    text: drawText,
+    rect: drawRect,
+    ellipse: (ctx, el2, r) => drawShapePrimitive(ctx, el2, "ellipse", r),
+    triangle: (ctx, el2, r) => drawShapePrimitive(ctx, el2, "triangle", r),
+    star: (ctx, el2, r) => drawShapePrimitive(ctx, el2, "star", r),
+    hexagon: (ctx, el2, r) => drawShapePrimitive(ctx, el2, "hexagon", r),
+    diamond: (ctx, el2, r) => drawShapePrimitive(ctx, el2, "diamond", r),
+    heart: (ctx, el2, r) => drawShapePrimitive(ctx, el2, "heart", r),
+    line: drawLine,
+    image: drawImage,
+    icon: drawIcon,
+    shape: drawVectorShape
+  };
+  function registerElementRenderer(type, renderer) {
+    if (typeof type !== "string" || !type) throw new Error("ezyreka: element renderer needs a type name");
+    if (typeof renderer !== "function") throw new Error("ezyreka: element renderer must be a function");
+    elementRenderers[type] = renderer;
+  }
+  function drawElement(ctx, el2, opts = {}) {
+    const r = opts.registry || {};
+    const draw = r.elementRenderers && r.elementRenderers[el2.type] || elementRenderers[el2.type];
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, Math.min(1, el2.opacity ?? 1));
+    const cx = el2.x + el2.w / 2;
+    const cy = el2.y + el2.h / 2;
+    ctx.translate(cx, cy);
+    if (el2.rotation) ctx.rotate(deg2rad(el2.rotation));
+    ctx.scale(el2.flipX ? -1 : 1, el2.flipY ? -1 : 1);
+    ctx.translate(-el2.w / 2, -el2.h / 2);
+    if (draw) draw(ctx, el2, r);
+    else warnUnknownType(el2.type);
+    ctx.restore();
+  }
+  var warnedTypes = /* @__PURE__ */ new Set();
+  function warnUnknownType(type) {
+    if (warnedTypes.has(type)) return;
+    warnedTypes.add(type);
+    console.warn(`ezyreka: no renderer for element type "${type}" \u2014 the element is skipped. Register a renderer or use a supported type.`);
+  }
+  function fillAndStroke(ctx, el2, path, fillRule = "nonzero") {
+    if (el2.fill !== "none") {
+      ctx.fillStyle = resolveFill(ctx, el2.fill, el2.w, el2.h);
+      ctx.fill(path, fillRule);
+    }
+    if (el2.strokeWidth > 0 && el2.stroke !== "none") {
+      ctx.lineWidth = el2.strokeWidth;
+      ctx.strokeStyle = el2.stroke || "#000000";
+      ctx.stroke(path);
+    }
+  }
+  function drawRect(ctx, el2) {
+    const r = Math.min(el2.radius || 0, el2.w / 2, el2.h / 2);
+    const path = new Path2D();
+    if (r > 0) {
+      path.moveTo(r, 0);
+      path.arcTo(el2.w, 0, el2.w, el2.h, r);
+      path.arcTo(el2.w, el2.h, 0, el2.h, r);
+      path.arcTo(0, el2.h, 0, 0, r);
+      path.arcTo(0, 0, el2.w, 0, r);
+      path.closePath();
+    } else {
+      path.rect(0, 0, el2.w, el2.h);
+    }
+    fillAndStroke(ctx, el2, path);
+  }
+  function drawVectorShape(ctx, el2, registry = {}) {
+    const paths = registry.shapePaths || SHAPE_PATHS;
+    const source = getPath(paths[el2.shape] || paths.pentagon);
+    const path = new Path2D();
+    path.addPath(source, new DOMMatrix().scale(el2.w / 100, el2.h / 100));
+    ctx.lineJoin = "round";
+    fillAndStroke(ctx, el2, path, "evenodd");
+  }
+  function drawShapePrimitive(ctx, el2, name, registry = {}) {
+    const paths = registry.shapePaths || SHAPE_PATHS;
+    const source = getPath(paths[name] || paths.pentagon);
+    const path = new Path2D();
+    path.addPath(source, new DOMMatrix().scale(el2.w / 100, el2.h / 100));
+    ctx.lineJoin = "round";
+    fillAndStroke(ctx, el2, path);
+  }
+  function drawLine(ctx, el2) {
+    ctx.strokeStyle = el2.stroke || "#111827";
+    ctx.lineWidth = el2.strokeWidth || 4;
+    ctx.lineCap = "round";
+    const length = Math.hypot(el2.w, el2.h);
+    const size = el2.arrow ? Math.min(length, Math.max(10, ctx.lineWidth * 4)) : 0;
+    if (!el2.arrow || length > size) {
+      const shaftScale = el2.arrow ? (length - size) / length : 1;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(el2.w * shaftScale, el2.h * shaftScale);
+      ctx.stroke();
+    }
+    if (el2.arrow && length > 0) {
+      const angle = Math.atan2(el2.h, el2.w);
+      ctx.save();
+      ctx.translate(el2.w, el2.h);
+      ctx.rotate(angle);
+      ctx.fillStyle = el2.stroke || "#111827";
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-size, -size / 2.4);
+      ctx.lineTo(-size, size / 2.4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+  function drawImage(ctx, el2) {
+    const entry = getImage(el2.src);
+    if (!entry || !entry.loaded || !entry.img.naturalWidth) {
+      ctx.fillStyle = "#e5e7eb";
+      ctx.fillRect(0, 0, el2.w, el2.h);
+      return;
+    }
+    const iw = entry.img.naturalWidth;
+    const ih = entry.img.naturalHeight;
+    const scale = Math.max(el2.w / iw, el2.h / ih);
+    const sw = el2.w / scale;
+    const sh = el2.h / scale;
+    ctx.drawImage(entry.img, (iw - sw) / 2, (ih - sh) / 2, sw, sh, 0, 0, el2.w, el2.h);
+  }
+  function drawIcon(ctx, el2, registry = {}) {
+    const outline = el2.iconStyle === "outline";
+    const paths = outline ? registry.iconOutlines || ICON_OUTLINES : registry.icons || ICONS;
+    const d = paths[el2.icon] || paths.star;
+    const fill = el2.fill === "none" ? null : resolveFill(ctx, el2.fill, el2.w, el2.h, "#111827");
+    ctx.save();
+    ctx.scale(el2.w / 24, el2.h / 24);
+    if (el2.fill !== "none") {
+      if (outline) {
+        ctx.strokeStyle = fill;
+        ctx.lineWidth = 1.75;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.stroke(getPath(d));
+      } else {
+        ctx.fillStyle = fill;
+        ctx.fill(getPath(d), "evenodd");
+      }
+    }
+    ctx.restore();
+  }
+  function fontString(el2) {
+    return `${el2.italic ? "italic " : ""}${el2.fontWeight || 400} ${el2.fontSize || 48}px ${el2.fontFamily || DEFAULT_FONT}`;
+  }
+  function wrapLines(ctx, text3, maxWidth) {
+    const out = [];
+    for (const para of String(text3 ?? "").split("\n")) {
+      if (!para) {
+        out.push("");
+        continue;
+      }
+      const words = para.split(/(\s+)/);
+      let line = "";
+      for (const word of words) {
+        const test = line + word;
+        if (ctx.measureText(test).width > maxWidth && line.trim()) {
+          out.push(line.trimEnd());
+          line = word.trimStart();
+        } else {
+          line = test;
+        }
+      }
+      out.push(line);
+    }
+    return out;
+  }
+  function measureTextElement(ctx, el2) {
+    ctx.save();
+    ctx.font = fontString(el2);
+    try {
+      if ("letterSpacing" in ctx) ctx.letterSpacing = (el2.letterSpacing || 0) + "px";
+    } catch {
+    }
+    const lines = wrapLines(ctx, el2.text, el2.w);
+    ctx.restore();
+    return lines;
+  }
+  function drawText(ctx, el2) {
+    ctx.save();
+    ctx.font = fontString(el2);
+    try {
+      if ("letterSpacing" in ctx) ctx.letterSpacing = (el2.letterSpacing || 0) + "px";
+    } catch {
+    }
+    ctx.textBaseline = "top";
+    ctx.fillStyle = el2.color || "#111827";
+    const lines = wrapLines(ctx, el2.text, el2.w);
+    const lineH = (el2.fontSize || 48) * (el2.lineHeight || 1.3);
+    lines.forEach((line, i) => {
+      const w = ctx.measureText(line).width;
+      let x = 0;
+      if (el2.align === "center") x = (el2.w - w) / 2;
+      else if (el2.align === "right") x = el2.w - w;
+      const y = i * lineH + (lineH - (el2.fontSize || 48)) / 2;
+      ctx.fillText(line, x, y);
+      if (el2.underline && line) {
+        ctx.fillRect(x, y + (el2.fontSize || 48) * 1.02, w, Math.max(1, (el2.fontSize || 48) / 15));
+      }
+    });
+    ctx.restore();
+  }
+
+  // src/interactions.js
+  var SNAP_THRESHOLD = 6;
+  var Interactions = class {
+    constructor(editor) {
+      this.editor = editor;
+      this.drag = null;
+      this.spaceDown = false;
+      editor._isActive = true;
+      this._bind();
+    }
+    _bind() {
+      const ed = this.editor;
+      this._onDocPointerDown = (e) => {
+        ed._isActive = ed.container.contains(e.target);
+      };
+      this._onPointerMove = (e) => this.onPointerMove(e);
+      this._onPointerUp = (e) => this.onPointerUp(e);
+      this._onKeyDown = (e) => this.onKeyDown(e);
+      this._onKeyUp = (e) => {
+        if (e.code === "Space") {
+          this.spaceDown = false;
+          ed.viewport.classList.remove("ez-panning");
+        }
+      };
+      ed.canvas.addEventListener("pointerdown", (e) => this.onPointerDown(e));
+      ed.overlay.addEventListener("pointerdown", (e) => {
+        if (e.target === ed.overlay) this.onPointerDown(e);
+      });
+      window.addEventListener("pointermove", this._onPointerMove);
+      window.addEventListener("pointerup", this._onPointerUp);
+      ed.viewport.addEventListener("wheel", (e) => this.onWheel(e), { passive: false });
+      window.addEventListener("keydown", this._onKeyDown);
+      window.addEventListener("keyup", this._onKeyUp);
+      document.addEventListener("pointerdown", this._onDocPointerDown, true);
+      ed.canvas.addEventListener("dblclick", (e) => this.onDblClick(e));
+      ed.viewport.addEventListener("dragover", (e) => e.preventDefault());
+      ed.viewport.addEventListener("drop", (e) => this.onDrop(e));
+    }
+    destroy() {
+      const ed = this.editor;
+      window.removeEventListener("pointermove", this._onPointerMove);
+      window.removeEventListener("pointerup", this._onPointerUp);
+      window.removeEventListener("keydown", this._onKeyDown);
+      window.removeEventListener("keyup", this._onKeyUp);
+      document.removeEventListener("pointerdown", this._onDocPointerDown, true);
+      ed.viewport.classList.remove("ez-panning");
+      this.drag = null;
+    }
+    clientToWorld(e) {
+      const rect = this.editor.canvas.getBoundingClientRect();
+      return {
+        x: (e.clientX - rect.left) / this.editor.zoom,
+        y: (e.clientY - rect.top) / this.editor.zoom
+      };
+    }
+    onWheel(e) {
+      const ed = this.editor;
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const factor = Math.exp(-e.deltaY * 15e-4);
+        ed.setZoom(clamp(ed.zoom * factor, 0.05, 5), { x: e.clientX, y: e.clientY });
+      }
+    }
+    onDrop(e) {
+      e.preventDefault();
+      const ed = this.editor;
+      const files = [...e.dataTransfer?.files || []].filter((f) => f.type.startsWith("image/"));
+      if (!files.length) return;
+      const world = this.clientToWorld(e);
+      files.forEach(async (file, i) => {
+        const src = await ed.addUpload(file);
+        ed.addElement({
+          type: "image",
+          src,
+          name: file.name,
+          x: world.x - 100 + i * 30,
+          y: world.y - 100 + i * 30
+        });
+      });
+    }
+    onDblClick(e) {
+      const ed = this.editor;
+      const p = this.clientToWorld(e);
+      const els = ed.getElements();
+      for (let i = els.length - 1; i >= 0; i--) {
+        if (hitTest(els[i], p.x, p.y)) {
+          ed.select([els[i].id]);
+          const edit = manifestFor(els[i].type).edit;
+          if (edit === "chart") ed.ui.sidepanel?.charts?.open();
+          else if (edit === "text") ed.startTextEdit(els[i]);
+          return;
+        }
+      }
+    }
+    onPointerDown(e) {
+      const ed = this.editor;
+      if (e.button === 1 || this.spaceDown) {
+        this.startPan(e);
+        return;
+      }
+      if (e.button !== 0) return;
+      if (ed._editing) ed.commitTextEdit();
+      const p = this.clientToWorld(e);
+      const els = ed.getElements();
+      for (let i = els.length - 1; i >= 0; i--) {
+        if (hitTest(els[i], p.x, p.y)) {
+          const el2 = els[i];
+          if (e.shiftKey) {
+            ed.toggleSelect(el2.id);
+          } else if (!ed.selection.has(el2.id)) {
+            ed.select([el2.id]);
+          }
+          if (!el2.locked) this.startMove(e);
+          return;
+        }
+      }
+      if (!e.shiftKey) ed.clearSelection();
+      this.startRubberBand(e);
+    }
+    startPan(e) {
+      const ed = this.editor;
+      e.preventDefault();
+      this.drag = {
+        mode: "pan",
+        startX: e.clientX,
+        startY: e.clientY,
+        scrollLeft: ed.viewport.scrollLeft,
+        scrollTop: ed.viewport.scrollTop
+      };
+      ed.viewport.classList.add("ez-panning");
+    }
+    startMove(e) {
+      const ed = this.editor;
+      const selected = ed.getSelected();
+      const p = this.clientToWorld(e);
+      this.drag = {
+        mode: "move",
+        start: p,
+        originals: selected.map((el2) => ({ el: el2, x: el2.x, y: el2.y })),
+        moved: false
+      };
+    }
+    startRubberBand(e) {
+      const ed = this.editor;
+      const p = this.clientToWorld(e);
+      ed.updateOverlay();
+      this.drag = { mode: "band", start: p };
+      const band = document.createElement("div");
+      band.className = "ez-band";
+      ed.overlay.appendChild(band);
+      this.drag.band = band;
+    }
+    startResize(e, dir) {
+      const ed = this.editor;
+      const el2 = ed.getSelected()[0];
+      if (!el2 || el2.locked) return;
+      e.stopPropagation();
+      e.preventDefault();
+      const c0 = elementCenter(el2);
+      const opposite = {
+        nw: "se",
+        n: "s",
+        ne: "sw",
+        e: "w",
+        se: "nw",
+        s: "n",
+        sw: "ne",
+        w: "e"
+      }[dir];
+      const anchor = this.handlePoint(el2, opposite);
+      this.drag = {
+        mode: "resize",
+        dir,
+        el: el2,
+        c0,
+        anchor,
+        aspect: el2.w / Math.max(1, el2.h),
+        startW: el2.w,
+        startH: el2.h
+      };
+    }
+    startRotate(e) {
+      const ed = this.editor;
+      const el2 = ed.getSelected()[0];
+      if (!el2 || el2.locked) return;
+      e.stopPropagation();
+      e.preventDefault();
+      const c = elementCenter(el2);
+      const p = this.clientToWorld(e);
+      const startAngle = Math.atan2(p.y - c.y, p.x - c.x);
+      this.drag = { mode: "rotate", el: el2, center: c, startAngle, startRotation: el2.rotation || 0 };
+    }
+    handlePoint(el2, dir) {
+      const c = elementCenter(el2);
+      const r = deg2rad(el2.rotation || 0);
+      const local = {
+        nw: { x: el2.x, y: el2.y },
+        n: { x: c.x, y: el2.y },
+        ne: { x: el2.x + el2.w, y: el2.y },
+        e: { x: el2.x + el2.w, y: c.y },
+        se: { x: el2.x + el2.w, y: el2.y + el2.h },
+        s: { x: c.x, y: el2.y + el2.h },
+        sw: { x: el2.x, y: el2.y + el2.h },
+        w: { x: el2.x, y: c.y }
+      }[dir];
+      return rotatePoint(local.x, local.y, c.x, c.y, r);
+    }
+    onPointerMove(e) {
+      const drag = this.drag;
+      if (!drag) return;
+      const ed = this.editor;
+      if (drag.mode === "pan") {
+        ed.viewport.scrollLeft = drag.scrollLeft - (e.clientX - drag.startX);
+        ed.viewport.scrollTop = drag.scrollTop - (e.clientY - drag.startY);
+        return;
+      }
+      if (drag.mode === "band") {
+        const p = this.clientToWorld(e);
+        const r = normRect(drag.start, p);
+        drag.rect = r;
+        Object.assign(drag.band.style, {
+          left: r.x * ed.zoom + "px",
+          top: r.y * ed.zoom + "px",
+          width: r.w * ed.zoom + "px",
+          height: r.h * ed.zoom + "px",
+          display: "block"
+        });
+        return;
+      }
+      if (drag.mode === "move") {
+        const p = this.clientToWorld(e);
+        let dx = p.x - drag.start.x;
+        let dy = p.y - drag.start.y;
+        if (Math.abs(dx) + Math.abs(dy) > 2) drag.moved = true;
+        if (e.shiftKey) {
+          if (Math.abs(dx) > Math.abs(dy)) dy = 0;
+          else dx = 0;
+        }
+        const originals = drag.originals;
+        const movingBox = selectionBBox(originals.map((o) => ({ ...o.el, x: o.x + dx, y: o.y + dy })));
+        const others = ed.getElements().filter((el2) => !ed.selection.has(el2.id) && !el2.hidden && !el2.locked);
+        const snap = computeSnap(movingBox, others, ed.getPage(), e.altKey ? 0 : SNAP_THRESHOLD);
+        dx += snap.dx;
+        dy += snap.dy;
+        for (const o of originals) {
+          o.el.x = o.x + dx;
+          o.el.y = o.y + dy;
+        }
+        ed.setGuides(snap.guides);
+        ed.markDirty();
+        return;
+      }
+      if (drag.mode === "resize") {
+        const p = this.clientToWorld(e);
+        applyResize(drag, p, e.shiftKey);
+        ed.markDirty();
+        return;
+      }
+      if (drag.mode === "rotate") {
+        const p = this.clientToWorld(e);
+        const angle = Math.atan2(p.y - drag.center.y, p.x - drag.center.x);
+        let deg = drag.startRotation + rad2deg(angle - drag.startAngle);
+        const snapTo = Math.round(deg / 15) * 15;
+        if (Math.abs(deg - snapTo) < 4) deg = snapTo;
+        drag.el.rotation = (deg % 360 + 360) % 360;
+        ed.markDirty();
+      }
+    }
+    onPointerUp(e) {
+      const drag = this.drag;
+      if (!drag) return;
+      const ed = this.editor;
+      this.drag = null;
+      if (drag.mode === "pan") {
+        ed.viewport.classList.remove("ez-panning");
+        return;
+      }
+      if (drag.mode === "band") {
+        drag.band.remove();
+        ed.markDirty();
+        if (drag.rect) {
+          const hits = ed.getElements().filter((el2) => !el2.hidden && !el2.locked && rectsIntersect(drag.rect, elementAABB(el2)));
+          if (hits.length) {
+            if (e.shiftKey) {
+              const ids = new Set(ed.selection);
+              hits.forEach((h) => ids.add(h.id));
+              ed.select([...ids]);
+            } else {
+              ed.select(hits.map((h) => h.id));
+            }
+          }
+        }
+        return;
+      }
+      if (drag.mode === "move") {
+        ed.setGuides([]);
+        if (drag.moved) {
+          ed.markDirty();
+          ed.commit();
+        }
+        return;
+      }
+      if (drag.mode === "resize" || drag.mode === "rotate") {
+        if (manifestFor(drag.el.type).autoFitHeight) ed.fitTextHeight(drag.el);
+        ed.markDirty();
+        ed.commit();
+      }
+    }
+    onKeyDown(e) {
+      const ed = this.editor;
+      if (!ed._isActive) return;
+      const target = e.target;
+      const typing = target && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
+      if (typing || ed._editing) return;
+      if (e.code === "Space" && !this.spaceDown) {
+        e.preventDefault();
+        this.spaceDown = true;
+        ed.viewport.classList.add("ez-panning");
+        return;
+      }
+      const mod = e.ctrlKey || e.metaKey;
+      const key = e.key.toLowerCase();
+      if (mod && key === "z") {
+        e.preventDefault();
+        e.shiftKey ? ed.redo() : ed.undo();
+        return;
+      }
+      if (mod && key === "y") {
+        e.preventDefault();
+        ed.redo();
+        return;
+      }
+      if (mod && e.shiftKey && key === "l") {
+        e.preventDefault();
+        return ed.toggleTheme();
+      }
+      if (mod && key === "c") return ed.copy();
+      if (mod && key === "x") return ed.cut();
+      if (mod && key === "v") return ed.paste();
+      if (mod && key === "d") {
+        e.preventDefault();
+        return ed.duplicateSelected();
+      }
+      if (mod && key === "a") {
+        e.preventDefault();
+        return ed.select(ed.getElements().filter((el2) => !el2.locked && !el2.hidden).map((el2) => el2.id));
+      }
+      if (key === "delete" || key === "backspace") {
+        if (ed.selection.size) {
+          e.preventDefault();
+          ed.deleteSelected();
+        }
+        return;
+      }
+      if (key === "escape") return ed.clearSelection();
+      if (["arrowleft", "arrowright", "arrowup", "arrowdown"].includes(key)) {
+        if (!ed.selection.size) return;
+        e.preventDefault();
+        const step = e.shiftKey ? 10 : 1;
+        const dx = key === "arrowleft" ? -step : key === "arrowright" ? step : 0;
+        const dy = key === "arrowup" ? -step : key === "arrowdown" ? step : 0;
+        ed.getSelected().forEach((el2) => {
+          el2.x += dx;
+          el2.y += dy;
+        });
+        ed.markDirty();
+        ed.commit();
+        return;
+      }
+      if (mod && (key === "=" || key === "+")) {
+        e.preventDefault();
+        ed.setZoom(ed.zoom * 1.2);
+      }
+      if (mod && key === "-") {
+        e.preventDefault();
+        ed.setZoom(ed.zoom / 1.2);
+      }
+      if (mod && key === "0") {
+        e.preventDefault();
+        ed.zoomFit();
+      }
+      if (mod && key === "s") {
+        e.preventDefault();
+        ed.downloadJSON();
+      }
+    }
+  };
+  function normRect(a, b) {
+    return {
+      x: Math.min(a.x, b.x),
+      y: Math.min(a.y, b.y),
+      w: Math.abs(b.x - a.x),
+      h: Math.abs(b.y - a.y)
+    };
+  }
+  function applyResize(drag, pWorld, keepAspect) {
+    const { el: el2, c0, anchor, dir } = drag;
+    const r = deg2rad(-(el2.rotation || 0));
+    const pLocal = rotatePoint(pWorld.x, pWorld.y, c0.x, c0.y, r);
+    const aLocal = rotatePoint(anchor.x, anchor.y, c0.x, c0.y, r);
+    const horizontal = dir.includes("e") || dir.includes("w");
+    const vertical = dir.includes("n") || dir.includes("s");
+    const sx = dir.includes("w") ? -1 : 1;
+    const sy = dir.includes("n") ? -1 : 1;
+    let w = horizontal ? Math.max(8, sx * (pLocal.x - aLocal.x)) : drag.startW;
+    let h = vertical ? Math.max(8, sy * (pLocal.y - aLocal.y)) : drag.startH;
+    if (keepAspect && horizontal && vertical) {
+      w = Math.max(w, 8 * drag.aspect);
+      h = w / drag.aspect;
+    }
+    const mid = {
+      x: aLocal.x + (horizontal ? sx * w / 2 : 0),
+      y: aLocal.y + (vertical ? sy * h / 2 : 0)
+    };
+    const newCenter = rotatePoint(mid.x, mid.y, c0.x, c0.y, -r);
+    el2.w = w;
+    el2.h = h;
+    el2.x = newCenter.x - w / 2;
+    el2.y = newCenter.y - h / 2;
+  }
+  function computeSnap(box2, others, page, threshold) {
+    const result = { dx: 0, dy: 0, guides: [] };
+    if (!threshold) return result;
+    const pw = page.width;
+    const ph = page.height;
+    const xTargets = [];
+    const yTargets = [];
+    for (const o of others) {
+      const b = elementAABB(o);
+      xTargets.push({ v: b.x, a: b.y, b: b.y + b.h });
+      xTargets.push({ v: b.x + b.w / 2, a: b.y, b: b.y + b.h });
+      xTargets.push({ v: b.x + b.w, a: b.y, b: b.y + b.h });
+      yTargets.push({ v: b.y, a: b.x, b: b.x + b.w });
+      yTargets.push({ v: b.y + b.h / 2, a: b.x, b: b.x + b.w });
+      yTargets.push({ v: b.y + b.h, a: b.x, b: b.x + b.w });
+    }
+    xTargets.push({ v: 0, a: 0, b: ph }, { v: pw / 2, a: 0, b: ph }, { v: pw, a: 0, b: ph });
+    yTargets.push({ v: 0, a: 0, b: pw }, { v: ph / 2, a: 0, b: pw }, { v: ph, a: 0, b: pw });
+    const movers = (list, size) => [0, size / 2, size];
+    let bestX = null;
+    for (const m of movers(0, box2.w)) {
+      for (const t of xTargets) {
+        const d = t.v - (box2.x + m);
+        if (Math.abs(d) < threshold && (!bestX || Math.abs(d) < Math.abs(bestX.d))) {
+          bestX = { d, v: t.v, a: t.a, b: t.b };
+        }
+      }
+    }
+    let bestY = null;
+    for (const m of movers(0, box2.h)) {
+      for (const t of yTargets) {
+        const d = t.v - (box2.y + m);
+        if (Math.abs(d) < threshold && (!bestY || Math.abs(d) < Math.abs(bestY.d))) {
+          bestY = { d, v: t.v, a: t.a, b: t.b };
+        }
+      }
+    }
+    if (bestX) {
+      result.dx = bestX.d;
+      result.guides.push({
+        axis: "x",
+        v: bestX.v,
+        from: Math.min(bestX.a, box2.y) - 12,
+        to: Math.max(bestX.b, box2.y + box2.h) + 12
+      });
+    }
+    if (bestY) {
+      result.dy = bestY.d;
+      result.guides.push({
+        axis: "y",
+        v: bestY.v,
+        from: Math.min(bestY.a, box2.x) - 12,
+        to: Math.max(bestY.b, box2.x + box2.w) + 12
+      });
+    }
+    return result;
+  }
+
+  // src/ui/contextmenu.js
+  function showMenu(editor, clientX, clientY, items) {
+    closeMenus(editor);
+    const container = editor.container;
+    const rect = container.getBoundingClientRect();
+    const menu = el("div", "ez-menu", container);
+    for (const item of items) {
+      if (item === "-") {
+        el("div", "ez-menu-sep", menu);
+        continue;
+      }
+      const row = el("div", "ez-menu-item" + (item.danger ? " ez-danger" : ""), menu);
+      row.innerHTML = `${item.icon ? item.icon : ""}<span>${escapeHtml(item.label)}</span>${item.shortcut ? `<span class="ez-menu-shortcut">${escapeHtml(item.shortcut)}</span>` : ""}`;
+      if (item.disabled) {
+        row.classList.add("ez-disabled");
+      } else {
+        row.addEventListener("click", () => {
+          closeMenus(editor);
+          item.action?.();
+        });
+      }
+    }
+    menu.style.left = "0px";
+    menu.style.top = "0px";
+    const mw = menu.offsetWidth;
+    const mh = menu.offsetHeight;
+    menu.style.left = clampNum(clientX - rect.left, 4, rect.width - mw - 4) + "px";
+    menu.style.top = clampNum(clientY - rect.top, 4, rect.height - mh - 4) + "px";
+    editor._openMenu = menu;
+    setTimeout(() => {
+      const closer = (ev) => {
+        if (!menu.contains(ev.target)) {
+          closeMenus(editor);
+          window.removeEventListener("pointerdown", closer, true);
+        }
+      };
+      window.addEventListener("pointerdown", closer, true);
+    }, 0);
+    return menu;
+  }
+  function closeMenus(editor) {
+    if (editor._openMenu) {
+      editor._openMenu.remove();
+      editor._openMenu = null;
+    }
+  }
+  function clampNum(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+  }
+  var ContextMenu = class {
+    constructor(editor) {
+      this.editor = editor;
+      editor.canvas.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        const p = editor.interactions.clientToWorld(e);
+        const els = editor.getElements();
+        let hit = null;
+        for (let i = els.length - 1; i >= 0; i--) {
+          if (editor.hitTestElement(els[i], p.x, p.y)) {
+            hit = els[i];
+            break;
+          }
+        }
+        if (hit && !editor.selection.has(hit.id)) editor.select([hit.id]);
+        const has = editor.selection.size > 0;
+        const items = [];
+        if (has) {
+          items.push(
+            { label: "Copy", shortcut: "Ctrl+C", action: () => editor.copy() },
+            { label: "Paste", shortcut: "Ctrl+V", action: () => editor.paste() },
+            { label: "Duplicate", shortcut: "Ctrl+D", action: () => editor.duplicateSelected() },
+            { label: "Delete", shortcut: "Del", danger: true, action: () => editor.deleteSelected() },
+            "-",
+            { label: "Bring to front", action: () => editor.bringToFront() },
+            { label: "Bring forward", action: () => editor.bringForward() },
+            { label: "Send backward", action: () => editor.sendBackward() },
+            { label: "Send to back", action: () => editor.sendToBack() },
+            "-",
+            { label: "Flip horizontal", action: () => editor.updateSelected({ flipX: !editor.getSelected()[0].flipX }) },
+            { label: "Flip vertical", action: () => editor.updateSelected({ flipY: !editor.getSelected()[0].flipY }) },
+            {
+              label: editor.getSelected().some((s) => s.locked) ? "Unlock" : "Lock",
+              action: () => editor.toggleLock()
+            }
+          );
+        } else {
+          items.push(
+            { label: "Paste", shortcut: "Ctrl+V", disabled: !editor.clipboard.length, action: () => editor.paste() },
+            "-",
+            { label: "Select all", shortcut: "Ctrl+A", action: () => editor.selectAll() }
+          );
+        }
+        showMenu(editor, e.clientX, e.clientY, items);
+      });
+    }
+  };
+
+  // src/ui/topbar.js
+  var RESIZE_PRESETS = [
+    { group: "Social media", sizes: [
+      { id: "social-square", label: "Square post", width: 1080, height: 1080 },
+      { id: "social-portrait", label: "Portrait post (4:5)", width: 1080, height: 1350 },
+      { id: "social-story", label: "Story / Reel (9:16)", width: 1080, height: 1920 },
+      { id: "social-landscape", label: "Landscape post (16:9)", width: 1920, height: 1080 }
+    ] },
+    { group: "Print", sizes: [
+      { id: "print-a5", label: "A5", width: 1748, height: 2480 },
+      { id: "print-a4", label: "A4", width: 2480, height: 3508 },
+      { id: "print-a3", label: "A3", width: 3508, height: 4961 },
+      { id: "print-letter", label: "US Letter", width: 2550, height: 3300 },
+      { id: "print-business-card", label: "Business card (3.5 \xD7 2 in)", width: 1050, height: 600 }
+    ] },
+    { group: "Presentation", sizes: [
+      { id: "presentation-wide", label: "Widescreen (16:9)", width: 1920, height: 1080 },
+      { id: "presentation-standard", label: "Standard (4:3)", width: 1024, height: 768 },
+      { id: "presentation-wide-16-10", label: "Widescreen (16:10)", width: 1920, height: 1200 }
+    ] }
+  ];
+  var Topbar = class {
+    constructor(editor) {
+      this.editor = editor;
+      this.root = editor.topbarEl;
+      this.render();
+    }
+    render() {
+      const ed = this.editor;
+      this.root.innerHTML = `
       <div class="ez-brand"><span class="ez-logo">E</span><span class="ez-brand-name">Ezyreka</span></div>
-      <input class="ez-filename" value="${e.fileName.replace(/"/g,"&quot;")}" spellcheck="false" />
+      <input class="ez-filename" value="${ed.fileName.replace(/"/g, "&quot;")}" spellcheck="false" />
       <button class="ez-btn ez-btn-ghost" data-act="resize" title="Resize current canvas" aria-haspopup="dialog">Resize</button>
       <div class="ez-topbar-group">
-        <button class="ez-icon-btn" data-act="undo" title="Undo (Ctrl+Z)">${A.undo}</button>
-        <button class="ez-icon-btn" data-act="redo" title="Redo (Ctrl+Shift+Z)">${A.redo}</button>
+        <button class="ez-icon-btn" data-act="undo" title="Undo (Ctrl+Z)">${UI_ICONS.undo}</button>
+        <button class="ez-icon-btn" data-act="redo" title="Redo (Ctrl+Shift+Z)">${UI_ICONS.redo}</button>
       </div>
       <div class="ez-topbar-group">
-        <button class="ez-icon-btn" data-act="zoom-out" title="Zoom out (Ctrl+-)">${A["zoom-out"]}</button>
+        <button class="ez-icon-btn" data-act="zoom-out" title="Zoom out (Ctrl+-)">${UI_ICONS["zoom-out"]}</button>
         <button class="ez-zoom-btn" data-act="zoom-menu">100%</button>
-        <button class="ez-icon-btn" data-act="zoom-in" title="Zoom in (Ctrl++)">${A["zoom-in"]}</button>
-        <button class="ez-icon-btn" data-act="zoom-fit" title="Fit to screen (Ctrl+0)">${A.fit}</button>
+        <button class="ez-icon-btn" data-act="zoom-in" title="Zoom in (Ctrl++)">${UI_ICONS["zoom-in"]}</button>
+        <button class="ez-icon-btn" data-act="zoom-fit" title="Fit to screen (Ctrl+0)">${UI_ICONS.fit}</button>
       </div>
       <div class="ez-topbar-spacer"></div>
       <button class="ez-icon-btn" data-act="theme" title="Switch theme (Ctrl+Shift+L)"></button>
       <button class="ez-btn ez-btn-ghost" data-act="open">Open</button>
       <button class="ez-btn ez-btn-ghost" data-act="save-json">Save</button>
-      <button class="ez-btn ez-btn-primary" data-act="download">${A.download}<span>Download</span></button>
+      <button class="ez-btn ez-btn-primary" data-act="download">${UI_ICONS.download}<span>Download</span></button>
       <input type="file" class="ez-hidden" accept="application/json" data-role="open-input" />
-    `,this.root.querySelector('[data-act="undo"]').onclick=()=>e.undo(),this.root.querySelector('[data-act="resize"]').onclick=()=>this.resizeDialog(),this.root.querySelector('[data-act="redo"]').onclick=()=>e.redo(),this.root.querySelector('[data-act="zoom-out"]').onclick=()=>e.setZoom(e.zoom/1.2),this.root.querySelector('[data-act="zoom-in"]').onclick=()=>e.setZoom(e.zoom*1.2),this.root.querySelector('[data-act="zoom-fit"]').onclick=()=>e.zoomFit(),this.root.querySelector('[data-act="zoom-menu"]').onclick=n=>this.zoomMenu(n),this.root.querySelector('[data-act="download"]').onclick=n=>this.downloadMenu(n),this.root.querySelector('[data-act="save-json"]').onclick=()=>e.downloadJSON();let t=this.root.querySelector(".ez-filename");t.onchange=()=>e.setFileName(t.value.trim()||"Untitled design"),t.onkeydown=n=>{n.key==="Enter"&&t.blur()};let r=this.root.querySelector('[data-act="open"]'),o=this.root.querySelector('[data-role="open-input"]');r.onclick=()=>o.click(),o.onchange=async()=>{let n=o.files[0];if(n){try{let a=JSON.parse(await n.text());e.loadJSON(a)}catch(a){alert("Invalid design file: "+a.message)}o.value=""}},this.root.querySelector('[data-act="theme"]').onclick=()=>e.toggleTheme(),this._unsubs=[e.on("theme",()=>this.updateThemeIcon()),e.on("zoom",()=>this.updateZoomLabel()),e.on("rename",n=>{let a=this.root.querySelector(".ez-filename");a&&document.activeElement!==a&&(a.value=n)})],this.updateThemeIcon(),this.updateZoomLabel()}destroy(){this._unsubs?.forEach(e=>e()),this._unsubs=[]}updateZoomLabel(){let e=this.root.querySelector('[data-act="zoom-menu"]');e&&(e.textContent=Math.round(this.editor.zoom*100)+"%")}resizeDialog(){let e=this.editor;pe(e);let t=e.getPage(),r=D("resize-title"),o=D("resize-help"),n=D("resize-preset-help"),a=f("dialog","ez-resize-dialog",e.container);a.setAttribute("aria-labelledby",r),a.setAttribute("aria-describedby",o),a.innerHTML=`
+    `;
+      this.root.querySelector('[data-act="undo"]').onclick = () => ed.undo();
+      this.root.querySelector('[data-act="resize"]').onclick = () => this.resizeDialog();
+      this.root.querySelector('[data-act="redo"]').onclick = () => ed.redo();
+      this.root.querySelector('[data-act="zoom-out"]').onclick = () => ed.setZoom(ed.zoom / 1.2);
+      this.root.querySelector('[data-act="zoom-in"]').onclick = () => ed.setZoom(ed.zoom * 1.2);
+      this.root.querySelector('[data-act="zoom-fit"]').onclick = () => ed.zoomFit();
+      this.root.querySelector('[data-act="zoom-menu"]').onclick = (e) => this.zoomMenu(e);
+      this.root.querySelector('[data-act="download"]').onclick = (e) => this.downloadMenu(e);
+      this.root.querySelector('[data-act="save-json"]').onclick = () => ed.downloadJSON();
+      const nameInput = this.root.querySelector(".ez-filename");
+      nameInput.onchange = () => ed.setFileName(nameInput.value.trim() || "Untitled design");
+      nameInput.onkeydown = (e) => {
+        if (e.key === "Enter") nameInput.blur();
+      };
+      const openBtn = this.root.querySelector('[data-act="open"]');
+      const openInput = this.root.querySelector('[data-role="open-input"]');
+      openBtn.onclick = () => openInput.click();
+      openInput.onchange = async () => {
+        const file = openInput.files[0];
+        if (!file) return;
+        try {
+          const json = JSON.parse(await file.text());
+          ed.loadJSON(json);
+        } catch (err) {
+          alert("Invalid design file: " + err.message);
+        }
+        openInput.value = "";
+      };
+      this.root.querySelector('[data-act="theme"]').onclick = () => ed.toggleTheme();
+      this._unsubs = [
+        ed.on("theme", () => this.updateThemeIcon()),
+        ed.on("zoom", () => this.updateZoomLabel()),
+        ed.on("rename", (name) => {
+          const input = this.root.querySelector(".ez-filename");
+          if (input && document.activeElement !== input) input.value = name;
+        })
+      ];
+      this.updateThemeIcon();
+      this.updateZoomLabel();
+    }
+    destroy() {
+      this._unsubs?.forEach((off) => off());
+      this._unsubs = [];
+    }
+    updateZoomLabel() {
+      const btn = this.root.querySelector('[data-act="zoom-menu"]');
+      if (btn) btn.textContent = Math.round(this.editor.zoom * 100) + "%";
+    }
+    resizeDialog() {
+      const ed = this.editor;
+      closeMenus(ed);
+      const page = ed.getPage();
+      const titleId = uid("resize-title");
+      const helpId = uid("resize-help");
+      const presetHelpId = uid("resize-preset-help");
+      const dialog = el("dialog", "ez-resize-dialog", ed.container);
+      dialog.setAttribute("aria-labelledby", titleId);
+      dialog.setAttribute("aria-describedby", helpId);
+      dialog.innerHTML = `
       <form class="ez-resize-form">
-        <h2 id="${r}">Resize canvas</h2>
-        <p id="${o}">Resize the current page. Elements keep their size and position.</p>
-        <fieldset class="ez-resize-presets" aria-describedby="${n}">
+        <h2 id="${titleId}">Resize canvas</h2>
+        <p id="${helpId}">Resize the current page. Elements keep their size and position.</p>
+        <fieldset class="ez-resize-presets" aria-describedby="${presetHelpId}">
           <legend>Size preset</legend>
           <div class="ez-resize-categories" aria-label="Preset categories"></div>
           <div class="ez-resize-gallery"></div>
@@ -77,7 +2631,7 @@ neighbour!`,110,267,860,112,"#354d69",{...M,...w,lineHeight:1.06}),...[0,1,2].fl
             <span>Custom size</span><span class="ez-resize-custom-hint">Set your own dimensions</span>
           </label>
         </fieldset>
-        <p class="ez-resize-preset-help" id="${n}" aria-live="polite"></p>
+        <p class="ez-resize-preset-help" id="${presetHelpId}" aria-live="polite"></p>
         <div class="ez-resize-fields">
           <label>Width (px)<input class="ez-input" name="width" type="number" min="1" max="10000" step="1" required /></label>
           <label>Height (px)<input class="ez-input" name="height" type="number" min="1" max="10000" step="1" required /></label>
@@ -88,18 +2642,1553 @@ neighbour!`,110,267,860,112,"#354d69",{...M,...w,lineHeight:1.06}),...[0,1,2].fl
           <button class="ez-btn ez-btn-primary" type="submit">Resize canvas</button>
         </div>
       </form>
-    `;let s=a.querySelector("form"),l=a.querySelector(".ez-resize-gallery"),c=a.querySelector(".ez-resize-categories"),d=a.querySelector(".ez-resize-preset-help"),h=s.elements.namedItem("width"),g=s.elements.namedItem("height");h.value=t.width,g.value=t.height;let u=ct.flatMap(v=>v.sizes),z=[],S=[],x=v=>{z.forEach((k,I)=>k.setAttribute("aria-pressed",String(I===v))),S.forEach((k,I)=>{k.hidden=I!==v}),l.scrollTop=0};for(let[v,k]of ct.entries()){let I=f("button","ez-resize-category",c);I.type="button",I.textContent=k.group,I.onclick=()=>x(v),z.push(I);let R=f("div","ez-resize-grid",l);R.setAttribute("role","group"),R.setAttribute("aria-label",k.group),S.push(R);for(let P of k.sizes){let H=f("label","ez-resize-card",R),$=72/Math.max(P.width,P.height);H.innerHTML=`
-          <input type="radio" name="preset" value="${P.id}" />
-          <span class="ez-resize-thumbnail ez-resize-art-${v}" aria-hidden="true">
-            <span class="ez-resize-paper" style="width:${P.width*$}px;height:${P.height*$}px">
+    `;
+      const form = dialog.querySelector("form");
+      const gallery = dialog.querySelector(".ez-resize-gallery");
+      const categories = dialog.querySelector(".ez-resize-categories");
+      const presetHelp = dialog.querySelector(".ez-resize-preset-help");
+      const width = form.elements.namedItem("width");
+      const height = form.elements.namedItem("height");
+      width.value = page.width;
+      height.value = page.height;
+      const sizes = RESIZE_PRESETS.flatMap((group) => group.sizes);
+      const categoryButtons = [];
+      const presetGroups = [];
+      const showCategory = (index) => {
+        categoryButtons.forEach((button, i) => button.setAttribute("aria-pressed", String(i === index)));
+        presetGroups.forEach((group, i) => {
+          group.hidden = i !== index;
+        });
+        gallery.scrollTop = 0;
+      };
+      for (const [index, group] of RESIZE_PRESETS.entries()) {
+        const category = el("button", "ez-resize-category", categories);
+        category.type = "button";
+        category.textContent = group.group;
+        category.onclick = () => showCategory(index);
+        categoryButtons.push(category);
+        const grid = el("div", "ez-resize-grid", gallery);
+        grid.setAttribute("role", "group");
+        grid.setAttribute("aria-label", group.group);
+        presetGroups.push(grid);
+        for (const size of group.sizes) {
+          const card = el("label", "ez-resize-card", grid);
+          const scale = 72 / Math.max(size.width, size.height);
+          card.innerHTML = `
+          <input type="radio" name="preset" value="${size.id}" />
+          <span class="ez-resize-thumbnail ez-resize-art-${index}" aria-hidden="true">
+            <span class="ez-resize-paper" style="width:${size.width * scale}px;height:${size.height * scale}px">
               <span class="ez-resize-art-orb"></span><span class="ez-resize-art-block"></span>
               <span class="ez-resize-art-line"></span>
             </span>
             <span class="ez-resize-check">\u2713</span>
           </span>
-          <span class="ez-resize-card-name">${P.label}</span>
-          <span class="ez-resize-card-size">${P.width} \xD7 ${P.height} px</span>
-        `}}let m=s.elements.namedItem("preset"),T=()=>{let v=u.find(k=>k.id===m.value);d.textContent=m.value.startsWith("print-")?`${v.label} selected. Print sizes use 300 pixels per inch, without bleed.`:v?`${v.label} selected. You can also adjust the dimensions below.`:"Custom size selected. Enter your own dimensions below."};m.value=u.find(v=>v.width===t.width&&v.height===t.height)?.id||"custom",x(Math.max(0,ct.findIndex(v=>v.sizes.some(k=>k.id===m.value)))),a.querySelector(".ez-resize-presets").addEventListener("change",()=>{let v=u.find(k=>k.id===m.value);v&&(h.value=v.width,g.value=v.height),T(),v||h.focus()});let C=()=>{m.value="custom",T()};h.addEventListener("input",C),g.addEventListener("input",C),T(),a.querySelector('[data-act="cancel"]').onclick=()=>a.close(),a.addEventListener("keydown",v=>v.stopPropagation()),a.addEventListener("close",()=>{a.remove(),this.root.querySelector('[data-act="resize"]').focus()}),s.onsubmit=v=>{if(v.preventDefault(),!!s.reportValidity()){if(e.getPage()!==t){a.close();return}e.resizeCanvas(h.valueAsNumber,g.valueAsNumber),a.close()}},a.showModal(),s.querySelector('input[name="preset"]:checked').focus()}updateThemeIcon(){let e=this.root.querySelector('[data-act="theme"]');if(!e)return;let t=this.editor.theme==="dark";e.innerHTML=t?A.sun:A.moon,e.title=t?"Switch to light mode":"Switch to dark mode"}zoomMenu(e){let r=e.currentTarget.getBoundingClientRect();$e(this.editor,r.left,r.bottom+4,[{label:"Fit to screen",action:()=>this.editor.zoomFit()},{label:"100%",action:()=>this.editor.setZoom(1)},"-",{label:"50%",action:()=>this.editor.setZoom(.5)},{label:"75%",action:()=>this.editor.setZoom(.75)},{label:"150%",action:()=>this.editor.setZoom(1.5)},{label:"200%",action:()=>this.editor.setZoom(2)}])}downloadMenu(e){let r=e.currentTarget.getBoundingClientRect();$e(this.editor,r.right-190,r.bottom+4,[{label:"PNG image",action:()=>this.editor.exportImage("png",{scale:2})},{label:"JPG image",action:()=>this.editor.exportImage("jpeg",{scale:2})},{label:"PNG (transparent)",action:()=>this.editor.exportImage("png",{scale:2,transparent:!0})},{label:"PNG at 4x",action:()=>this.editor.exportImage("png",{scale:4})},"-",{label:"Design file (.json)",action:()=>this.editor.downloadJSON()}])}};var Ue=class{constructor(e){this.sidepanel=e,this.editor=e.editor,this.bindings=[],this.gallery=!1,this.key=null,this._unsubs=["selection","change","page"].map(t=>this.editor.on(t,()=>{let r=this.target();(t==="page"||r?.id!==this.lastId)&&(this.gallery=!1),this.lastId=r?.id,this.refresh()}))}destroy(){this._unsubs?.forEach(e=>e()),this._unsubs=[]}target(e){let t=this.editor.getSelected();return t.length===1&&t[0].type==="chart"&&(!e||t[0].id===e)?t[0]:null}open(){this.target()&&(this.gallery=!1,this.key=null,this.sidepanel.setTab("charts"),this.refresh())}refresh(){if(this.dialog){let e=this.target(this.dialogId);if(!e||e.hidden)this.dialog.close();else{let t=`${e.id}:${e.locked}:${e.chart.categories.length}:${e.chart.series.length}`;t!==this.dialogKey&&(this.dialogKey=t,this.renderModalTable())}}if(this.sidepanel.activeTab==="charts"){let e=this.target();(this.gallery||!e?"gallery":`${e.id}:${e.locked}:${e.chart.type}:${e.chart.categories.length}:${e.chart.series.length}`)!==this.key&&this.render()}this.bindings=this.bindings.filter(e=>e.input.isConnected);for(let{input:e,id:t,read:r}of this.bindings){let o=this.target(t);!o||e===document.activeElement||(e.type==="checkbox"?e.checked=!!r(o.chart):e.value=r(o.chart)??"",e.removeAttribute("aria-invalid"))}}button(e,t,r,o="ez-btn ez-btn-ghost"){let n=f("button",o,e);return n.type="button",n.textContent=t,n.onclick=r,n}error(e){let r=(this.dialog||this.sidepanel.contentEl).querySelector(".ez-chart-error");r&&(r.textContent=e,r.hidden=!e)}apply(e,t,r){let o=this.target(e);if(!(!o||o.locked))try{let n=j(o.chart),a=j(t(n)||n);ne(a),r?.removeAttribute("aria-invalid");let s=this.bindings.find(l=>l.input===r);s&&(r.type==="checkbox"?r.checked=!!s.read(a):r.value=s.read(a)??""),this.error(""),JSON.stringify(a)!==JSON.stringify(o.chart)&&this.editor.updateSelected({chart:a})}catch(n){if(r?.tagName==="SELECT"){let a=this.bindings.find(s=>s.input===r);a&&(r.value=a.read(o.chart))}r?.setAttribute("aria-invalid","true"),this.error(n.message)}}bind(e,t,r,o){e.disabled=!!t.locked,e.type==="checkbox"?e.checked=!!r(t.chart):e.value=r(t.chart)??"",e.onchange=()=>this.apply(t.id,n=>o(n,e),e),this.bindings.push({input:e,id:t.id,read:r})}render(){let e=this.sidepanel.contentEl;e.innerHTML="",this.bindings=this.bindings.filter(n=>n.input.isConnected);let t=this.target();if(this.gallery||!t){this.key="gallery",this.renderGallery(e);return}this.key=`${t.id}:${t.locked}:${t.chart.type}:${t.chart.categories.length}:${t.chart.series.length}`,this.sidepanel.panelHeader("Charts","Edit your chart with data, labels, and colors."),this.button(e,"Back to charts",()=>{this.gallery=!0,this.render()},"ez-btn ez-btn-ghost ez-panel-action"),t.locked&&(f("p","ez-chart-note",e).textContent="This chart is locked. Unlock it in Layers to edit.");let r=f("p","ez-chart-error",e);r.setAttribute("role","alert"),r.hidden=!0;let o=f("div","ez-panel-filters ez-chart-editor-tabs",e);for(let n of["Data","Style"]){let a=(this.section||"Data")===n,s=this.button(o,n,()=>{this.section=n,this.render()},"ez-panel-filter");s.classList.toggle("ez-active",a),s.setAttribute("aria-pressed",String(a))}this.section==="Style"?this.renderStyle(e,t):(f("p","ez-chart-note",e).textContent="Edit cells or paste a table from a spreadsheet. Paste into the Category header to include column headers.",this.renderTable(e,t),this.button(e,"Expand data table",()=>this.expand(),"ez-btn ez-btn-ghost ez-chart-expand"))}renderGallery(e){this.sidepanel.panelHeader("Charts","Choose a chart, then make it yours with data and colors."),this.target()&&this.button(e,"Edit selected chart",()=>this.open(),"ez-btn ez-btn-ghost ez-panel-action");for(let t of[...new Set(ie.map(r=>r.group))]){this.sidepanel.sectionTitle(t,e);let r=f("div","ez-chart-gallery",e);for(let o of ie.filter(n=>n.group===t)){let n=this.button(r,"",()=>{let l=this.editor.addElement({type:"chart",chart:ve(o.type)});this.editor.select([l.id]),this.section="Data",this.open()},"ez-panel-card ez-chart-card");n.setAttribute("aria-label",`Add ${o.label} chart`);let a=f("canvas","",n);a.width=240,a.height=170,a.setAttribute("aria-hidden","true");let s=ve(o.type);Object.assign(s,{showAxes:!1,showGrid:!1,showLegend:!1}),Ve(a.getContext("2d"),{chart:s,w:a.width,h:a.height}),f("span","",n).textContent=o.label}}}renderTable(e,t){let r=f("div","ez-chart-table-wrap",e),o=f("table","ez-chart-table",r);o.setAttribute("aria-label","Chart data");let n=f("thead","",o),a=f("tr","",n),s=(d,h,g,u,z)=>{let S=f(h===0?"th":"td","",d);h===0&&(S.scope="col");let x=f("input","ez-input",S);return x.type="text",h>0&&g>0&&(x.inputMode="decimal"),x.dataset.row=h,x.dataset.column=g,x.setAttribute("aria-label",h===0?g===0?"Category header, paste table here":`Series ${g} name`:g===0?`Category ${h}`:`Row ${h}, series ${g} value`),this.bind(x,t,u,z),h===0&&g===0&&(x.readOnly=!0),x.onpaste=m=>{if(this.target(t.id)?.locked)return;let T=m.clipboardData?.getData("text/plain");T!==void 0&&(m.preventDefault(),this.apply(t.id,C=>yt(C,T,h,g),x))},S};s(a,0,0,()=>"Category",()=>{}),t.chart.series.forEach((d,h)=>{let g=s(a,0,h+1,z=>z.series[h]?.name,(z,S)=>{z.series[h].name=S.value}),u=this.button(g,"Remove",()=>this.apply(t.id,z=>{z.series.splice(h,1)}),"ez-chart-remove");u.setAttribute("aria-label",`Remove series ${h+1}`),u.disabled=!!t.locked}),f("th","",a).textContent="";let l=f("tbody","",o);t.chart.categories.forEach((d,h)=>{let g=f("tr","",l);s(g,h+1,0,z=>z.categories[h],(z,S)=>{z.categories[h]=S.value}),t.chart.series.forEach((z,S)=>s(g,h+1,S+1,x=>x.series[S]?.values[h],(x,m)=>{x.series[S].values[h]=Je(m.value)}));let u=this.button(f("td","",g),"Remove",()=>this.apply(t.id,z=>{z.categories.splice(h,1),z.categoryColors.splice(h,1),z.series.forEach(S=>S.values.splice(h,1))}),"ez-chart-remove");u.setAttribute("aria-label",`Remove category ${h+1}`),u.disabled=!!t.locked});let c=f("div","ez-chart-data-actions",e);this.button(c,"Add row",()=>this.apply(t.id,d=>{d.categoryColors.push(le(d.categories.length)),d.categories.push(`Item ${d.categories.length+1}`),d.series.forEach(h=>h.values.push(null))})).disabled=!!t.locked,this.button(c,"Add series",()=>this.apply(t.id,d=>{d.series.push({name:`Series ${d.series.length+1}`,color:le(d.series.length),values:d.categories.map(()=>null)})})).disabled=!!t.locked}renderStyle(e,t){let r=t.chart,o=(s,l,c,d)=>{let h=f("label","ez-chart-style-field",e);f("span","",h).textContent=s;let g=f(l==="select"?"select":"input","ez-input",h);return l!=="select"&&(g.type=l),g.setAttribute("aria-label",s),this.bind(g,t,c,d),g},n=o("Chart type","select",s=>s.type,(s,l)=>{s.type=l.value});ie.forEach(s=>{let l=f("option","",n);l.value=s.type,l.textContent=s.label}),n.value=r.type,!oe(r.type)&&r.series.length>1&&(f("p","ez-chart-note",e).textContent="This chart displays the first series. Additional series are kept when switching chart types."),o("Title","text",s=>s.title,(s,l)=>{s.title=l.value});for(let[s,l]of[["showLegend","Legend"],["showValues","Value labels"],...ce(r.type)?[]:[["showAxes","Axes"],["showGrid","Gridlines"]]])o(l,"checkbox",c=>c[s],(c,d)=>{c[s]=d.checked});let a=o("Text size","number",s=>s.fontSize,(s,l)=>{if(!Number.isFinite(l.valueAsNumber)||l.valueAsNumber<8||l.valueAsNumber>72)throw new Error("Text size must be from 8 to 72 pixels.");s.fontSize=l.valueAsNumber});a.min=8,a.max=72,o("Text color","color",s=>s.textColor,(s,l)=>{s.textColor=l.value}),ce(r.type)?r.categories.forEach((s,l)=>{o(`${s||`Category ${l+1}`} color`,"color",c=>c.categoryColors[l],(c,d)=>{c.categoryColors[l]=d.value})}):(oe(r.type)?r.series:r.series.slice(0,1)).forEach((s,l)=>{o(`${s.name||`Series ${l+1}`} color`,"color",c=>c.series[l]?.color,(c,d)=>{c.series[l].color=d.value})})}expand(){let e=this.target();if(!e||this.dialog)return;let t=f("dialog","ez-chart-dialog",this.editor.container);this.dialog=t,this.dialogId=e.id;let r=f("h2","",t);r.id=D("chart-data"),r.textContent="Chart data",t.setAttribute("aria-labelledby",r.id);let o=f("p","ez-chart-error",t);o.setAttribute("role","alert"),o.hidden=!0,this.modalTable=f("div","",t),this.button(t,"Done",()=>t.close(),"ez-btn ez-btn-primary ez-chart-done"),t.addEventListener("keydown",n=>n.stopPropagation()),t.addEventListener("close",()=>{t.remove(),this.dialog=null,this.dialogKey=null,this.refresh(),this.sidepanel.contentEl.querySelector(".ez-chart-expand")?.focus()}),this.renderModalTable(),t.showModal()}renderModalTable(){let e=this.target(this.dialogId);e&&(this.dialogKey=`${e.id}:${e.locked}:${e.chart.categories.length}:${e.chart.series.length}`,this.modalTable.innerHTML="",this.bindings=this.bindings.filter(t=>t.input.isConnected),this.renderTable(this.modalTable,e))}};function ze(i,{title:e="Color",value:t="#000000",onInput:r,onCommit:o,bare:n=!1}={}){let a=n?i:f("span","ez-color-field",i),s=f(n?"span":"label","ez-color-wrap",a);s.title=e;let l=f("input","ez-color-input",s);l.type="color",l.setAttribute("aria-label",e);let c=f("input","ez-input ez-hex-input",a);c.type="text",c.spellcheck=!1,c.maxLength=7,c.placeholder="#hex",c.setAttribute("aria-label",`${e} hex value`);let d=se(t)||"#000000",h=g=>{d=se(g)||d,s.style.backgroundColor=d,document.activeElement!==l&&(l.value=d),document.activeElement!==c&&(c.value=d)};return l.addEventListener("input",()=>{d=l.value,s.style.backgroundColor=d,document.activeElement!==c&&(c.value=d),r?.(d)}),l.addEventListener("change",()=>o?.()),c.addEventListener("input",()=>{let g=se(c.value.trim());g&&(d=g,s.style.backgroundColor=d,document.activeElement!==l&&(l.value=g),r?.(g))}),c.addEventListener("change",()=>{c.value=d,o?.()}),h(t),{group:a,wrap:s,input:l,hex:c,set:h,get value(){return d},set value(g){h(g)}}}function Ii(i){if(!Array.isArray(i))return[];let e=i.filter(r=>typeof r=="string"),t=i.filter(r=>r&&Array.isArray(r.colors));return t.length?t:e.length?[{colors:e}]:[]}var Ri=[{id:"templates",label:"Templates",icon:A.templates},{id:"elements",label:"Elements",icon:A.shapes},{id:"text",label:"Text",icon:A.text},{id:"charts",label:"Charts",icon:A.chart},{id:"uploads",label:"Uploads",icon:A.upload},{id:"background",label:"Background",icon:A.palette},{id:"layers",label:"Layers",icon:A.layers}],We=class{constructor(e){this.editor=e,this.tabsEl=e.sidepanelEl.querySelector(".ez-sidepanel-tabs"),this.contentEl=e.sidepanelEl.querySelector(".ez-sidepanel-content"),this.contentEl.id=D("panel"),this.contentEl.setAttribute("role","tabpanel"),this.tabsEl.setAttribute("role","tablist"),this.tabsEl.setAttribute("aria-label","Design tools"),this.tabsEl.setAttribute("aria-orientation","vertical"),this.collapsed=!1,this.collapseBtn=f("button","ez-sidepanel-toggle",e.sidepanelEl.querySelector(".ez-sidepanel-rail")),this.tabsEl.before(this.collapseBtn),this.collapseBtn.type="button",this.collapseBtn.innerHTML=A.chevron,this.collapseBtn.setAttribute("aria-controls",this.contentEl.id),this.collapseBtn.onclick=()=>this.setCollapsed(!this.collapsed),this.collapseBtn.onkeydown=t=>{t.key===" "&&t.stopPropagation()},this.activeTab="elements",this.tabs=[...Ri],this.renderTabs(),this.setTab("elements"),this.charts=new Ue(this),this._unsubs=[e.on("selection",()=>{this.activeTab==="layers"&&this.renderLayers()}),e.on("change",()=>{this.activeTab==="layers"&&this.renderLayers(),this.activeTab==="background"&&this.syncBackgroundControls?.()}),e.on("upload",()=>{this.activeTab==="uploads"&&this.renderUploads()}),e.on("page",()=>{this.activeTab==="background"&&this.renderBackground(),this.activeTab==="layers"&&this.renderLayers()})]}destroy(){this._unsubs?.forEach(e=>e()),this._unsubs=[]}renderTabs(){this.tabsEl.innerHTML="";for(let e of this.tabs){let t=f("button","ez-tab-btn"+(e.id===this.activeTab?" ez-active":""),this.tabsEl);t.type="button",t.id=`${this.contentEl.id}-${e.id}`,t.dataset.tab=e.id,t.title=e.label,t.setAttribute("role","tab"),t.setAttribute("aria-label",e.label),t.setAttribute("aria-controls",this.contentEl.id),t.innerHTML=`${e.icon}<span>${e.label}</span>`,t.onclick=()=>{e.id===this.activeTab&&!this.collapsed?this.setCollapsed(!0):this.setTab(e.id)},t.onkeydown=r=>{r.key===" "&&r.stopPropagation();let o=this.tabs.indexOf(e),n=r.key==="ArrowDown"?(o+1)%this.tabs.length:r.key==="ArrowUp"?(o+this.tabs.length-1)%this.tabs.length:r.key==="Home"?0:r.key==="End"?this.tabs.length-1:null;n!==null&&(r.preventDefault(),r.stopPropagation(),this.setTab(this.tabs[n].id),this.tabsEl.children[n].focus())}}}setTab(e){let t=this.tabs.find(o=>o.id===e);if(!t)return;let r=this.activeTab===e&&this.contentEl.hasChildNodes();if(this.activeTab=e,this.setCollapsed(!1),this.contentEl.setAttribute("aria-labelledby",`${this.contentEl.id}-${e}`),!r){if(this.contentEl.innerHTML="",this.contentEl.scrollTop=0,typeof t.render=="function"){t.render(this.contentEl,this.editor);return}({templates:()=>this.renderTemplates(),elements:()=>this.renderElements(),text:()=>this.renderText(),charts:()=>this.charts.render(),uploads:()=>this.renderUploads(),background:()=>this.renderBackground(),layers:()=>this.renderLayers()})[e]?.()}}registerPanel(e){if(!e||typeof e.id!="string"||typeof e.render!="function")throw new Error("ezyreka: panels need { id, label, icon, render(contentEl, editor) }");if(this.tabs.some(t=>t.id===e.id))throw new Error(`ezyreka: panel "${e.id}" already exists`);return this.tabs.push({id:e.id,label:e.label||e.id,icon:e.icon||A.shapes,render:e.render}),this.renderTabs(),e}rerender(){this.contentEl.innerHTML="",this.setTab(this.activeTab)}setCollapsed(e){this.collapsed=e,this.editor.sidepanelEl.classList.toggle("ez-collapsed",e),e&&this.contentEl.contains(document.activeElement)&&this.collapseBtn.focus(),this.contentEl.hidden=e;let t=e?"Expand sidebar":"Collapse sidebar";this.collapseBtn.title=t,this.collapseBtn.setAttribute("aria-label",t),this.collapseBtn.setAttribute("aria-expanded",String(!e));for(let r of this.tabsEl.children){let o=r.dataset.tab===this.activeTab;r.classList.toggle("ez-active",o),r.setAttribute("aria-selected",String(o)),r.setAttribute("aria-expanded",String(o&&!e)),r.tabIndex=o?0:-1}this.editor.markDirty()}panelHeader(e,t){let r=f("header","ez-panel-header",this.contentEl);return f("h2","ez-panel-heading",r).textContent=e,f("p","ez-panel-description",r).textContent=t,r}sectionTitle(e,t=this.contentEl){let r=f("h3","ez-panel-title",t);return r.textContent=e,r}renderTemplates(){this.panelHeader("Templates","Find your starting point. Make every detail yours.");let e=f("input","ez-input ez-panel-search ez-template-search",this.contentEl);e.type="search",e.placeholder="Search templates\u2026",e.setAttribute("aria-label","Search templates"),e.value=this.templateQuery||"";let t=f("div","ez-panel-filters ez-template-filters",this.contentEl);t.setAttribute("role","group"),t.setAttribute("aria-label","Template categories");let r=["All",...new Set(this.editor.registry.templates.map(s=>s.category))];for(let s of r){let l=f("button","ez-panel-filter ez-template-filter",t);l.type="button",l.textContent=s,l.onclick=()=>{this.templateCategory=s,a()}}let o=f("div","ez-panel-count ez-template-count",this.contentEl);o.setAttribute("role","status");let n=f("div","ez-template-grid",this.contentEl),a=()=>{let s=this.templateCategory||"All",l=(this.templateQuery||"").trim().toLowerCase();for(let d of t.children){let h=d.textContent===s;d.classList.toggle("ez-active",h),d.setAttribute("aria-pressed",String(h))}let c=this.editor.registry.templates.filter(d=>(s==="All"||d.category===s)&&`${d.name} ${d.category} ${d.format}`.toLowerCase().includes(l));if(o.textContent=`${c.length} editable ${c.length===1?"template":"templates"}`,n.innerHTML="",!c.length){let d=f("p","ez-empty ez-template-empty",n);d.textContent="No templates found. Try another search or category."}for(let d of c){let h=f("button","ez-panel-card ez-template-card",n);h.type="button",h.setAttribute("aria-label",`Use ${d.name}, ${d.format}, ${d.page.width} by ${d.page.height} pixels`);let g=f("div","ez-template-preview",h),u=document.createElement("canvas"),z=d.page.width,S=d.page.height,x=380/Math.max(z,S);u.width=Math.round(z*x),u.height=Math.round(S*x),u.setAttribute("aria-hidden","true");let m=u.getContext("2d");m.scale(x,x),Ae(m,{...d.page,elements:d.page.elements.map(v=>ee(v.type,v))},{registry:this.editor.registry}),g.appendChild(u);let T=f("div","ez-template-name",h);T.textContent=d.name;let C=f("div","ez-template-meta",h);C.textContent=`${d.format} \xB7 ${z} \xD7 ${S}`,h.onclick=()=>this.editor.applyTemplate(d)}};e.addEventListener("input",()=>{this.templateQuery=e.value,a()}),a()}renderElements(){this.panelHeader("Elements","Add shapes and icons to make your design yours.");let e=f("input","ez-input ez-panel-search ez-elements-search",this.contentEl);e.type="search",e.placeholder="Search shapes & icons",e.setAttribute("aria-label","Search shapes and icons"),e.value=this.elementQuery||"";let t=f("div","ez-panel-filters ez-element-filters",this.contentEl);t.setAttribute("role","group"),t.setAttribute("aria-label","Element types");for(let s of["All","Shapes","Icons"]){let l=f("button","ez-panel-filter ez-element-filter",t);l.type="button",l.textContent=s,l.onclick=()=>{this.elementCategory=s,a()}}let r=f("div","ez-panel-count ez-element-count",this.contentEl);r.setAttribute("role","status");let o=f("div","ez-element-results",this.contentEl),n=(s,l,c,d)=>{let h=f("button","ez-panel-card ez-element-btn",s);h.type="button",h.title=l,h.setAttribute("aria-label",`Add ${l}`),h.innerHTML=c;let g=f("span","ez-element-label",h);g.textContent=l,h.onclick=()=>{let u=this.editor.addElement(d);this.editor.select([u.id])}},a=()=>{let s=this.elementCategory||"All",l=(this.elementQuery||"").trim().toLowerCase(),c=this.elementIconStyle||"solid";for(let u of t.children){let z=u.textContent===s;u.classList.toggle("ez-active",z),u.setAttribute("aria-pressed",String(z))}let d=s==="Icons"?[]:this.editor.registry.shapes.filter(u=>u.label.toLowerCase().includes(l)),h=s==="Shapes"?[]:Object.keys(this.editor.registry.icons).filter(u=>u.replace(/-/g," ").includes(l)),g=d.length+h.length;if(r.textContent=`${g} ${g===1?"element":"elements"}`,o.innerHTML="",!g){let u=f("p","ez-empty",o);u.textContent="No elements found. Try another search or filter."}if(d.length){this.sectionTitle("Shapes",o);let u=f("div","ez-element-grid",o);for(let z of d)n(u,z.label,`<svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true" focusable="false">${z.svg}</svg>`,{type:z.type,...z.props||{}})}if(h.length){let u=f("div","ez-element-heading",o);this.sectionTitle("Icons",u);let z=f("div","ez-icon-styles",u);z.setAttribute("role","group"),z.setAttribute("aria-label","Icon style");for(let x of["solid","outline"]){let m=f("button","ez-icon-style"+(c===x?" ez-active":""),z);m.type="button",m.textContent=x==="solid"?"Solid":"Outline",m.setAttribute("aria-pressed",String(c===x)),m.onclick=()=>{this.elementIconStyle=x,a(),o.querySelector(".ez-icon-style.ez-active").focus({preventScroll:!0})}}let S=f("div","ez-element-grid",o);for(let x of h){let m=x.replace(/-/g," ").replace(/^./,C=>C.toUpperCase());n(S,m,`<svg viewBox="0 0 24 24" ${c==="outline"?'fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"':'fill="currentColor" fill-rule="evenodd"'} aria-hidden="true" focusable="false"><path d="${c==="outline"?this.editor.registry.iconOutlines[x]:this.editor.registry.icons[x]}" /></svg>`,{type:"icon",icon:x,iconStyle:c,w:160,h:160})}}};e.addEventListener("input",()=>{this.elementQuery=e.value,a()}),a()}renderText(){this.panelHeader("Text","Add text, then choose a font for your selection."),this.sectionTitle("Default text styles");let e=[{label:"Add a heading",size:72,weight:700,h:100},{label:"Add a subheading",size:40,weight:600,h:60},{label:"Add body text",size:24,weight:400,h:40}],t=f("div","ez-text-presets",this.contentEl);for(let o of e){let n=f("button","ez-panel-card ez-text-preset",t);n.type="button",n.style.fontSize=Math.max(14,o.size/3)+"px",n.style.fontWeight=o.weight,n.textContent=o.label,n.onclick=()=>{let a=this.editor.addText({text:o.label.replace("Add a ","").replace("Add ",""),fontSize:o.size,fontWeight:o.weight,h:o.h});this.editor.select([a.id])}}this.sectionTitle("Fonts (apply to selection)");let r=f("div","ez-font-list",this.contentEl);for(let o of this.editor.registry.fonts){let n=f("button","ez-panel-card ez-font-item",r);n.type="button",n.style.fontFamily=o,n.textContent=o,n.onclick=()=>{this.editor.getSelected().filter(s=>s.type==="text").length&&this.editor.updateSelected({fontFamily:o})}}}renderUploads(){let e=this.editor,t=this.contentEl.scrollTop;this.contentEl.innerHTML="",this.panelHeader("Uploads","Upload images or drag and drop them onto the canvas.");let r=f("button","ez-upload-btn",this.contentEl);r.type="button",r.innerHTML=`${A.upload}<span>Upload an image</span>`,r.onclick=()=>e.openFilePicker(),this.sectionTitle("Recent uploads");let o=f("div","ez-upload-grid",this.contentEl);if(!e.uploads.length){let n=f("div","ez-empty",o);n.textContent="No uploads yet. Upload an image to get started."}for(let n of e.uploads){let a=f("button","ez-panel-card ez-upload-thumb",o);a.type="button",a.title=n.name,a.setAttribute("aria-label",`Add ${n.name} to canvas`);let s=document.createElement("img");s.src=n.src,s.alt=n.name,a.appendChild(s),a.onclick=()=>{let l=e.addElement({type:"image",src:n.src,name:n.name});e.select([l.id])}}for(let n of e.registry.imageSources||[])this.renderImageSource(n);this.contentEl.scrollTop=t}renderImageSource(e){let t=this.editor;if(this.sectionTitle(e.label||e.id),typeof e.search!="function")return;let r=f("input","ez-input ez-panel-search",this.contentEl);r.type="search",r.placeholder=`Search ${e.label||e.id}\u2026`,r.setAttribute("aria-label",`Search ${e.label||e.id} images`);let o=f("div","ez-upload-grid",this.contentEl),n=f("div","ez-empty",this.contentEl);n.hidden=!0;let a=d=>{if(o.innerHTML="",n.hidden=!0,!d.length){n.textContent="No images found.",n.hidden=!1;return}for(let h of d){if(!h?.src)continue;let g=h.name||"Image",u=f("button","ez-panel-card ez-upload-thumb",o);u.type="button",u.title=g,u.setAttribute("aria-label",`Add ${g} to canvas`);let z=document.createElement("img");z.src=h.thumb||h.src,z.alt=g,z.loading="lazy",u.appendChild(z),u.onclick=()=>{let S=t.addElement({type:"image",src:h.src,name:g});t.select([S.id]),t.registerImage({src:h.src,name:g})}}},s=0,l=0,c=()=>{let d=r.value.trim(),h=++l;Promise.resolve(e.search(d)).then(g=>{h===l&&a(Array.isArray(g)?g:[])}).catch(()=>{h===l&&(o.innerHTML="",n.textContent="Image search failed. Try again.",n.hidden=!1)})};r.addEventListener("input",()=>{clearTimeout(s),s=setTimeout(c,250)}),c()}renderBackground(){let e=this.editor,t=e.getPage().background||{};this.contentEl.innerHTML="",this.panelHeader("Background","Set the mood with a color, gradient, or image."),this.sectionTitle("Solid colors");for(let m of Ii(e.registry.palette)){m.label&&this.sectionTitle(m.label);let T=f("div","ez-swatch-grid",this.contentEl);for(let C of m.colors){let v=f("button","ez-swatch",T);v.style.background=C,C==="#ffffff"&&v.classList.add("ez-swatch-border"),v.title=C,v.onclick=()=>e.setBackground({type:"solid",color:C})}}this.sectionTitle("Gradients");let r=f("div","ez-swatch-grid",this.contentEl),o=this.editor.registry.gradients;for(let m of o){let T=f("button","ez-swatch",r);T.style.background=`linear-gradient(${(m.angle??135)+90}deg, ${m.from}, ${m.to})`,T.title=`${m.from} \u2192 ${m.to}`,T.onclick=()=>e.setBackground({...m,type:"gradient"})}this.sectionTitle("Custom gradient");let n=t.type==="gradient"?t:o[0]||{from:q.from,to:q.to,angle:135},a=f("div","ez-bg-gradient-controls",this.contentEl),s={};for(let[m,T]of[["from","Start color"],["to","End color"],["angle","Angle"]]){let C=f(m==="angle"?"label":"div","ez-bg-gradient-field",a);if(f("span","ez-num-label",C).textContent=T,m==="angle"){C.classList.add("ez-bg-gradient-angle");let v=f("input","ez-input",C);v.type="number",v.setAttribute("aria-label","Background gradient angle"),v.min=0,v.max=360,v.step=1,v.value=n.angle??135,v.oninput=()=>d(!1),v.onchange=()=>e.commit(),s.angle=v}else s[m]=ze(C,{title:`Background gradient ${T.toLowerCase()}`,value:n[m]||q[m],onInput:()=>d(!1),onCommit:()=>e.commit()})}let l=f("div","ez-bg-gradient-preview",this.contentEl);l.setAttribute("aria-hidden","true");let c=()=>{let m=Number.isFinite(s.angle.valueAsNumber)?V(s.angle.valueAsNumber,0,360):135;l.style.background=`linear-gradient(${m+90}deg, ${s.from.value}, ${s.to.value})`},d=(m=!0)=>{if(!Number.isFinite(s.angle.valueAsNumber))return;let T=V(s.angle.valueAsNumber,0,360);e.setBackground({type:"gradient",from:s.from.value,to:s.to.value,angle:T},m),c()},h=f("button","ez-btn ez-btn-ghost ez-bg-gradient-apply",this.contentEl);h.type="button",h.textContent="Apply gradient",h.onclick=()=>d(),this.sectionTitle("Solid color & image");let g=f("div","ez-bg-custom",this.contentEl),u=ze(g,{title:"Background solid color",value:B(t.color,"#ffffff"),onInput:m=>e.setBackground({type:"solid",color:m},!1),onCommit:()=>e.commit()}),z=u.input,S=f("button","ez-btn ez-btn-ghost ez-grow",g);S.textContent="Image background",S.onclick=async()=>{let m=await e.pickImageFile();if(!m)return;let T=await He(m);e.setBackground({type:"image",src:T})};let x=f("button","ez-btn ez-btn-ghost ez-grow ez-bg-remove",g);x.textContent="Remove image",x.onclick=()=>e.setBackground({type:"solid",color:"#ffffff"}),this.syncBackgroundControls=()=>{let m=e.getPage().background||{};m.type==="gradient"&&(s.from.value=m.from||q.from,s.to.value=m.to||q.to,s.angle.value=m.angle??135),gt(m.color||"")&&(u.value=m.color),x.style.display=m.type==="image"?"":"none",c()},this.syncBackgroundControls()}renderLayers(){let e=this.editor,t=this.contentEl.scrollTop;this.contentEl.innerHTML="",this.panelHeader("Layers","Drag layers to reorder. Top layers appear in front."),this.sectionTitle("Page layers");let r=f("div","ez-layer-list",this.contentEl),o=null,n=()=>{r.querySelectorAll(".ez-drop-before, .ez-drop-after").forEach(c=>c.classList.remove("ez-drop-before","ez-drop-after"))},a=()=>{o=null,n(),r.querySelectorAll(".ez-dragging").forEach(c=>c.classList.remove("ez-dragging"))},s=(c,d)=>{if(c.target!==r||o===null)return;([...r.children].find(g=>c.clientY<g.getBoundingClientRect().bottom)||r.lastElementChild)?.[d]?.(c)};r.ondragover=c=>s(c,"ondragover"),r.ondrop=c=>s(c,"ondrop");let l=e.getElements();if(!l.length){let c=f("div","ez-empty",this.contentEl);c.textContent="This page is empty. Add elements from the panels.";return}for(let c=l.length-1;c>=0;c--){let d=l[c],h=f("div","ez-layer-item"+(e.selection.has(d.id)?" ez-active":""),r);h.dataset.id=d.id;let g=f("button","ez-layer-drag-handle",h);g.type="button",g.textContent="\u283F",g.title="Drag to reorder, or use Up/Down arrow keys",g.setAttribute("aria-label",`Reorder ${Ee(d)}. Use Up or Down arrow keys.`),g.draggable=!0,g.onkeydown=m=>{if(m.key!=="ArrowUp"&&m.key!=="ArrowDown")return;m.preventDefault(),m.stopPropagation();let T=e.getElements().findIndex(v=>v.id===d.id);e.moveLayer(T,T+(m.key==="ArrowUp"?1:-1)),[...this.contentEl.querySelectorAll(".ez-layer-item")].find(v=>v.dataset.id===d.id)?.querySelector(".ez-layer-drag-handle").focus({preventScroll:!0})},h.ondragstart=m=>{o=d.id,m.dataTransfer.effectAllowed="move",m.dataTransfer.setData("text/plain",d.id),m.dataTransfer.setDragImage(h,16,h.offsetHeight/2),requestAnimationFrame(()=>{o===d.id&&h.classList.add("ez-dragging")})},h.ondragend=a,h.ondragover=m=>{if(o===null||(m.preventDefault(),m.dataTransfer.dropEffect="move",n(),o===d.id))return;let T=h.getBoundingClientRect();h.classList.add(m.clientY<T.top+T.height/2?"ez-drop-before":"ez-drop-after")},h.ondragleave=m=>{h.contains(m.relatedTarget)||h.classList.remove("ez-drop-before","ez-drop-after")},h.ondrop=m=>{if(o===null)return;m.preventDefault();let T=e.getElements(),C=T.findIndex(P=>P.id===o),v=T.findIndex(P=>P.id===d.id),k=h.getBoundingClientRect(),I=m.clientY<k.top+k.height/2;if(a(),C<0||v<0||C===v)return;let R=v+(I?1:0);e.moveLayer(C,R-(C<R?1:0))};let u=A[W(d.type).layerIcon||"shapes"],z=f("span","ez-layer-name",h);z.draggable=!0,z.title="Click to select, or drag to reorder",z.innerHTML=`${u}<span>${xe(Ee(d))}</span>`,z.onclick=()=>e.select([d.id]);let S=f("span","ez-layer-actions",h),x=(m,T,C,v="")=>{let k=f("button","ez-icon-btn ez-sm "+v,S);k.innerHTML=m,k.title=T,k.onclick=I=>{I.stopPropagation(),C()}};x(d.hidden?A["eye-off"]:A.eye,d.hidden?"Show":"Hide",()=>{d.hidden=!d.hidden,e.markDirty(),e.commit(),this.renderLayers()}),x(d.locked?A.lock:A.unlock,d.locked?"Unlock":"Lock",()=>{d.locked=!d.locked,e.commit(),this.renderLayers()}),x(A.trash,"Delete",()=>{e.select([d.id]),e.deleteSelected()})}this.contentEl.scrollTop=t}};var je=class{constructor(e){this.editor=e,this.root=e.toolbarEl,this.root.classList.add("ez-floating-toolbar"),this.lastSig=null,this._unsubs=[e.on("selection",()=>this.lastSig=null)]}destroy(){this._unsubs?.forEach(e=>e()),this._unsubs=[]}selectionSig(){return this.editor.getSelected().map(t=>t.id+":"+t.type).join("|")}update(){let e=this.editor,t=e.getSelected();if(!t.length||e._editing){this.root.style.display="none";return}let r=this.selectionSig();r!==this.lastSig&&(this.lastSig=r,this.buildControls(t)),this.syncValues(t),this.position(t)}position(e){let t=this.editor,r=t.container.getBoundingClientRect(),o=t.canvas.getBoundingClientRect(),n=me(e),a=o.left-r.left+n.x*t.zoom,s=o.top-r.top+n.y*t.zoom;this.root.style.display="flex";let l=this.root.offsetWidth,c=this.root.offsetHeight,d=V(a,8,r.width-l-8),h=48,g=s-c-h,u=s+n.h*t.zoom+h,z=Math.max(8,r.height-c-8),S=V(g<8&&u<=z?u:g,8,z);this.root.style.left=d+"px",this.root.style.top=S+"px"}buildControls(e){let t=this.editor;this.root.innerHTML="",this.fillControls=null;let r=e[0],n=["chartEdit","text","fill","line","iconStyle","opacity"].filter(l=>e.every(c=>W(c.type).toolbar?.includes(l)));if(n.includes("chartEdit")&&e.length===1){let l=f("button","ez-btn ez-btn-ghost",this.root);l.textContent="Edit chart",l.onclick=()=>t.ui.sidepanel?.charts?.open()}if(n.includes("text")){let l=f("select","ez-input ez-font-select",this.root);for(let h of t.registry.fonts)l.innerHTML+=`<option>${h}</option>`;l.value=r.fontFamily,this.bind(l,"fontFamily",h=>h.value),this.numInput("Size",r.fontSize,4,800,h=>({fontSize:h}));let c=(h,g,u)=>{let z=f("button","ez-tool-toggle",this.root);z.innerHTML=h,z.title=u,z.dataset.prop=g,z.onclick=()=>t.updateSelected({[g]:!r[g]})};c(A.bold,"fontWeight","Bold"),c(A.italic,"italic","Italic"),c(A.underline,"underline","Underline");let d=f("button","ez-tool-toggle",this.root);d.title="Alignment",d.dataset.prop="align",d.onclick=()=>{let h=["left","center","right"],g=h[(h.indexOf(r.align)+1)%3];t.updateSelected({align:g})},this.colorInput("Text color",r.color,"color")}if(n.includes("fill")&&(this.fillInput(),r.stroke!==void 0&&r.type!=="image"&&(this.colorInput("Stroke",r.stroke||"#000000","stroke"),this.numInput("Stroke",r.strokeWidth||0,0,100,l=>({strokeWidth:l}))),W(r.type).radius&&this.numInput("Radius",r.radius||0,0,400,l=>({radius:l}))),n.includes("line")){this.colorInput("Color",r.stroke,"stroke"),this.numInput("Width",r.strokeWidth,1,100,c=>({strokeWidth:c}));let l=f("button","ez-tool-toggle",this.root);l.textContent="\u27F6",l.title="Arrow head",l.dataset.prop="arrow",l.onclick=()=>t.updateSelected({arrow:!r.arrow})}if(n.includes("iconStyle")){let l=f("select","ez-input",this.root);l.setAttribute("aria-label","Icon style"),l.innerHTML='<option value="solid">Solid</option><option value="outline">Outline</option>',l.value=r.iconStyle||"solid",this.bind(l,"iconStyle")}n.includes("opacity")&&this.numInput("Opacity",Math.round((r.opacity??1)*100),0,100,l=>({opacity:l/100}));let a=f("div","ez-toolbar-sep-actions",this.root),s=(l,c,d)=>{let h=f("button","ez-icon-btn ez-sm",a);h.innerHTML=l,h.title=c,h.onclick=d};s(A.duplicate,"Duplicate (Ctrl+D)",()=>t.duplicateSelected()),s(A.front,"Bring to front",()=>t.bringToFront()),s(A.back,"Send to back",()=>t.sendToBack()),s(e.some(l=>l.locked)?A.unlock:A.lock,e.some(l=>l.locked)?"Unlock":"Lock",()=>t.toggleLock()),s(A.trash,"Delete (Del)",()=>t.deleteSelected())}syncValues(e){let t=e[0];this.syncFill(t.fill),this.root.querySelectorAll("[data-prop]").forEach(r=>{let o=r.dataset.prop,n=!1;o==="fontWeight"?n=t.fontWeight>=600:o==="align"?r.innerHTML=t.align==="center"?A.alignCenter:t.align==="right"?A.alignRight:A.alignLeft:n=!!t[o],r.classList.toggle("ez-active",n)}),this.root.querySelectorAll("input[data-bind], select[data-bind]").forEach(r=>{let o=r.dataset.bind,n=t[o];o==="stroke"&&(n=n||"#000000"),o==="iconStyle"&&(n=n||"solid"),o==="opacity"&&(n=Math.round((n??1)*100)),document.activeElement!==r&&(r.value=n??"")}),this.root.querySelectorAll("input[data-hex-for]").forEach(r=>{if(document.activeElement===r)return;let o=this.root.querySelector(`[data-bind="${r.dataset.hexFor}"]`);o&&(r.value=o.value)})}bind(e,t,r=o=>o.value){e.dataset.bind=t,e.addEventListener("input",()=>{let o=r(e);o!=null&&!Number.isNaN(o)&&this.editor.updateSelected({[t]:o},!1)}),e.addEventListener("change",()=>this.editor.commit())}fillInput(){let e=this.editor,t=f("label","ez-num-wrap",this.root);f("span","ez-num-label",t).textContent="Fill";let r=f("select","ez-input",t);r.setAttribute("aria-label","Fill type"),r.innerHTML='<option value="solid">Solid</option><option value="gradient">Gradient</option><option value="none">None</option>',r.onchange=()=>{let s=e.getSelected()[0]?.fill,l=s?.type==="gradient"?s.from:s,c=l&&l!=="none"?l:X;e.updateSelected({fill:r.value==="gradient"?{type:"gradient",from:c,to:"#ffffff",angle:135}:r.value==="none"?"none":c})};let o={};for(let[s,l]of[["solid","Fill color"],["from","Gradient start color"],["to","Gradient end color"]]){let c=ze(this.root,{title:l,value:"#000000",onInput:d=>{let h=e.getSelected()[0]?.fill;s==="solid"?e.updateSelected({fill:d},!1):h?.type==="gradient"&&e.updateSelected({fill:{...h,[s]:d}},!1)},onCommit:()=>e.commit()});o[s]={label:c.group,input:c.input,field:c}}let n=f("label","ez-num-wrap",this.root);f("span","ez-num-label",n).textContent="Angle";let a=f("input","ez-input ez-num-input",n);a.type="number",a.min=0,a.max=360,a.step=1,a.setAttribute("aria-label","Gradient angle"),a.oninput=()=>{let s=e.getSelected()[0]?.fill,l=a.valueAsNumber;s?.type==="gradient"&&Number.isFinite(l)&&e.updateSelected({fill:{...s,angle:V(l,0,360)}},!1)},a.onchange=()=>e.commit(),this.fillControls={mode:r,colors:o,angleWrap:n,angle:a}}syncFill(e){if(!this.fillControls)return;let{mode:t,colors:r,angleWrap:o,angle:n}=this.fillControls,a=e?.type==="gradient";t.value=a?"gradient":e==="none"?"none":"solid";for(let[s,{label:l,input:c,field:d}]of Object.entries(r)){l.style.display=(s==="solid"?!a&&e!=="none":a)?"":"none";let h=s==="solid"?e:e?.[s]||q[s];document.activeElement!==c&&(c.value=B(h,"#000000")),document.activeElement!==d.hex&&(d.hex.value=B(h,"#000000"))}o.style.display=a?"":"none",document.activeElement!==n&&(n.value=a?e.angle??135:135)}colorInput(e,t,r){let o=this.editor,n=ze(this.root,{title:e,value:B(t,"#000000"),onInput:a=>o.updateSelected({[r]:a},!1),onCommit:()=>o.commit()});n.input.dataset.bind=r,n.hex.dataset.hexFor=r}numInput(e,t,r,o,n){let a=this.editor,s=f("label","ez-num-wrap",this.root),l=f("span","ez-num-label",s);l.textContent=e;let c=f("input","ez-input ez-num-input",s);c.type="number",c.min=r,c.max=o,c.value=t,c.addEventListener("input",()=>{let d=parseFloat(c.value);Number.isNaN(d)||this.editor.updateSelected(n(d),!1)}),c.addEventListener("change",()=>this.editor.commit())}};var Ye=class{constructor(e){this.editor=e,this.root=e.pagesBarEl,this.dragIndex=null,this._unsubs=[e.on("page",()=>this.render()),e.on("change",()=>this.render())],this.render()}destroy(){this._unsubs?.forEach(e=>e()),this._unsubs=[]}render(){let e=this.editor;this.root.innerHTML="",e.doc.pages.forEach((o,n)=>{let a=f("button","ez-page-chip"+(n===e.pageIndex?" ez-active":""),this.root);a.innerHTML=`<span class="ez-page-num">${n+1}</span><span class="ez-page-dim">${o.width}\xD7${o.height}</span>`,a.title="Page "+(n+1)+" \u2014 drag to reorder",a.draggable=!0,a.dataset.index=n,a.onclick=()=>e.goToPage(n),a.ondragstart=s=>{this.dragIndex=n,s.dataTransfer.effectAllowed="move",s.dataTransfer.setData("text/plain",String(n)),requestAnimationFrame(()=>a.classList.add("ez-dragging"))},a.ondragend=()=>{this.dragIndex=null,this._clearDropMarks()},a.ondragover=s=>{if(this.dragIndex===null||this.dragIndex===n)return;s.preventDefault(),s.dataTransfer.dropEffect="move";let l=this._dropBefore(s,a);a.classList.toggle("ez-drop-before",l),a.classList.toggle("ez-drop-after",!l)},a.ondragleave=()=>a.classList.remove("ez-drop-before","ez-drop-after"),a.ondrop=s=>{s.preventDefault();let l=this.dragIndex!==null?String(this.dragIndex):s.dataTransfer.getData("text/plain"),c=Number(l);if(l===""||Number.isNaN(c)||c===n)return;let d=this._dropBefore(s,a);e.movePage(c,c<n?d?n-1:n:d?n:n+1)}});let t=f("div","ez-page-actions",this.root),r=(o,n,a)=>{let s=f("button","ez-icon-btn ez-sm",t);s.innerHTML=o,s.title=n,s.onclick=a};r(A.plus,"Add page",()=>e.addPage()),r(A.duplicate,"Duplicate page",()=>e.duplicatePage()),e.doc.pages.length>1&&r(A.trash,"Delete page",()=>e.deletePage())}_dropBefore(e,t){let r=t.getBoundingClientRect();return e.clientX<r.left+r.width/2}_clearDropMarks(){this.root.querySelectorAll(".ez-drop-before, .ez-drop-after, .ez-dragging").forEach(e=>e.classList.remove("ez-drop-before","ez-drop-after","ez-dragging"))}};var Yt=!1;function qt(){if(Yt||document.getElementById("ez-styles"))return;Yt=!0;let i=document.createElement("style");i.id="ez-styles",i.textContent=Oi,document.head.appendChild(i)}var Gt="Outfit:wght@400;500;600;700;800";function Pi(i=ke){return`https://fonts.googleapis.com/css2?family=${[Gt,...i.filter(t=>t&&t!==Gt)].join("&family=")}&display=swap`}function dt(i=ke){let e=Pi(i),t=document.getElementById("ez-fonts");t||(t=document.createElement("link"),t.id="ez-fonts",t.rel="stylesheet",document.head.appendChild(t)),t.getAttribute("href")!==e&&t.setAttribute("href",e)}var Oi=`
+          <span class="ez-resize-card-name">${size.label}</span>
+          <span class="ez-resize-card-size">${size.width} \xD7 ${size.height} px</span>
+        `;
+        }
+      }
+      const preset = form.elements.namedItem("preset");
+      const updatePresetHelp = () => {
+        const selected = sizes.find((size) => size.id === preset.value);
+        presetHelp.textContent = preset.value.startsWith("print-") ? `${selected.label} selected. Print sizes use 300 pixels per inch, without bleed.` : selected ? `${selected.label} selected. You can also adjust the dimensions below.` : "Custom size selected. Enter your own dimensions below.";
+      };
+      preset.value = sizes.find((size) => size.width === page.width && size.height === page.height)?.id || "custom";
+      showCategory(Math.max(0, RESIZE_PRESETS.findIndex((group) => group.sizes.some((size) => size.id === preset.value))));
+      dialog.querySelector(".ez-resize-presets").addEventListener("change", () => {
+        const size = sizes.find((size2) => size2.id === preset.value);
+        if (size) {
+          width.value = size.width;
+          height.value = size.height;
+        }
+        updatePresetHelp();
+        if (!size) width.focus();
+      });
+      const useCustomSize = () => {
+        preset.value = "custom";
+        updatePresetHelp();
+      };
+      width.addEventListener("input", useCustomSize);
+      height.addEventListener("input", useCustomSize);
+      updatePresetHelp();
+      dialog.querySelector('[data-act="cancel"]').onclick = () => dialog.close();
+      dialog.addEventListener("keydown", (e) => e.stopPropagation());
+      dialog.addEventListener("close", () => {
+        dialog.remove();
+        this.root.querySelector('[data-act="resize"]').focus();
+      });
+      form.onsubmit = (e) => {
+        e.preventDefault();
+        if (!form.reportValidity()) return;
+        if (ed.getPage() !== page) {
+          dialog.close();
+          return;
+        }
+        ed.resizeCanvas(width.valueAsNumber, height.valueAsNumber);
+        dialog.close();
+      };
+      dialog.showModal();
+      form.querySelector('input[name="preset"]:checked').focus();
+    }
+    updateThemeIcon() {
+      const btn = this.root.querySelector('[data-act="theme"]');
+      if (!btn) return;
+      const dark = this.editor.theme === "dark";
+      btn.innerHTML = dark ? UI_ICONS.sun : UI_ICONS.moon;
+      btn.title = dark ? "Switch to light mode" : "Switch to dark mode";
+    }
+    zoomMenu(e) {
+      const btn = e.currentTarget;
+      const r = btn.getBoundingClientRect();
+      showMenu(this.editor, r.left, r.bottom + 4, [
+        { label: "Fit to screen", action: () => this.editor.zoomFit() },
+        { label: "100%", action: () => this.editor.setZoom(1) },
+        "-",
+        { label: "50%", action: () => this.editor.setZoom(0.5) },
+        { label: "75%", action: () => this.editor.setZoom(0.75) },
+        { label: "150%", action: () => this.editor.setZoom(1.5) },
+        { label: "200%", action: () => this.editor.setZoom(2) }
+      ]);
+    }
+    downloadMenu(e) {
+      const btn = e.currentTarget;
+      const r = btn.getBoundingClientRect();
+      showMenu(this.editor, r.right - 190, r.bottom + 4, [
+        { label: "PNG image", action: () => this.editor.exportImage("png", { scale: 2 }) },
+        { label: "JPG image", action: () => this.editor.exportImage("jpeg", { scale: 2 }) },
+        { label: "PNG (transparent)", action: () => this.editor.exportImage("png", { scale: 2, transparent: true }) },
+        { label: "PNG at 4x", action: () => this.editor.exportImage("png", { scale: 4 }) },
+        "-",
+        { label: "Design file (.json)", action: () => this.editor.downloadJSON() }
+      ]);
+    }
+  };
+
+  // src/ui/chartpanel.js
+  var ChartPanel = class {
+    constructor(sidepanel) {
+      this.sidepanel = sidepanel;
+      this.editor = sidepanel.editor;
+      this.bindings = [];
+      this.gallery = false;
+      this.key = null;
+      this._unsubs = ["selection", "change", "page"].map((event) => this.editor.on(event, () => {
+        const target = this.target();
+        if (event === "page" || target?.id !== this.lastId) this.gallery = false;
+        this.lastId = target?.id;
+        this.refresh();
+      }));
+    }
+    destroy() {
+      this._unsubs?.forEach((off) => off());
+      this._unsubs = [];
+    }
+    target(id) {
+      const selection = this.editor.getSelected();
+      return selection.length === 1 && selection[0].type === "chart" && (!id || selection[0].id === id) ? selection[0] : null;
+    }
+    open() {
+      if (!this.target()) return;
+      this.gallery = false;
+      this.key = null;
+      this.sidepanel.setTab("charts");
+      this.refresh();
+    }
+    refresh() {
+      if (this.dialog) {
+        const target = this.target(this.dialogId);
+        if (!target || target.hidden) this.dialog.close();
+        else {
+          const key = `${target.id}:${target.locked}:${target.chart.categories.length}:${target.chart.series.length}`;
+          if (key !== this.dialogKey) {
+            this.dialogKey = key;
+            this.renderModalTable();
+          }
+        }
+      }
+      if (this.sidepanel.activeTab === "charts") {
+        const target = this.target();
+        const key = this.gallery || !target ? "gallery" : `${target.id}:${target.locked}:${target.chart.type}:${target.chart.categories.length}:${target.chart.series.length}`;
+        if (key !== this.key) this.render();
+      }
+      this.bindings = this.bindings.filter((binding) => binding.input.isConnected);
+      for (const { input, id, read } of this.bindings) {
+        const target = this.target(id);
+        if (!target || input === document.activeElement) continue;
+        if (input.type === "checkbox") input.checked = !!read(target.chart);
+        else input.value = read(target.chart) ?? "";
+        input.removeAttribute("aria-invalid");
+      }
+    }
+    button(parent, label2, action, className = "ez-btn ez-btn-ghost") {
+      const button = el("button", className, parent);
+      button.type = "button";
+      button.textContent = label2;
+      button.onclick = action;
+      return button;
+    }
+    error(message) {
+      const root = this.dialog || this.sidepanel.contentEl;
+      const error = root.querySelector(".ez-chart-error");
+      if (error) {
+        error.textContent = message;
+        error.hidden = !message;
+      }
+    }
+    apply(id, mutate, control) {
+      const target = this.target(id);
+      if (!target || target.locked) return;
+      try {
+        const next = normalizeChart(target.chart);
+        const result = normalizeChart(mutate(next) || next);
+        validateChart(result);
+        control?.removeAttribute("aria-invalid");
+        const binding = this.bindings.find((b) => b.input === control);
+        if (binding) {
+          if (control.type === "checkbox") control.checked = !!binding.read(result);
+          else control.value = binding.read(result) ?? "";
+        }
+        this.error("");
+        if (JSON.stringify(result) !== JSON.stringify(target.chart)) this.editor.updateSelected({ chart: result });
+      } catch (error) {
+        if (control?.tagName === "SELECT") {
+          const binding = this.bindings.find((b) => b.input === control);
+          if (binding) control.value = binding.read(target.chart);
+        }
+        control?.setAttribute("aria-invalid", "true");
+        this.error(error.message);
+      }
+    }
+    bind(input, target, read, write) {
+      input.disabled = !!target.locked;
+      if (input.type === "checkbox") input.checked = !!read(target.chart);
+      else input.value = read(target.chart) ?? "";
+      input.onchange = () => this.apply(target.id, (chart) => write(chart, input), input);
+      this.bindings.push({ input, id: target.id, read });
+    }
+    render() {
+      const root = this.sidepanel.contentEl;
+      root.innerHTML = "";
+      this.bindings = this.bindings.filter((binding) => binding.input.isConnected);
+      const target = this.target();
+      if (this.gallery || !target) {
+        this.key = "gallery";
+        this.renderGallery(root);
+        return;
+      }
+      this.key = `${target.id}:${target.locked}:${target.chart.type}:${target.chart.categories.length}:${target.chart.series.length}`;
+      this.sidepanel.panelHeader("Charts", "Edit your chart with data, labels, and colors.");
+      this.button(root, "Back to charts", () => {
+        this.gallery = true;
+        this.render();
+      }, "ez-btn ez-btn-ghost ez-panel-action");
+      if (target.locked) el("p", "ez-chart-note", root).textContent = "This chart is locked. Unlock it in Layers to edit.";
+      const error = el("p", "ez-chart-error", root);
+      error.setAttribute("role", "alert");
+      error.hidden = true;
+      const tabs = el("div", "ez-panel-filters ez-chart-editor-tabs", root);
+      for (const tab of ["Data", "Style"]) {
+        const active = (this.section || "Data") === tab;
+        const button = this.button(tabs, tab, () => {
+          this.section = tab;
+          this.render();
+        }, "ez-panel-filter");
+        button.classList.toggle("ez-active", active);
+        button.setAttribute("aria-pressed", String(active));
+      }
+      if (this.section === "Style") this.renderStyle(root, target);
+      else {
+        el("p", "ez-chart-note", root).textContent = "Edit cells or paste a table from a spreadsheet. Paste into the Category header to include column headers.";
+        this.renderTable(root, target);
+        this.button(root, "Expand data table", () => this.expand(), "ez-btn ez-btn-ghost ez-chart-expand");
+      }
+    }
+    renderGallery(root) {
+      this.sidepanel.panelHeader("Charts", "Choose a chart, then make it yours with data and colors.");
+      if (this.target()) this.button(root, "Edit selected chart", () => this.open(), "ez-btn ez-btn-ghost ez-panel-action");
+      for (const group of [...new Set(CHART_PRESETS.map((p) => p.group))]) {
+        this.sidepanel.sectionTitle(group, root);
+        const grid = el("div", "ez-chart-gallery", root);
+        for (const preset of CHART_PRESETS.filter((p) => p.group === group)) {
+          const button = this.button(grid, "", () => {
+            const item = this.editor.addElement({ type: "chart", chart: sampleChart(preset.type) });
+            this.editor.select([item.id]);
+            this.section = "Data";
+            this.open();
+          }, "ez-panel-card ez-chart-card");
+          button.setAttribute("aria-label", `Add ${preset.label} chart`);
+          const canvas = el("canvas", "", button);
+          canvas.width = 240;
+          canvas.height = 170;
+          canvas.setAttribute("aria-hidden", "true");
+          const chart = sampleChart(preset.type);
+          Object.assign(chart, { showAxes: false, showGrid: false, showLegend: false });
+          drawChart(canvas.getContext("2d"), { chart, w: canvas.width, h: canvas.height });
+          el("span", "", button).textContent = preset.label;
+        }
+      }
+    }
+    renderTable(root, target) {
+      const wrap = el("div", "ez-chart-table-wrap", root);
+      const table = el("table", "ez-chart-table", wrap);
+      table.setAttribute("aria-label", "Chart data");
+      const head = el("thead", "", table), header = el("tr", "", head);
+      const cell = (parent, row, column, read, write) => {
+        const container = el(row === 0 ? "th" : "td", "", parent);
+        if (row === 0) container.scope = "col";
+        const input = el("input", "ez-input", container);
+        input.type = "text";
+        if (row > 0 && column > 0) input.inputMode = "decimal";
+        input.dataset.row = row;
+        input.dataset.column = column;
+        input.setAttribute("aria-label", row === 0 ? column === 0 ? "Category header, paste table here" : `Series ${column} name` : column === 0 ? `Category ${row}` : `Row ${row}, series ${column} value`);
+        this.bind(input, target, read, write);
+        if (row === 0 && column === 0) input.readOnly = true;
+        input.onpaste = (e) => {
+          if (this.target(target.id)?.locked) return;
+          const text3 = e.clipboardData?.getData("text/plain");
+          if (text3 === void 0) return;
+          e.preventDefault();
+          this.apply(target.id, (chart) => pasteChartData(chart, text3, row, column), input);
+        };
+        return container;
+      };
+      cell(header, 0, 0, () => "Category", () => {
+      });
+      target.chart.series.forEach((s, i) => {
+        const th = cell(header, 0, i + 1, (c) => c.series[i]?.name, (c, input) => {
+          c.series[i].name = input.value;
+        });
+        const remove = this.button(th, "Remove", () => this.apply(target.id, (c) => {
+          c.series.splice(i, 1);
+        }), "ez-chart-remove");
+        remove.setAttribute("aria-label", `Remove series ${i + 1}`);
+        remove.disabled = !!target.locked;
+      });
+      el("th", "", header).textContent = "";
+      const body = el("tbody", "", table);
+      target.chart.categories.forEach((label2, i) => {
+        const row = el("tr", "", body);
+        cell(row, i + 1, 0, (c) => c.categories[i], (c, input) => {
+          c.categories[i] = input.value;
+        });
+        target.chart.series.forEach((s, j) => cell(row, i + 1, j + 1, (c) => c.series[j]?.values[i], (c, input) => {
+          c.series[j].values[i] = parseChartValue(input.value);
+        }));
+        const remove = this.button(el("td", "", row), "Remove", () => this.apply(target.id, (c) => {
+          c.categories.splice(i, 1);
+          c.categoryColors.splice(i, 1);
+          c.series.forEach((s) => s.values.splice(i, 1));
+        }), "ez-chart-remove");
+        remove.setAttribute("aria-label", `Remove category ${i + 1}`);
+        remove.disabled = !!target.locked;
+      });
+      const actions = el("div", "ez-chart-data-actions", root);
+      this.button(actions, "Add row", () => this.apply(target.id, (c) => {
+        c.categoryColors.push(chartColor(c.categories.length));
+        c.categories.push(`Item ${c.categories.length + 1}`);
+        c.series.forEach((s) => s.values.push(null));
+      })).disabled = !!target.locked;
+      this.button(actions, "Add series", () => this.apply(target.id, (c) => {
+        c.series.push({ name: `Series ${c.series.length + 1}`, color: chartColor(c.series.length), values: c.categories.map(() => null) });
+      })).disabled = !!target.locked;
+    }
+    renderStyle(root, target) {
+      const chart = target.chart;
+      const field = (label2, type2, read, write) => {
+        const wrap = el("label", "ez-chart-style-field", root);
+        el("span", "", wrap).textContent = label2;
+        const input = el(type2 === "select" ? "select" : "input", "ez-input", wrap);
+        if (type2 !== "select") input.type = type2;
+        input.setAttribute("aria-label", label2);
+        this.bind(input, target, read, write);
+        return input;
+      };
+      const type = field("Chart type", "select", (c) => c.type, (c, input) => {
+        c.type = input.value;
+      });
+      CHART_PRESETS.forEach((p) => {
+        const option = el("option", "", type);
+        option.value = p.type;
+        option.textContent = p.label;
+      });
+      type.value = chart.type;
+      if (!isMultiSeriesChart(chart.type) && chart.series.length > 1) {
+        el("p", "ez-chart-note", root).textContent = "This chart displays the first series. Additional series are kept when switching chart types.";
+      }
+      field("Title", "text", (c) => c.title, (c, input) => {
+        c.title = input.value;
+      });
+      for (const [key, label2] of [["showLegend", "Legend"], ["showValues", "Value labels"], ...!isCircularChart(chart.type) ? [["showAxes", "Axes"], ["showGrid", "Gridlines"]] : []]) {
+        field(label2, "checkbox", (c) => c[key], (c, input) => {
+          c[key] = input.checked;
+        });
+      }
+      const size = field("Text size", "number", (c) => c.fontSize, (c, input) => {
+        if (!Number.isFinite(input.valueAsNumber) || input.valueAsNumber < 8 || input.valueAsNumber > 72) throw new Error("Text size must be from 8 to 72 pixels.");
+        c.fontSize = input.valueAsNumber;
+      });
+      size.min = 8;
+      size.max = 72;
+      field("Text color", "color", (c) => c.textColor, (c, input) => {
+        c.textColor = input.value;
+      });
+      if (isCircularChart(chart.type)) chart.categories.forEach((name, i) => {
+        field(`${name || `Category ${i + 1}`} color`, "color", (c) => c.categoryColors[i], (c, input) => {
+          c.categoryColors[i] = input.value;
+        });
+      });
+      else (isMultiSeriesChart(chart.type) ? chart.series : chart.series.slice(0, 1)).forEach((s, i) => {
+        field(`${s.name || `Series ${i + 1}`} color`, "color", (c) => c.series[i]?.color, (c, input) => {
+          c.series[i].color = input.value;
+        });
+      });
+    }
+    expand() {
+      const target = this.target();
+      if (!target || this.dialog) return;
+      const dialog = el("dialog", "ez-chart-dialog", this.editor.container);
+      this.dialog = dialog;
+      this.dialogId = target.id;
+      const title = el("h2", "", dialog);
+      title.id = uid("chart-data");
+      title.textContent = "Chart data";
+      dialog.setAttribute("aria-labelledby", title.id);
+      const error = el("p", "ez-chart-error", dialog);
+      error.setAttribute("role", "alert");
+      error.hidden = true;
+      this.modalTable = el("div", "", dialog);
+      this.button(dialog, "Done", () => dialog.close(), "ez-btn ez-btn-primary ez-chart-done");
+      dialog.addEventListener("keydown", (e) => e.stopPropagation());
+      dialog.addEventListener("close", () => {
+        dialog.remove();
+        this.dialog = null;
+        this.dialogKey = null;
+        this.refresh();
+        this.sidepanel.contentEl.querySelector(".ez-chart-expand")?.focus();
+      });
+      this.renderModalTable();
+      dialog.showModal();
+    }
+    renderModalTable() {
+      const target = this.target(this.dialogId);
+      if (!target) return;
+      this.dialogKey = `${target.id}:${target.locked}:${target.chart.categories.length}:${target.chart.series.length}`;
+      this.modalTable.innerHTML = "";
+      this.bindings = this.bindings.filter((binding) => binding.input.isConnected);
+      this.renderTable(this.modalTable, target);
+    }
+  };
+
+  // src/ui/colorfield.js
+  function colorField(parent, { title = "Color", value = "#000000", onInput, onCommit, bare = false } = {}) {
+    const group = bare ? parent : el("span", "ez-color-field", parent);
+    const wrap = el(bare ? "span" : "label", "ez-color-wrap", group);
+    wrap.title = title;
+    const input = el("input", "ez-color-input", wrap);
+    input.type = "color";
+    input.setAttribute("aria-label", title);
+    const hex = el("input", "ez-input ez-hex-input", group);
+    hex.type = "text";
+    hex.spellcheck = false;
+    hex.maxLength = 7;
+    hex.placeholder = "#hex";
+    hex.setAttribute("aria-label", `${title} hex value`);
+    let current = normalizeHexColor(value) || "#000000";
+    const apply = (next) => {
+      current = normalizeHexColor(next) || current;
+      wrap.style.backgroundColor = current;
+      if (document.activeElement !== input) input.value = current;
+      if (document.activeElement !== hex) hex.value = current;
+    };
+    input.addEventListener("input", () => {
+      current = input.value;
+      wrap.style.backgroundColor = current;
+      if (document.activeElement !== hex) hex.value = current;
+      onInput?.(current);
+    });
+    input.addEventListener("change", () => onCommit?.());
+    hex.addEventListener("input", () => {
+      const normalized = normalizeHexColor(hex.value.trim());
+      if (normalized) {
+        current = normalized;
+        wrap.style.backgroundColor = current;
+        if (document.activeElement !== input) input.value = normalized;
+        onInput?.(normalized);
+      }
+    });
+    hex.addEventListener("change", () => {
+      hex.value = current;
+      onCommit?.();
+    });
+    apply(value);
+    return {
+      group,
+      wrap,
+      input,
+      hex,
+      set: apply,
+      get value() {
+        return current;
+      },
+      set value(next) {
+        apply(next);
+      }
+    };
+  }
+
+  // src/ui/sidepanel.js
+  function normalizePalette(palette) {
+    if (!Array.isArray(palette)) return [];
+    const flat = palette.filter((entry) => typeof entry === "string");
+    const groups = palette.filter((entry) => entry && Array.isArray(entry.colors));
+    if (groups.length) return groups;
+    return flat.length ? [{ colors: flat }] : [];
+  }
+  var BUILTIN_TABS = [
+    { id: "templates", label: "Templates", icon: UI_ICONS.templates },
+    { id: "elements", label: "Elements", icon: UI_ICONS.shapes },
+    { id: "text", label: "Text", icon: UI_ICONS.text },
+    { id: "charts", label: "Charts", icon: UI_ICONS.chart },
+    { id: "uploads", label: "Uploads", icon: UI_ICONS.upload },
+    { id: "background", label: "Background", icon: UI_ICONS.palette },
+    { id: "layers", label: "Layers", icon: UI_ICONS.layers }
+  ];
+  var Sidepanel = class {
+    constructor(editor) {
+      this.editor = editor;
+      this.tabsEl = editor.sidepanelEl.querySelector(".ez-sidepanel-tabs");
+      this.contentEl = editor.sidepanelEl.querySelector(".ez-sidepanel-content");
+      this.contentEl.id = uid("panel");
+      this.contentEl.setAttribute("role", "tabpanel");
+      this.tabsEl.setAttribute("role", "tablist");
+      this.tabsEl.setAttribute("aria-label", "Design tools");
+      this.tabsEl.setAttribute("aria-orientation", "vertical");
+      this.collapsed = false;
+      this.collapseBtn = el("button", "ez-sidepanel-toggle", editor.sidepanelEl.querySelector(".ez-sidepanel-rail"));
+      this.tabsEl.before(this.collapseBtn);
+      this.collapseBtn.type = "button";
+      this.collapseBtn.innerHTML = UI_ICONS.chevron;
+      this.collapseBtn.setAttribute("aria-controls", this.contentEl.id);
+      this.collapseBtn.onclick = () => this.setCollapsed(!this.collapsed);
+      this.collapseBtn.onkeydown = (e) => {
+        if (e.key === " ") e.stopPropagation();
+      };
+      this.activeTab = "elements";
+      this.tabs = [...BUILTIN_TABS];
+      this.renderTabs();
+      this.setTab("elements");
+      this.charts = new ChartPanel(this);
+      this._unsubs = [
+        editor.on("selection", () => {
+          if (this.activeTab === "layers") this.renderLayers();
+        }),
+        editor.on("change", () => {
+          if (this.activeTab === "layers") this.renderLayers();
+          if (this.activeTab === "background") this.syncBackgroundControls?.();
+        }),
+        editor.on("upload", () => {
+          if (this.activeTab === "uploads") this.renderUploads();
+        }),
+        editor.on("page", () => {
+          if (this.activeTab === "background") this.renderBackground();
+          if (this.activeTab === "layers") this.renderLayers();
+        })
+      ];
+    }
+    destroy() {
+      this._unsubs?.forEach((off) => off());
+      this._unsubs = [];
+    }
+    renderTabs() {
+      this.tabsEl.innerHTML = "";
+      for (const tab of this.tabs) {
+        const btn = el("button", "ez-tab-btn" + (tab.id === this.activeTab ? " ez-active" : ""), this.tabsEl);
+        btn.type = "button";
+        btn.id = `${this.contentEl.id}-${tab.id}`;
+        btn.dataset.tab = tab.id;
+        btn.title = tab.label;
+        btn.setAttribute("role", "tab");
+        btn.setAttribute("aria-label", tab.label);
+        btn.setAttribute("aria-controls", this.contentEl.id);
+        btn.innerHTML = `${tab.icon}<span>${tab.label}</span>`;
+        btn.onclick = () => {
+          if (tab.id === this.activeTab && !this.collapsed) this.setCollapsed(true);
+          else this.setTab(tab.id);
+        };
+        btn.onkeydown = (e) => {
+          if (e.key === " ") e.stopPropagation();
+          const index = this.tabs.indexOf(tab);
+          const next = e.key === "ArrowDown" ? (index + 1) % this.tabs.length : e.key === "ArrowUp" ? (index + this.tabs.length - 1) % this.tabs.length : e.key === "Home" ? 0 : e.key === "End" ? this.tabs.length - 1 : null;
+          if (next === null) return;
+          e.preventDefault();
+          e.stopPropagation();
+          this.setTab(this.tabs[next].id);
+          this.tabsEl.children[next].focus();
+        };
+      }
+    }
+    setTab(id) {
+      const tab = this.tabs.find((t) => t.id === id);
+      if (!tab) return;
+      const alreadyRendered = this.activeTab === id && this.contentEl.hasChildNodes();
+      this.activeTab = id;
+      this.setCollapsed(false);
+      this.contentEl.setAttribute("aria-labelledby", `${this.contentEl.id}-${id}`);
+      if (alreadyRendered) return;
+      this.contentEl.innerHTML = "";
+      this.contentEl.scrollTop = 0;
+      if (typeof tab.render === "function") {
+        tab.render(this.contentEl, this.editor);
+        return;
+      }
+      ({
+        templates: () => this.renderTemplates(),
+        elements: () => this.renderElements(),
+        text: () => this.renderText(),
+        charts: () => this.charts.render(),
+        uploads: () => this.renderUploads(),
+        background: () => this.renderBackground(),
+        layers: () => this.renderLayers()
+      })[id]?.();
+    }
+    registerPanel(panel) {
+      if (!panel || typeof panel.id !== "string" || typeof panel.render !== "function") {
+        throw new Error("ezyreka: panels need { id, label, icon, render(contentEl, editor) }");
+      }
+      if (this.tabs.some((t) => t.id === panel.id)) {
+        throw new Error(`ezyreka: panel "${panel.id}" already exists`);
+      }
+      this.tabs.push({
+        id: panel.id,
+        label: panel.label || panel.id,
+        icon: panel.icon || UI_ICONS.shapes,
+        render: panel.render
+      });
+      this.renderTabs();
+      return panel;
+    }
+    // Rebuilds the active tab, e.g. after registering templates, fonts or icons.
+    rerender() {
+      this.contentEl.innerHTML = "";
+      this.setTab(this.activeTab);
+    }
+    setCollapsed(collapsed) {
+      this.collapsed = collapsed;
+      this.editor.sidepanelEl.classList.toggle("ez-collapsed", collapsed);
+      if (collapsed && this.contentEl.contains(document.activeElement)) this.collapseBtn.focus();
+      this.contentEl.hidden = collapsed;
+      const label2 = collapsed ? "Expand sidebar" : "Collapse sidebar";
+      this.collapseBtn.title = label2;
+      this.collapseBtn.setAttribute("aria-label", label2);
+      this.collapseBtn.setAttribute("aria-expanded", String(!collapsed));
+      for (const btn of this.tabsEl.children) {
+        const active = btn.dataset.tab === this.activeTab;
+        btn.classList.toggle("ez-active", active);
+        btn.setAttribute("aria-selected", String(active));
+        btn.setAttribute("aria-expanded", String(active && !collapsed));
+        btn.tabIndex = active ? 0 : -1;
+      }
+      this.editor.markDirty();
+    }
+    panelHeader(title, description) {
+      const header = el("header", "ez-panel-header", this.contentEl);
+      el("h2", "ez-panel-heading", header).textContent = title;
+      el("p", "ez-panel-description", header).textContent = description;
+      return header;
+    }
+    sectionTitle(text3, parent = this.contentEl) {
+      const t = el("h3", "ez-panel-title", parent);
+      t.textContent = text3;
+      return t;
+    }
+    renderTemplates() {
+      this.panelHeader("Templates", "Find your starting point. Make every detail yours.");
+      const search = el("input", "ez-input ez-panel-search ez-template-search", this.contentEl);
+      search.type = "search";
+      search.placeholder = "Search templates\u2026";
+      search.setAttribute("aria-label", "Search templates");
+      search.value = this.templateQuery || "";
+      const filters = el("div", "ez-panel-filters ez-template-filters", this.contentEl);
+      filters.setAttribute("role", "group");
+      filters.setAttribute("aria-label", "Template categories");
+      const categories = ["All", ...new Set(this.editor.registry.templates.map((tpl) => tpl.category))];
+      for (const category of categories) {
+        const button = el("button", "ez-panel-filter ez-template-filter", filters);
+        button.type = "button";
+        button.textContent = category;
+        button.onclick = () => {
+          this.templateCategory = category;
+          update();
+        };
+      }
+      const count = el("div", "ez-panel-count ez-template-count", this.contentEl);
+      count.setAttribute("role", "status");
+      const grid = el("div", "ez-template-grid", this.contentEl);
+      const update = () => {
+        const category = this.templateCategory || "All";
+        const query = (this.templateQuery || "").trim().toLowerCase();
+        for (const button of filters.children) {
+          const active = button.textContent === category;
+          button.classList.toggle("ez-active", active);
+          button.setAttribute("aria-pressed", String(active));
+        }
+        const matches = this.editor.registry.templates.filter(
+          (tpl) => (category === "All" || tpl.category === category) && `${tpl.name} ${tpl.category} ${tpl.format}`.toLowerCase().includes(query)
+        );
+        count.textContent = `${matches.length} editable ${matches.length === 1 ? "template" : "templates"}`;
+        grid.innerHTML = "";
+        if (!matches.length) {
+          const empty = el("p", "ez-empty ez-template-empty", grid);
+          empty.textContent = "No templates found. Try another search or category.";
+        }
+        for (const tpl of matches) {
+          const card = el("button", "ez-panel-card ez-template-card", grid);
+          card.type = "button";
+          card.setAttribute("aria-label", `Use ${tpl.name}, ${tpl.format}, ${tpl.page.width} by ${tpl.page.height} pixels`);
+          const preview = el("div", "ez-template-preview", card);
+          const canvas = document.createElement("canvas");
+          const pw = tpl.page.width;
+          const ph = tpl.page.height;
+          const scale = 380 / Math.max(pw, ph);
+          canvas.width = Math.round(pw * scale);
+          canvas.height = Math.round(ph * scale);
+          canvas.setAttribute("aria-hidden", "true");
+          const ctx = canvas.getContext("2d");
+          ctx.scale(scale, scale);
+          renderPage(ctx, { ...tpl.page, elements: tpl.page.elements.map((e) => createElement(e.type, e)) }, { registry: this.editor.registry });
+          preview.appendChild(canvas);
+          const label2 = el("div", "ez-template-name", card);
+          label2.textContent = tpl.name;
+          const meta = el("div", "ez-template-meta", card);
+          meta.textContent = `${tpl.format} \xB7 ${pw} \xD7 ${ph}`;
+          card.onclick = () => this.editor.applyTemplate(tpl);
+        }
+      };
+      search.addEventListener("input", () => {
+        this.templateQuery = search.value;
+        update();
+      });
+      update();
+    }
+    renderElements() {
+      this.panelHeader("Elements", "Add shapes and icons to make your design yours.");
+      const search = el("input", "ez-input ez-panel-search ez-elements-search", this.contentEl);
+      search.type = "search";
+      search.placeholder = "Search shapes & icons";
+      search.setAttribute("aria-label", "Search shapes and icons");
+      search.value = this.elementQuery || "";
+      const filters = el("div", "ez-panel-filters ez-element-filters", this.contentEl);
+      filters.setAttribute("role", "group");
+      filters.setAttribute("aria-label", "Element types");
+      for (const category of ["All", "Shapes", "Icons"]) {
+        const button = el("button", "ez-panel-filter ez-element-filter", filters);
+        button.type = "button";
+        button.textContent = category;
+        button.onclick = () => {
+          this.elementCategory = category;
+          update();
+        };
+      }
+      const count = el("div", "ez-panel-count ez-element-count", this.contentEl);
+      count.setAttribute("role", "status");
+      const results = el("div", "ez-element-results", this.contentEl);
+      const addCard = (grid, label2, svg, props) => {
+        const button = el("button", "ez-panel-card ez-element-btn", grid);
+        button.type = "button";
+        button.title = label2;
+        button.setAttribute("aria-label", `Add ${label2}`);
+        button.innerHTML = svg;
+        const caption = el("span", "ez-element-label", button);
+        caption.textContent = label2;
+        button.onclick = () => {
+          const added = this.editor.addElement(props);
+          this.editor.select([added.id]);
+        };
+      };
+      const update = () => {
+        const category = this.elementCategory || "All";
+        const query = (this.elementQuery || "").trim().toLowerCase();
+        const style = this.elementIconStyle || "solid";
+        for (const button of filters.children) {
+          const active = button.textContent === category;
+          button.classList.toggle("ez-active", active);
+          button.setAttribute("aria-pressed", String(active));
+        }
+        const shapes = category === "Icons" ? [] : this.editor.registry.shapes.filter((shape) => shape.label.toLowerCase().includes(query));
+        const icons = category === "Shapes" ? [] : Object.keys(this.editor.registry.icons).filter((name) => name.replace(/-/g, " ").includes(query));
+        const total = shapes.length + icons.length;
+        count.textContent = `${total} ${total === 1 ? "element" : "elements"}`;
+        results.innerHTML = "";
+        if (!total) {
+          const empty = el("p", "ez-empty", results);
+          empty.textContent = "No elements found. Try another search or filter.";
+        }
+        if (shapes.length) {
+          this.sectionTitle("Shapes", results);
+          const grid = el("div", "ez-element-grid", results);
+          for (const shape of shapes) {
+            addCard(
+              grid,
+              shape.label,
+              `<svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true" focusable="false">${shape.svg}</svg>`,
+              { type: shape.type, ...shape.props || {} }
+            );
+          }
+        }
+        if (icons.length) {
+          const heading = el("div", "ez-element-heading", results);
+          this.sectionTitle("Icons", heading);
+          const styles = el("div", "ez-icon-styles", heading);
+          styles.setAttribute("role", "group");
+          styles.setAttribute("aria-label", "Icon style");
+          for (const variant of ["solid", "outline"]) {
+            const button = el("button", "ez-icon-style" + (style === variant ? " ez-active" : ""), styles);
+            button.type = "button";
+            button.textContent = variant === "solid" ? "Solid" : "Outline";
+            button.setAttribute("aria-pressed", String(style === variant));
+            button.onclick = () => {
+              this.elementIconStyle = variant;
+              update();
+              results.querySelector(`.ez-icon-style.ez-active`).focus({ preventScroll: true });
+            };
+          }
+          const grid = el("div", "ez-element-grid", results);
+          for (const name of icons) {
+            const label2 = name.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase());
+            const attrs = style === "outline" ? 'fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"' : 'fill="currentColor" fill-rule="evenodd"';
+            addCard(
+              grid,
+              label2,
+              `<svg viewBox="0 0 24 24" ${attrs} aria-hidden="true" focusable="false"><path d="${style === "outline" ? this.editor.registry.iconOutlines[name] : this.editor.registry.icons[name]}" /></svg>`,
+              { type: "icon", icon: name, iconStyle: style, w: 160, h: 160 }
+            );
+          }
+        }
+      };
+      search.addEventListener("input", () => {
+        this.elementQuery = search.value;
+        update();
+      });
+      update();
+    }
+    renderText() {
+      this.panelHeader("Text", "Add text, then choose a font for your selection.");
+      this.sectionTitle("Default text styles");
+      const presets = [
+        { label: "Add a heading", size: 72, weight: 700, h: 100 },
+        { label: "Add a subheading", size: 40, weight: 600, h: 60 },
+        { label: "Add body text", size: 24, weight: 400, h: 40 }
+      ];
+      const styles = el("div", "ez-text-presets", this.contentEl);
+      for (const p of presets) {
+        const btn = el("button", "ez-panel-card ez-text-preset", styles);
+        btn.type = "button";
+        btn.style.fontSize = Math.max(14, p.size / 3) + "px";
+        btn.style.fontWeight = p.weight;
+        btn.textContent = p.label;
+        btn.onclick = () => {
+          const el2 = this.editor.addText({
+            text: p.label.replace("Add a ", "").replace("Add ", ""),
+            fontSize: p.size,
+            fontWeight: p.weight,
+            h: p.h
+          });
+          this.editor.select([el2.id]);
+        };
+      }
+      this.sectionTitle("Fonts (apply to selection)");
+      const fontList = el("div", "ez-font-list", this.contentEl);
+      for (const font of this.editor.registry.fonts) {
+        const btn = el("button", "ez-panel-card ez-font-item", fontList);
+        btn.type = "button";
+        btn.style.fontFamily = font;
+        btn.textContent = font;
+        btn.onclick = () => {
+          const sel = this.editor.getSelected().filter((s) => s.type === "text");
+          if (sel.length) this.editor.updateSelected({ fontFamily: font });
+        };
+      }
+    }
+    renderUploads() {
+      const ed = this.editor;
+      const scrollTop = this.contentEl.scrollTop;
+      this.contentEl.innerHTML = "";
+      this.panelHeader("Uploads", "Upload images or drag and drop them onto the canvas.");
+      const btn = el("button", "ez-upload-btn", this.contentEl);
+      btn.type = "button";
+      btn.innerHTML = `${UI_ICONS.upload}<span>Upload an image</span>`;
+      btn.onclick = () => ed.openFilePicker();
+      this.sectionTitle("Recent uploads");
+      const grid = el("div", "ez-upload-grid", this.contentEl);
+      if (!ed.uploads.length) {
+        const empty = el("div", "ez-empty", grid);
+        empty.textContent = "No uploads yet. Upload an image to get started.";
+      }
+      for (const up of ed.uploads) {
+        const thumb = el("button", "ez-panel-card ez-upload-thumb", grid);
+        thumb.type = "button";
+        thumb.title = up.name;
+        thumb.setAttribute("aria-label", `Add ${up.name} to canvas`);
+        const img = document.createElement("img");
+        img.src = up.src;
+        img.alt = up.name;
+        thumb.appendChild(img);
+        thumb.onclick = () => {
+          const el2 = ed.addElement({ type: "image", src: up.src, name: up.name });
+          ed.select([el2.id]);
+        };
+      }
+      for (const source of ed.registry.imageSources || []) {
+        this.renderImageSource(source);
+      }
+      this.contentEl.scrollTop = scrollTop;
+    }
+    // Renders one registered image source provider: an optional search box
+    // plus its result thumbnails. Providers shape their own results.
+    renderImageSource(source) {
+      const ed = this.editor;
+      this.sectionTitle(source.label || source.id);
+      if (typeof source.search !== "function") return;
+      const search = el("input", "ez-input ez-panel-search", this.contentEl);
+      search.type = "search";
+      search.placeholder = `Search ${source.label || source.id}\u2026`;
+      search.setAttribute("aria-label", `Search ${source.label || source.id} images`);
+      const results = el("div", "ez-upload-grid", this.contentEl);
+      const status = el("div", "ez-empty", this.contentEl);
+      status.hidden = true;
+      const renderResults = (items) => {
+        results.innerHTML = "";
+        status.hidden = true;
+        if (!items.length) {
+          status.textContent = "No images found.";
+          status.hidden = false;
+          return;
+        }
+        for (const item of items) {
+          if (!item?.src) continue;
+          const name = item.name || "Image";
+          const thumb = el("button", "ez-panel-card ez-upload-thumb", results);
+          thumb.type = "button";
+          thumb.title = name;
+          thumb.setAttribute("aria-label", `Add ${name} to canvas`);
+          const img = document.createElement("img");
+          img.src = item.thumb || item.src;
+          img.alt = name;
+          img.loading = "lazy";
+          thumb.appendChild(img);
+          thumb.onclick = () => {
+            const el2 = ed.addElement({ type: "image", src: item.src, name });
+            ed.select([el2.id]);
+            ed.registerImage({ src: item.src, name });
+          };
+        }
+      };
+      let timer = 0;
+      let seq = 0;
+      const runSearch = () => {
+        const query = search.value.trim();
+        const run = ++seq;
+        Promise.resolve(source.search(query)).then((items) => {
+          if (run === seq) renderResults(Array.isArray(items) ? items : []);
+        }).catch(() => {
+          if (run !== seq) return;
+          results.innerHTML = "";
+          status.textContent = "Image search failed. Try again.";
+          status.hidden = false;
+        });
+      };
+      search.addEventListener("input", () => {
+        clearTimeout(timer);
+        timer = setTimeout(runSearch, 250);
+      });
+      runSearch();
+    }
+    renderBackground() {
+      const ed = this.editor;
+      const bg = ed.getPage().background || {};
+      this.contentEl.innerHTML = "";
+      this.panelHeader("Background", "Set the mood with a color, gradient, or image.");
+      this.sectionTitle("Solid colors");
+      for (const group of normalizePalette(ed.registry.palette)) {
+        if (group.label) this.sectionTitle(group.label);
+        const swatches = el("div", "ez-swatch-grid", this.contentEl);
+        for (const color of group.colors) {
+          const sw = el("button", "ez-swatch", swatches);
+          sw.style.background = color;
+          if (color === "#ffffff") sw.classList.add("ez-swatch-border");
+          sw.title = color;
+          sw.onclick = () => ed.setBackground({ type: "solid", color });
+        }
+      }
+      this.sectionTitle("Gradients");
+      const grads = el("div", "ez-swatch-grid", this.contentEl);
+      const gradients = this.editor.registry.gradients;
+      for (const g of gradients) {
+        const sw = el("button", "ez-swatch", grads);
+        sw.style.background = `linear-gradient(${(g.angle ?? 135) + 90}deg, ${g.from}, ${g.to})`;
+        sw.title = `${g.from} \u2192 ${g.to}`;
+        sw.onclick = () => ed.setBackground({ ...g, type: "gradient" });
+      }
+      this.sectionTitle("Custom gradient");
+      const gradient2 = bg.type === "gradient" ? bg : gradients[0] || { from: GRADIENT_FALLBACKS.from, to: GRADIENT_FALLBACKS.to, angle: 135 };
+      const gradientRow = el("div", "ez-bg-gradient-controls", this.contentEl);
+      const fields = {};
+      for (const [key, label2] of [["from", "Start color"], ["to", "End color"], ["angle", "Angle"]]) {
+        const wrap = el(key === "angle" ? "label" : "div", "ez-bg-gradient-field", gradientRow);
+        el("span", "ez-num-label", wrap).textContent = label2;
+        if (key === "angle") {
+          wrap.classList.add("ez-bg-gradient-angle");
+          const field = el("input", "ez-input", wrap);
+          field.type = "number";
+          field.setAttribute("aria-label", "Background gradient angle");
+          field.min = 0;
+          field.max = 360;
+          field.step = 1;
+          field.value = gradient2.angle ?? 135;
+          field.oninput = () => applyGradient(false);
+          field.onchange = () => ed.commit();
+          fields.angle = field;
+        } else {
+          fields[key] = colorField(wrap, {
+            title: `Background gradient ${label2.toLowerCase()}`,
+            value: gradient2[key] || GRADIENT_FALLBACKS[key],
+            onInput: () => applyGradient(false),
+            onCommit: () => ed.commit()
+          });
+        }
+      }
+      const preview = el("div", "ez-bg-gradient-preview", this.contentEl);
+      preview.setAttribute("aria-hidden", "true");
+      const updatePreview = () => {
+        const angle = Number.isFinite(fields.angle.valueAsNumber) ? clamp(fields.angle.valueAsNumber, 0, 360) : 135;
+        preview.style.background = `linear-gradient(${angle + 90}deg, ${fields.from.value}, ${fields.to.value})`;
+      };
+      const applyGradient = (commit = true) => {
+        if (!Number.isFinite(fields.angle.valueAsNumber)) return;
+        const angle = clamp(fields.angle.valueAsNumber, 0, 360);
+        ed.setBackground({ type: "gradient", from: fields.from.value, to: fields.to.value, angle }, commit);
+        updatePreview();
+      };
+      const apply = el("button", "ez-btn ez-btn-ghost ez-bg-gradient-apply", this.contentEl);
+      apply.type = "button";
+      apply.textContent = "Apply gradient";
+      apply.onclick = () => applyGradient();
+      this.sectionTitle("Solid color & image");
+      const row = el("div", "ez-bg-custom", this.contentEl);
+      const solidField = colorField(row, {
+        title: "Background solid color",
+        value: hexOr(bg.color, "#ffffff"),
+        onInput: (value) => ed.setBackground({ type: "solid", color: value }, false),
+        onCommit: () => ed.commit()
+      });
+      const input = solidField.input;
+      const imgBtn = el("button", "ez-btn ez-btn-ghost ez-grow", row);
+      imgBtn.textContent = "Image background";
+      imgBtn.onclick = async () => {
+        const file = await ed.pickImageFile();
+        if (!file) return;
+        const src = await readAsDataURL(file);
+        ed.setBackground({ type: "image", src });
+      };
+      const rm = el("button", "ez-btn ez-btn-ghost ez-grow ez-bg-remove", row);
+      rm.textContent = "Remove image";
+      rm.onclick = () => ed.setBackground({ type: "solid", color: "#ffffff" });
+      this.syncBackgroundControls = () => {
+        const current = ed.getPage().background || {};
+        if (current.type === "gradient") {
+          fields.from.value = current.from || GRADIENT_FALLBACKS.from;
+          fields.to.value = current.to || GRADIENT_FALLBACKS.to;
+          fields.angle.value = current.angle ?? 135;
+        }
+        if (isHexColor(current.color || "")) solidField.value = current.color;
+        rm.style.display = current.type === "image" ? "" : "none";
+        updatePreview();
+      };
+      this.syncBackgroundControls();
+    }
+    renderLayers() {
+      const ed = this.editor;
+      const scrollTop = this.contentEl.scrollTop;
+      this.contentEl.innerHTML = "";
+      this.panelHeader("Layers", "Drag layers to reorder. Top layers appear in front.");
+      this.sectionTitle("Page layers");
+      const list = el("div", "ez-layer-list", this.contentEl);
+      let draggedId = null;
+      const clearDropMarks = () => {
+        list.querySelectorAll(".ez-drop-before, .ez-drop-after").forEach((row) => row.classList.remove("ez-drop-before", "ez-drop-after"));
+      };
+      const endDrag = () => {
+        draggedId = null;
+        clearDropMarks();
+        list.querySelectorAll(".ez-dragging").forEach((row) => row.classList.remove("ez-dragging"));
+      };
+      const forwardGapEvent = (e, handler) => {
+        if (e.target !== list || draggedId === null) return;
+        const row = [...list.children].find((child) => e.clientY < child.getBoundingClientRect().bottom) || list.lastElementChild;
+        row?.[handler]?.(e);
+      };
+      list.ondragover = (e) => forwardGapEvent(e, "ondragover");
+      list.ondrop = (e) => forwardGapEvent(e, "ondrop");
+      const els = ed.getElements();
+      if (!els.length) {
+        const empty = el("div", "ez-empty", this.contentEl);
+        empty.textContent = "This page is empty. Add elements from the panels.";
+        return;
+      }
+      for (let i = els.length - 1; i >= 0; i--) {
+        const item = els[i];
+        const row = el("div", "ez-layer-item" + (ed.selection.has(item.id) ? " ez-active" : ""), list);
+        row.dataset.id = item.id;
+        const handle = el("button", "ez-layer-drag-handle", row);
+        handle.type = "button";
+        handle.textContent = "\u283F";
+        handle.title = "Drag to reorder, or use Up/Down arrow keys";
+        handle.setAttribute("aria-label", `Reorder ${elementName(item)}. Use Up or Down arrow keys.`);
+        handle.draggable = true;
+        handle.onkeydown = (e) => {
+          if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+          e.preventDefault();
+          e.stopPropagation();
+          const from = ed.getElements().findIndex((layer) => layer.id === item.id);
+          ed.moveLayer(from, from + (e.key === "ArrowUp" ? 1 : -1));
+          const movedRow = [...this.contentEl.querySelectorAll(".ez-layer-item")].find((layer) => layer.dataset.id === item.id);
+          movedRow?.querySelector(".ez-layer-drag-handle").focus({ preventScroll: true });
+        };
+        row.ondragstart = (e) => {
+          draggedId = item.id;
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/plain", item.id);
+          e.dataTransfer.setDragImage(row, 16, row.offsetHeight / 2);
+          requestAnimationFrame(() => {
+            if (draggedId === item.id) row.classList.add("ez-dragging");
+          });
+        };
+        row.ondragend = endDrag;
+        row.ondragover = (e) => {
+          if (draggedId === null) return;
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "move";
+          clearDropMarks();
+          if (draggedId === item.id) return;
+          const rect = row.getBoundingClientRect();
+          row.classList.add(e.clientY < rect.top + rect.height / 2 ? "ez-drop-before" : "ez-drop-after");
+        };
+        row.ondragleave = (e) => {
+          if (!row.contains(e.relatedTarget)) row.classList.remove("ez-drop-before", "ez-drop-after");
+        };
+        row.ondrop = (e) => {
+          if (draggedId === null) return;
+          e.preventDefault();
+          const layers = ed.getElements();
+          const from = layers.findIndex((layer) => layer.id === draggedId);
+          const target = layers.findIndex((layer) => layer.id === item.id);
+          const rect = row.getBoundingClientRect();
+          const before = e.clientY < rect.top + rect.height / 2;
+          endDrag();
+          if (from < 0 || target < 0 || from === target) return;
+          const insertion = target + (before ? 1 : 0);
+          ed.moveLayer(from, insertion - (from < insertion ? 1 : 0));
+        };
+        const icon2 = UI_ICONS[manifestFor(item.type).layerIcon || "shapes"];
+        const name = el("span", "ez-layer-name", row);
+        name.draggable = true;
+        name.title = "Click to select, or drag to reorder";
+        name.innerHTML = `${icon2}<span>${escapeHtml(elementName(item))}</span>`;
+        name.onclick = () => ed.select([item.id]);
+        const btns = el("span", "ez-layer-actions", row);
+        const mkBtn = (html, title, fn, cls = "") => {
+          const b = el("button", "ez-icon-btn ez-sm " + cls, btns);
+          b.innerHTML = html;
+          b.title = title;
+          b.onclick = (e) => {
+            e.stopPropagation();
+            fn();
+          };
+        };
+        mkBtn(item.hidden ? UI_ICONS["eye-off"] : UI_ICONS.eye, item.hidden ? "Show" : "Hide", () => {
+          item.hidden = !item.hidden;
+          ed.markDirty();
+          ed.commit();
+          this.renderLayers();
+        });
+        mkBtn(item.locked ? UI_ICONS.lock : UI_ICONS.unlock, item.locked ? "Unlock" : "Lock", () => {
+          item.locked = !item.locked;
+          ed.commit();
+          this.renderLayers();
+        });
+        mkBtn(UI_ICONS.trash, "Delete", () => {
+          ed.select([item.id]);
+          ed.deleteSelected();
+        });
+      }
+      this.contentEl.scrollTop = scrollTop;
+    }
+  };
+
+  // src/ui/toolbar.js
+  var Toolbar = class {
+    constructor(editor) {
+      this.editor = editor;
+      this.root = editor.toolbarEl;
+      this.root.classList.add("ez-floating-toolbar");
+      this.lastSig = null;
+      this._unsubs = [editor.on("selection", () => this.lastSig = null)];
+    }
+    destroy() {
+      this._unsubs?.forEach((off) => off());
+      this._unsubs = [];
+    }
+    selectionSig() {
+      const sel = this.editor.getSelected();
+      return sel.map((s) => s.id + ":" + s.type).join("|");
+    }
+    update() {
+      const ed = this.editor;
+      const sel = ed.getSelected();
+      if (!sel.length || ed._editing) {
+        this.root.style.display = "none";
+        return;
+      }
+      const sig = this.selectionSig();
+      if (sig !== this.lastSig) {
+        this.lastSig = sig;
+        this.buildControls(sel);
+      }
+      this.syncValues(sel);
+      this.position(sel);
+    }
+    position(sel) {
+      const ed = this.editor;
+      const containerRect = ed.container.getBoundingClientRect();
+      const canvasRect = ed.canvas.getBoundingClientRect();
+      const bounds = selectionBBox(sel);
+      const x = canvasRect.left - containerRect.left + bounds.x * ed.zoom;
+      const y = canvasRect.top - containerRect.top + bounds.y * ed.zoom;
+      this.root.style.display = "flex";
+      const tw = this.root.offsetWidth;
+      const th = this.root.offsetHeight;
+      const left = clamp(x, 8, containerRect.width - tw - 8);
+      const gap = 48;
+      const above = y - th - gap;
+      const below = y + bounds.h * ed.zoom + gap;
+      const maxTop = Math.max(8, containerRect.height - th - 8);
+      const top = clamp(above < 8 && below <= maxTop ? below : above, 8, maxTop);
+      this.root.style.left = left + "px";
+      this.root.style.top = top + "px";
+    }
+    buildControls(sel) {
+      const ed = this.editor;
+      this.root.innerHTML = "";
+      this.fillControls = null;
+      const first = sel[0];
+      const groups = ["chartEdit", "text", "fill", "line", "iconStyle", "opacity"];
+      const common = groups.filter((group) => sel.every((s) => manifestFor(s.type).toolbar?.includes(group)));
+      if (common.includes("chartEdit") && sel.length === 1) {
+        const edit = el("button", "ez-btn ez-btn-ghost", this.root);
+        edit.textContent = "Edit chart";
+        edit.onclick = () => ed.ui.sidepanel?.charts?.open();
+      }
+      if (common.includes("text")) {
+        const fontSel = el("select", "ez-input ez-font-select", this.root);
+        for (const f of ed.registry.fonts)
+          fontSel.innerHTML += `<option>${f}</option>`;
+        fontSel.value = first.fontFamily;
+        this.bind(fontSel, "fontFamily", (n) => n.value);
+        this.numInput("Size", first.fontSize, 4, 800, (v) => ({ fontSize: v }));
+        const mkToggle = (icon2, prop, title) => {
+          const b = el("button", "ez-tool-toggle", this.root);
+          b.innerHTML = icon2;
+          b.title = title;
+          b.dataset.prop = prop;
+          b.onclick = () => ed.updateSelected({ [prop]: !first[prop] });
+        };
+        mkToggle(UI_ICONS.bold, "fontWeight", "Bold");
+        mkToggle(UI_ICONS.italic, "italic", "Italic");
+        mkToggle(UI_ICONS.underline, "underline", "Underline");
+        const alignBtn = el("button", "ez-tool-toggle", this.root);
+        alignBtn.title = "Alignment";
+        alignBtn.dataset.prop = "align";
+        alignBtn.onclick = () => {
+          const order = ["left", "center", "right"];
+          const next = order[(order.indexOf(first.align) + 1) % 3];
+          ed.updateSelected({ align: next });
+        };
+        this.colorInput("Text color", first.color, "color");
+      }
+      if (common.includes("fill")) {
+        this.fillInput();
+        if (first.stroke !== void 0 && first.type !== "image") {
+          this.colorInput("Stroke", first.stroke || "#000000", "stroke");
+          this.numInput("Stroke", first.strokeWidth || 0, 0, 100, (v) => ({ strokeWidth: v }));
+        }
+        if (manifestFor(first.type).radius) {
+          this.numInput("Radius", first.radius || 0, 0, 400, (v) => ({ radius: v }));
+        }
+      }
+      if (common.includes("line")) {
+        this.colorInput("Color", first.stroke, "stroke");
+        this.numInput("Width", first.strokeWidth, 1, 100, (v) => ({ strokeWidth: v }));
+        const arrowBtn = el("button", "ez-tool-toggle", this.root);
+        arrowBtn.textContent = "\u27F6";
+        arrowBtn.title = "Arrow head";
+        arrowBtn.dataset.prop = "arrow";
+        arrowBtn.onclick = () => ed.updateSelected({ arrow: !first.arrow });
+      }
+      if (common.includes("iconStyle")) {
+        const style = el("select", "ez-input", this.root);
+        style.setAttribute("aria-label", "Icon style");
+        style.innerHTML = '<option value="solid">Solid</option><option value="outline">Outline</option>';
+        style.value = first.iconStyle || "solid";
+        this.bind(style, "iconStyle");
+      }
+      if (common.includes("opacity")) {
+        this.numInput("Opacity", Math.round((first.opacity ?? 1) * 100), 0, 100, (v) => ({ opacity: v / 100 }));
+      }
+      const actions = el("div", "ez-toolbar-sep-actions", this.root);
+      const mk = (icon2, title, fn) => {
+        const b = el("button", "ez-icon-btn ez-sm", actions);
+        b.innerHTML = icon2;
+        b.title = title;
+        b.onclick = fn;
+      };
+      mk(UI_ICONS.duplicate, "Duplicate (Ctrl+D)", () => ed.duplicateSelected());
+      mk(UI_ICONS.front, "Bring to front", () => ed.bringToFront());
+      mk(UI_ICONS.back, "Send to back", () => ed.sendToBack());
+      mk(
+        sel.some((s) => s.locked) ? UI_ICONS.unlock : UI_ICONS.lock,
+        sel.some((s) => s.locked) ? "Unlock" : "Lock",
+        () => ed.toggleLock()
+      );
+      mk(UI_ICONS.trash, "Delete (Del)", () => ed.deleteSelected());
+    }
+    syncValues(sel) {
+      const first = sel[0];
+      this.syncFill(first.fill);
+      this.root.querySelectorAll("[data-prop]").forEach((btn) => {
+        const prop = btn.dataset.prop;
+        let active = false;
+        if (prop === "fontWeight") active = first.fontWeight >= 600;
+        else if (prop === "align") {
+          btn.innerHTML = first.align === "center" ? UI_ICONS.alignCenter : first.align === "right" ? UI_ICONS.alignRight : UI_ICONS.alignLeft;
+        } else active = !!first[prop];
+        btn.classList.toggle("ez-active", active);
+      });
+      this.root.querySelectorAll("input[data-bind], select[data-bind]").forEach((input) => {
+        const prop = input.dataset.bind;
+        let v = first[prop];
+        if (prop === "stroke") v = v || "#000000";
+        if (prop === "iconStyle") v = v || "solid";
+        if (prop === "opacity") v = Math.round((v ?? 1) * 100);
+        if (document.activeElement !== input) input.value = v ?? "";
+      });
+      this.root.querySelectorAll("input[data-hex-for]").forEach((hex) => {
+        if (document.activeElement === hex) return;
+        const target = this.root.querySelector(`[data-bind="${hex.dataset.hexFor}"]`);
+        if (target) hex.value = target.value;
+      });
+    }
+    bind(input, prop, getter = (n) => n.value) {
+      input.dataset.bind = prop;
+      input.addEventListener("input", () => {
+        const value = getter(input);
+        if (value !== void 0 && value !== null && !Number.isNaN(value)) {
+          this.editor.updateSelected({ [prop]: value }, false);
+        }
+      });
+      input.addEventListener("change", () => this.editor.commit());
+    }
+    fillInput() {
+      const ed = this.editor;
+      const wrap = el("label", "ez-num-wrap", this.root);
+      el("span", "ez-num-label", wrap).textContent = "Fill";
+      const mode = el("select", "ez-input", wrap);
+      mode.setAttribute("aria-label", "Fill type");
+      mode.innerHTML = '<option value="solid">Solid</option><option value="gradient">Gradient</option><option value="none">None</option>';
+      mode.onchange = () => {
+        const fill = ed.getSelected()[0]?.fill;
+        const color = fill?.type === "gradient" ? fill.from : fill;
+        const from = color && color !== "none" ? color : ACCENT;
+        ed.updateSelected({ fill: mode.value === "gradient" ? { type: "gradient", from, to: "#ffffff", angle: 135 } : mode.value === "none" ? "none" : from });
+      };
+      const colors = {};
+      for (const [key, title] of [["solid", "Fill color"], ["from", "Gradient start color"], ["to", "Gradient end color"]]) {
+        const field = colorField(this.root, {
+          title,
+          value: "#000000",
+          onInput: (value) => {
+            const fill = ed.getSelected()[0]?.fill;
+            if (key === "solid") ed.updateSelected({ fill: value }, false);
+            else if (fill?.type === "gradient") ed.updateSelected({ fill: { ...fill, [key]: value } }, false);
+          },
+          onCommit: () => ed.commit()
+        });
+        colors[key] = { label: field.group, input: field.input, field };
+      }
+      const angleWrap = el("label", "ez-num-wrap", this.root);
+      el("span", "ez-num-label", angleWrap).textContent = "Angle";
+      const angle = el("input", "ez-input ez-num-input", angleWrap);
+      angle.type = "number";
+      angle.min = 0;
+      angle.max = 360;
+      angle.step = 1;
+      angle.setAttribute("aria-label", "Gradient angle");
+      angle.oninput = () => {
+        const fill = ed.getSelected()[0]?.fill;
+        const value = angle.valueAsNumber;
+        if (fill?.type === "gradient" && Number.isFinite(value)) {
+          ed.updateSelected({ fill: { ...fill, angle: clamp(value, 0, 360) } }, false);
+        }
+      };
+      angle.onchange = () => ed.commit();
+      this.fillControls = { mode, colors, angleWrap, angle };
+    }
+    syncFill(fill) {
+      if (!this.fillControls) return;
+      const { mode, colors, angleWrap, angle } = this.fillControls;
+      const gradient2 = fill?.type === "gradient";
+      mode.value = gradient2 ? "gradient" : fill === "none" ? "none" : "solid";
+      for (const [key, { label: label2, input, field }] of Object.entries(colors)) {
+        label2.style.display = (key === "solid" ? !gradient2 && fill !== "none" : gradient2) ? "" : "none";
+        const color = key === "solid" ? fill : fill?.[key] || GRADIENT_FALLBACKS[key];
+        if (document.activeElement !== input) input.value = hexOr(color, "#000000");
+        if (document.activeElement !== field.hex) field.hex.value = hexOr(color, "#000000");
+      }
+      angleWrap.style.display = gradient2 ? "" : "none";
+      if (document.activeElement !== angle) angle.value = gradient2 ? fill.angle ?? 135 : 135;
+    }
+    colorInput(title, value, prop) {
+      const ed = this.editor;
+      const field = colorField(this.root, {
+        title,
+        value: hexOr(value, "#000000"),
+        onInput: (next) => ed.updateSelected({ [prop]: next }, false),
+        onCommit: () => ed.commit()
+      });
+      field.input.dataset.bind = prop;
+      field.hex.dataset.hexFor = prop;
+    }
+    numInput(label2, value, min, max, mapper) {
+      const ed = this.editor;
+      const wrap = el("label", "ez-num-wrap", this.root);
+      const span = el("span", "ez-num-label", wrap);
+      span.textContent = label2;
+      const input = el("input", "ez-input ez-num-input", wrap);
+      input.type = "number";
+      input.min = min;
+      input.max = max;
+      input.value = value;
+      input.addEventListener("input", () => {
+        const v = parseFloat(input.value);
+        if (!Number.isNaN(v)) {
+          this.editor.updateSelected(mapper(v), false);
+        }
+      });
+      input.addEventListener("change", () => this.editor.commit());
+    }
+  };
+
+  // src/ui/pagesbar.js
+  var PagesBar = class {
+    constructor(editor) {
+      this.editor = editor;
+      this.root = editor.pagesBarEl;
+      this.dragIndex = null;
+      this._unsubs = [
+        editor.on("page", () => this.render()),
+        editor.on("change", () => this.render())
+      ];
+      this.render();
+    }
+    destroy() {
+      this._unsubs?.forEach((off) => off());
+      this._unsubs = [];
+    }
+    render() {
+      const ed = this.editor;
+      this.root.innerHTML = "";
+      ed.doc.pages.forEach((page, i) => {
+        const chip = el("button", "ez-page-chip" + (i === ed.pageIndex ? " ez-active" : ""), this.root);
+        chip.innerHTML = `<span class="ez-page-num">${i + 1}</span><span class="ez-page-dim">${page.width}\xD7${page.height}</span>`;
+        chip.title = "Page " + (i + 1) + " \u2014 drag to reorder";
+        chip.draggable = true;
+        chip.dataset.index = i;
+        chip.onclick = () => ed.goToPage(i);
+        chip.ondragstart = (e) => {
+          this.dragIndex = i;
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/plain", String(i));
+          requestAnimationFrame(() => chip.classList.add("ez-dragging"));
+        };
+        chip.ondragend = () => {
+          this.dragIndex = null;
+          this._clearDropMarks();
+        };
+        chip.ondragover = (e) => {
+          if (this.dragIndex === null || this.dragIndex === i) return;
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "move";
+          const before = this._dropBefore(e, chip);
+          chip.classList.toggle("ez-drop-before", before);
+          chip.classList.toggle("ez-drop-after", !before);
+        };
+        chip.ondragleave = () => chip.classList.remove("ez-drop-before", "ez-drop-after");
+        chip.ondrop = (e) => {
+          e.preventDefault();
+          const raw = this.dragIndex !== null ? String(this.dragIndex) : e.dataTransfer.getData("text/plain");
+          const from = Number(raw);
+          if (raw === "" || Number.isNaN(from) || from === i) return;
+          const before = this._dropBefore(e, chip);
+          ed.movePage(from, from < i ? before ? i - 1 : i : before ? i : i + 1);
+        };
+      });
+      const actions = el("div", "ez-page-actions", this.root);
+      const mk = (icon2, title, fn) => {
+        const b = el("button", "ez-icon-btn ez-sm", actions);
+        b.innerHTML = icon2;
+        b.title = title;
+        b.onclick = fn;
+      };
+      mk(UI_ICONS.plus, "Add page", () => ed.addPage());
+      mk(UI_ICONS.duplicate, "Duplicate page", () => ed.duplicatePage());
+      if (ed.doc.pages.length > 1) mk(UI_ICONS.trash, "Delete page", () => ed.deletePage());
+    }
+    _dropBefore(e, chip) {
+      const rect = chip.getBoundingClientRect();
+      return e.clientX < rect.left + rect.width / 2;
+    }
+    _clearDropMarks() {
+      this.root.querySelectorAll(".ez-drop-before, .ez-drop-after, .ez-dragging").forEach((c) => c.classList.remove("ez-drop-before", "ez-drop-after", "ez-dragging"));
+    }
+  };
+
+  // src/styles.js
+  var injected = false;
+  function injectStyles() {
+    if (injected || document.getElementById("ez-styles")) return;
+    injected = true;
+    const style = document.createElement("style");
+    style.id = "ez-styles";
+    style.textContent = CSS;
+    document.head.appendChild(style);
+  }
+  var UI_FONT_FAMILY = "Outfit:wght@400;500;600;700;800";
+  function buildGoogleFontsUrl(families = GOOGLE_FONT_FAMILIES) {
+    const all = [UI_FONT_FAMILY, ...families.filter((f) => f && f !== UI_FONT_FAMILY)];
+    return `https://fonts.googleapis.com/css2?family=${all.join("&family=")}&display=swap`;
+  }
+  function injectFonts(families = GOOGLE_FONT_FAMILIES) {
+    const href = buildGoogleFontsUrl(families);
+    let link = document.getElementById("ez-fonts");
+    if (!link) {
+      link = document.createElement("link");
+      link.id = "ez-fonts";
+      link.rel = "stylesheet";
+      document.head.appendChild(link);
+    }
+    if (link.getAttribute("href") !== href) link.setAttribute("href", href);
+  }
+  var CSS = `
 .ez-editor {
   --ez-accent: #d97706;
   --ez-accent-soft: #fdf0dd;
@@ -642,4 +4731,935 @@ neighbour!`,110,267,860,112,"#354d69",{...M,...w,lineHeight:1.06}),...[0,1,2].fl
 .ez-editor.ez-dark .ez-floating-toolbar { box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5); }
 .ez-editor.ez-dark .ez-menu { box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55); }
 .ez-editor.ez-dark .ez-swatch { border-color: rgba(255, 255, 255, 0.15); }
-`;var ye=class extends Le{constructor(e={}){super();let t=typeof e.target=="string"?document.querySelector(e.target):e.target;if(!t)throw new Error('ezyreka: "target" element is required');if(t.__ezyreka)return t.__ezyreka;this.options={width:1080,height:1080,name:"Untitled design",...e,target:t},this.fileName=this.options.name,this.zoom=1,this._themes={...e.themes||{}},this._appliedVars=[];let r=typeof e.theme=="string"?e.theme:"light";this.theme=r==="dark"||r==="light"||this._themes[r]?r:"light",this.pageIndex=0,this.selection=new Set,this.clipboard=[],this._pasteCount=0,this.uploads=[],this._guides=[],this._editing=!1,this._measureCtx=document.createElement("canvas").getContext("2d"),this.registry=Ht(e),Array.isArray(e.chartColors)&&bt(e.chartColors),this.doc={version:1,pages:[{id:D("page"),width:this.options.width,height:this.options.height,background:{type:"solid",color:"#ffffff"},elements:[]}]},qt(),dt(this.registry.googleFonts),this._buildDOM(t),this.setTheme(this.theme),this.history=e.history||new Ie;for(let a of["push","undo","redo","reset"])if(typeof this.history[a]!="function")throw new Error(`ezyreka: custom history must implement ${a}()`);this.history.push(Z(this.doc)),this.interactions=new Ze(this);let o={topbar:Be,sidepanel:We,toolbar:je,contextMenu:Fe,pagesBar:Ye},n=e.ui===!1?{}:{...o,...e.ui||{}};this.ui={};for(let[a,s]of Object.entries(n))typeof s=="function"&&(this.ui[a]=new s(this));this.ui.topbar||(this.topbarEl.style.display="none"),this.ui.sidepanel||(this.sidepanelEl.style.display="none"),this.ui.toolbar||(this.toolbarEl.style.display="none"),this.ui.pagesBar||(this.pagesBarEl.style.display="none"),this.zoomFit(),e.initialDoc&&this.loadJSON(e.initialDoc),document.fonts?.ready&&document.fonts.ready.then(()=>this.markDirty()),this._resizeObserver=new ResizeObserver(()=>this.markDirty()),this._resizeObserver.observe(this.viewport),t.__ezyreka=this,this.emit("ready",this)}_buildDOM(e){e.classList.add("ez-editor"),e.innerHTML="",this.container=e,this.topbarEl=f("div","ez-topbar",e);let t=f("div","ez-body",e);this.sidepanelEl=f("div","ez-sidepanel",t);let r=f("div","ez-sidepanel-rail",this.sidepanelEl);f("div","ez-sidepanel-tabs",r),f("div","ez-sidepanel-content",this.sidepanelEl);let o=f("div","ez-canvas-wrap",t);this.viewport=f("div","ez-viewport",o);let n=f("div","ez-stage-wrap",this.viewport);this.stage=f("div","ez-stage",n),this.canvas=document.createElement("canvas"),this.stage.appendChild(this.canvas),this.ctx=this.canvas.getContext("2d"),this.overlay=f("div","ez-overlay",this.stage),this.pagesBarEl=f("div","ez-pagesbar",o),this.toolbarEl=f("div","ez-floating-toolbar",e);let a=f("input","ez-hidden",e);a.type="file",a.accept="image/*",a.multiple=!0,this._fileInput=a,a.addEventListener("change",async()=>{for(let s of[...a.files])await this.addUpload(s);a.value=""})}get page(){return this.doc.pages[V(this.pageIndex,0,this.doc.pages.length-1)]}getPage(){return this.page}getElements(){return this.page.elements}markDirty(){this._raf||(this._raf=requestAnimationFrame(()=>{this._raf=0,this.render()}))}render(){let e=this.page.width,t=this.page.height,r=window.devicePixelRatio||1,o=e*this.zoom,n=t*this.zoom;this.stage.style.width=o+"px",this.stage.style.height=n+"px";let a=Math.max(1,Math.round(o*r)),s=Math.max(1,Math.round(n*r));(this.canvas.width!==a||this.canvas.height!==s)&&(this.canvas.width=a,this.canvas.height=s,this.canvas.style.width=o+"px",this.canvas.style.height=n+"px"),this.ctx.setTransform(this.zoom*r,0,0,this.zoom*r,0,0),Ae(this.ctx,this.page,{registry:this.registry}),!this._editing&&this.interactions?.drag?.mode!=="band"&&this.updateOverlay(),this.ui?.toolbar?.update()}updateOverlay(){let e=this.overlay;e.innerHTML="";for(let o of this._guides){let n=f("div","ez-guide "+(o.axis==="x"?"ez-guide-x":"ez-guide-y"),e);o.axis==="x"?(n.style.left=o.v*this.zoom-.75+"px",n.style.top=o.from*this.zoom+"px",n.style.height=(o.to-o.from)*this.zoom+"px"):(n.style.top=o.v*this.zoom-.75+"px",n.style.left=o.from*this.zoom+"px",n.style.width=(o.to-o.from)*this.zoom+"px")}let t=this.getSelected();if(!t.length)return;let r=this.zoom;if(t.length===1){let o=t[0],n=f("div","ez-sel-box",e);Object.assign(n.style,{left:o.x*r+"px",top:o.y*r+"px",width:o.w*r+"px",height:o.h*r+"px",transform:`rotate(${o.rotation||0}deg)`,transformOrigin:"50% 50%"});let a=f("div","ez-sel-name",n);a.textContent=Ee(o);for(let l of["nw","n","ne","e","se","s","sw","w"]){let c=f("div","ez-handle",n);c.dataset.dir=l,c.addEventListener("pointerdown",d=>this.interactions.startResize(d,l))}let s=f("div","ez-rotate-handle",n);s.title="Rotate",s.addEventListener("pointerdown",l=>this.interactions.startRotate(l))}else{let o=me(t),n=f("div","ez-sel-box ez-multi",e);Object.assign(n.style,{left:o.x*r+"px",top:o.y*r+"px",width:o.w*r+"px",height:o.h*r+"px"})}}setGuides(e){this._guides=e||[],this._editing||this.updateOverlay()}select(e,{silent:t=!1}={}){this.selection=new Set(e),t||(this.emit("selection",this.getSelected()),this.markDirty())}toggleSelect(e){let t=new Set(this.selection);t.has(e)?t.delete(e):t.add(e),this.select([...t])}selectAll(){this.select(this.getElements().filter(e=>!e.locked&&!e.hidden).map(e=>e.id))}clearSelection(){this._editing&&this.commitTextEdit(),this.selection.size&&this.select([])}getSelected(){return this.getElements().filter(e=>this.selection.has(e.id))}hitTestElement(e,t,r){return Me(e,t,r)}viewportCenter(){let e=this.canvas.getBoundingClientRect(),t=this.viewport.getBoundingClientRect();return{x:(t.left+t.width/2-e.left)/this.zoom,y:(t.top+t.height/2-e.top)/this.zoom}}addElement(e={}){let t=this.viewportCenter(),r=ee(e.type,e);return e.x===void 0&&(r.x=Math.round(t.x-r.w/2)),e.y===void 0&&(r.y=Math.round(t.y-r.h/2)),this.page.elements.push(r),this.markDirty(),this.commit(),r}addText(e={}){let t=this.addElement({type:"text",...e});return t.__fresh=!0,t}updateSelected(e,t=!0){let r=this.getSelected(),o=Object.keys(e).find(n=>Object.values(he).some(a=>a.exclusiveProps&&n in a.exclusiveProps));if(o!==void 0){let n=Object.values(he).find(c=>c.exclusiveProps&&o in c.exclusiveProps),a=new Set(Object.entries(he).filter(([,c])=>c.exclusiveProps&&o in c.exclusiveProps).map(([c])=>c)),s=r.filter(c=>a.has(c.type)&&!c.locked);if(!s.length)return;let l=n.exclusiveProps[o](e[o]);s.forEach(c=>Object.assign(c,e,{[o]:l}))}else r.forEach(n=>Object.assign(n,e));this.markDirty(),t&&this.commit()}commit(){this.history.push(Z(this.doc)),this.emit("change",{doc:this.doc,selection:this.getSelected()})}deleteSelected(){let e=this.selection;e.size&&(this.page.elements=this.page.elements.filter(t=>!e.has(t.id)),this.clearSelection(),this.markDirty(),this.commit())}duplicateSelected(){let e=this.getSelected();if(!e.length)return;let t=e.map(r=>ee(r.type,{...Z(r),id:void 0,x:r.x+24,y:r.y+24}));this.page.elements.push(...t),this.select(t.map(r=>r.id)),this.markDirty(),this.commit()}copy(){let e=this.getSelected();e.length&&(this.clipboard=Z(e),this._pasteCount=0)}cut(){this.copy(),this.deleteSelected()}paste(){if(!this.clipboard.length)return;let e=24*(++this._pasteCount||1),t=this.clipboard.map(r=>ee(r.type,{...Z(r),id:void 0,x:r.x+e,y:r.y+e}));this.page.elements.push(...t),this.select(t.map(r=>r.id)),this.markDirty(),this.commit()}_reorder(e){let t=this.page.elements,r=this.getSelected().map(o=>t.indexOf(o)).filter(o=>o>=0).sort((o,n)=>o-n);r.length&&(e(t,r),this.markDirty(),this.commit())}bringToFront(){this._reorder((e,t)=>{let r=t.map(o=>e[o]);this.page.elements=e.filter(o=>!r.includes(o)).concat(r)})}bringForward(){this._reorder((e,t)=>{for(let r=t.length-1;r>=0;r--){let o=t[r];o<e.length-1&&!t.includes(o+1)&&([e[o],e[o+1]]=[e[o+1],e[o]])}})}sendBackward(){this._reorder((e,t)=>{for(let r of t)r>0&&!t.includes(r-1)&&([e[r],e[r-1]]=[e[r-1],e[r]])})}sendToBack(){this._reorder((e,t)=>{let r=t.map(o=>e[o]);this.page.elements=r.concat(e.filter(o=>!r.includes(o)))})}moveLayer(e,t){let r=this.getElements();if(!Number.isInteger(e)||!Number.isInteger(t)||e===t||e<0||t<0||e>=r.length||t>=r.length)return;let[o]=r.splice(e,1);r.splice(t,0,o),this.markDirty(),this.commit()}toggleLock(){let e=this.getSelected();if(!e.length)return;let t=!e.every(r=>r.locked);e.forEach(r=>r.locked=t),this.commit(),this.markDirty()}setZoom(e,t){let r=V(e,.05,5);if(r===this.zoom)return;let o=this.viewport.getBoundingClientRect(),n=t||{x:o.left+o.width/2,y:o.top+o.height/2},a=this.canvas.getBoundingClientRect(),s=(n.x-a.left)/this.zoom,l=(n.y-a.top)/this.zoom;this.zoom=r,this.render();let c=this.canvas.getBoundingClientRect();this.viewport.scrollLeft+=c.left+s*r-n.x,this.viewport.scrollTop+=c.top+l*r-n.y,this.emit("zoom",r)}zoomFit(){let e=this.page.width,t=this.page.height,r=this.viewport.getBoundingClientRect();if(!r.width||!r.height){this.zoom=1,this.render(),this.emit("zoom",this.zoom);return}let o=V(Math.min((r.width-96)/e,(r.height-96)/t),.05,2);this.zoom=o,this.render(),this.viewport.scrollLeft=(this.viewport.scrollWidth-this.viewport.clientWidth)/2,this.viewport.scrollTop=(this.viewport.scrollHeight-this.viewport.clientHeight)/2,this.emit("zoom",o)}fitTextHeight(e){if(e.type!=="text")return;let r=Wt(this._measureCtx,e).length*e.fontSize*e.lineHeight+6;r>e.h&&(e.h=Math.round(r))}startTextEdit(e){this._editing&&this.commitTextEdit(),this._editing=!0,this.editingId=e.id;let t=this.zoom,r=f("div","ez-text-editor",this.overlay);if(r.contentEditable="true",r.innerText=e.text||"",Object.assign(r.style,{left:e.x*t+"px",top:e.y*t+"px",width:e.w*t+"px",minHeight:e.h*t+"px",fontFamily:e.fontFamily,fontSize:e.fontSize*t+"px",fontWeight:e.fontWeight,fontStyle:e.italic?"italic":"normal",textDecoration:e.underline?"underline":"none",lineHeight:String(e.lineHeight),letterSpacing:(e.letterSpacing||0)*t+"px",color:e.color,textAlign:e.align,transform:`rotate(${e.rotation||0}deg)`,transformOrigin:"50% 50%"}),this._textEditorEl=r,r.addEventListener("input",()=>{e.text=r.innerText.replace(/\n$/,""),this.markDirty()}),r.addEventListener("keydown",o=>{o.key==="Escape"&&(o.preventDefault(),this.commitTextEdit()),o.stopPropagation()}),r.addEventListener("blur",()=>this.commitTextEdit()),this.ui.toolbar?.update(),r.focus(),e.__fresh){let o=document.createRange();o.selectNodeContents(r);let n=window.getSelection();n.removeAllRanges(),n.addRange(o),delete e.__fresh}else{let o=document.createRange();o.selectNodeContents(r),o.collapse(!1);let n=window.getSelection();n.removeAllRanges(),n.addRange(o)}}commitTextEdit(){if(!this._editing)return;let e=this._textEditorEl,t=this.getElements().find(r=>r.id===this.editingId);this._editing=!1,this._textEditorEl=null,this.editingId=null,e&&e.remove(),t&&(t.text=(t.text||"").replace(/\n+$/,""),t.text.trim()?this.fitTextHeight(t):(this.page.elements=this.page.elements.filter(r=>r.id!==t.id),this.select([]))),this.markDirty(),this.commit()}undo(){let e=this.history.undo(Z(this.doc));e&&this._applySnapshot(e)}redo(){let e=this.history.redo(Z(this.doc));e&&this._applySnapshot(e)}_applySnapshot(e){this._editing&&this.commitTextEdit(),this.doc=e,this.pageIndex=V(this.pageIndex,0,this.doc.pages.length-1),this.selection=new Set,this.emit("selection",[]),this.markDirty(),this.emit("change",{doc:this.doc,selection:[]})}getJSON(){return Z(this.doc)}loadJSON(e){if(!e||!Array.isArray(e.pages)||!e.pages.length)throw new Error("Invalid design document");this.doc={version:1,pages:e.pages.map(t=>({id:D("page"),width:t.width||this.options.width,height:t.height||this.options.height,background:t.background||{type:"solid",color:"#ffffff"},elements:(t.elements||[]).map(r=>{try{return ee(r.type,r)}catch{return null}}).filter(Boolean)}))},typeof e.name=="string"&&e.name&&this.setFileName(e.name),this.pageIndex=0,this.selection=new Set,this.history.reset(),this.history.push(Z(this.doc)),this.emit("selection",[]),this.zoomFit(),this.emit("change",{doc:this.doc,selection:[]})}applyTemplate(e){if(!e||typeof e!="object"||!e.page||!Number.isFinite(e.page.width)||!Number.isFinite(e.page.height)||!Array.isArray(e.page.elements))throw new Error("ezyreka: templates need { name, page: { width, height, elements } }");this._editing&&this.commitTextEdit(),this.doc={version:1,pages:[{id:D("page"),width:e.page.width,height:e.page.height,background:Z(e.page.background),elements:e.page.elements.map(t=>ee(t.type,t))}]},this.pageIndex=0,this.selection=new Set,this.emit("selection",[]),this.commit(),this.zoomFit()}resizeCanvas(e,t){if(![e,t].every(r=>Number.isInteger(r)&&r>=1&&r<=1e4))throw new RangeError("Canvas dimensions must be whole numbers from 1 to 10000 pixels.");this.page.width===e&&this.page.height===t||(this._editing&&this.commitTextEdit(),this.page.width=e,this.page.height=t,this.zoomFit(),this.commit())}setBackground(e,t=!0){this.page.background=e,this.markDirty(),t&&this.commit()}addUpload(e){return He(e).then(t=>(this.uploads.push({id:D("up"),src:t,name:e.name}),this.emit("upload",this.uploads),t))}openFilePicker(){this._fileInput.click()}pickImageFile(){return new Promise(e=>{let t=f("input");t.type="file",t.accept="image/*",t.style.display="none",document.body.appendChild(t),t.onchange=()=>{e(t.files[0]||null),t.remove()},t.click()})}registerTemplates(e){let t=Array.isArray(e)?e:[e];for(let r of t)if(!r||typeof r!="object"||!r.page||!Number.isFinite(r.page.width)||!Number.isFinite(r.page.height)||!Array.isArray(r.page.elements))throw new Error("ezyreka: templates need { name, page: { width, height, elements } }");this.registry.templates.push(...t.map(r=>Z(r))),this._refreshPanels("templates")}registerFont(e,{google:t}={}){if(typeof e!="string"||!e.trim())throw new Error("ezyreka: registerFont needs a font family name");if(e=e.trim(),this.registry.fonts.includes(e)||this.registry.fonts.push(e),t){let r=typeof t=="string"&&t.trim()?t.trim():e.replace(/ /g,"+"),o=/[:@]/.test(r)?r:`${r}:wght@400;600;700`;this.registry.googleFonts.includes(o)||this.registry.googleFonts.push(o),dt(this.registry.googleFonts),document.fonts?.ready?.then(()=>this.markDirty())}return this._refreshPanels("text"),e}registerIcons(e){if(!e||typeof e!="object")throw new Error("ezyreka: registerIcons needs { name: pathOrPathPair }");for(let[t,r]of Object.entries(e)){let o=typeof r=="string"?r:r?.solid,n=typeof r=="string"?r:r?.outline;if(typeof o!="string")throw new Error(`ezyreka: icon "${t}" needs an SVG path string`);this.registry.icons[t]=o,this.registry.iconOutlines[t]=typeof n=="string"?n:o}this._refreshPanels("elements")}registerShapes(e){let r=(Array.isArray(e)?e:[e]).map(o=>{if(!o||typeof o.label!="string")throw new Error("ezyreka: shapes need at least { label }");let n={type:o.type||"shape",label:o.label,props:o.props};if(typeof o.path=="string"){let a=o.shape||o.label.toLowerCase().replace(/\s+/g,"-");this.registry.shapePaths[a]=o.path,n.svg=o.svg||`<path d="${o.path}" transform="translate(8 8) scale(.84)" fill-rule="evenodd" />`,n.props=o.props||{shape:a}}else{if(typeof o.svg!="string")throw new Error(`ezyreka: shape "${o.label}" needs "path" or "svg"`);n.svg=o.svg}return n});this.registry.shapes.push(...r),this._refreshPanels("elements")}registerElementRenderer(e,t){st(e,t),this.registry.elementRenderers[e]=t,this.markDirty()}registerElementType(e,t={}){Rt(e,{defaults:t.defaults,manifest:t.manifest}),typeof t.render=="function"&&(st(e,t.render),this.registry.elementRenderers[e]=t.render),this._refreshPanels("layers")}registerChartRenderer(e,t){Nt(e,t),this.registry.chartRenderers[e]=t,this.markDirty()}registerChartType(e,t){return zt(e),typeof t=="function"&&this.registerChartRenderer(e.type,t),this._refreshPanels("charts"),e}registerPalette(e){if(!Array.isArray(e)||!e.length)throw new Error("ezyreka: registerPalette needs a non-empty array");this.registry.palette=e,this._refreshPanels("background")}registerBackgroundPainter(e,t){Ft(e,t),this.registry.backgroundPainters[e]=t,this.markDirty()}registerElementManifest(e,t){it(e,t),this._refreshPanels("layers")}registerPanel(e){if(!this.ui.sidepanel)throw new Error("ezyreka: registerPanel requires the sidepanel UI module");this.ui.sidepanel.registerPanel(e)}registerImage(e){let t=typeof e=="string"?e:e?.src,r=typeof e=="object"&&e?.name||"Image";if(typeof t!="string"||!t)throw new Error("ezyreka: registerImage needs a src string or { src, name }");let o={id:D("up"),src:t,name:r};return this.uploads.push(o),this.emit("upload",this.uploads),o}registerImageSource(e){if(!e||typeof e.id!="string"||typeof e.search!="function")throw new Error("ezyreka: image sources need { id, search(query) }");return this.registry.imageSources.push(e),this._refreshPanels("uploads"),e}_refreshPanels(...e){this.ui?.sidepanel&&e.includes(this.ui.sidepanel.activeTab)&&this.ui.sidepanel.rerender(),this.ui?.toolbar&&(this.ui.toolbar.lastSig=null)}registerTheme(e,t){if(typeof e!="string"||!e||typeof t!="object"||!t)throw new Error("ezyreka: registerTheme needs a name and a CSS variables object");return this._themes[e]=t,e}setTheme(e){let t=this._themes[e];if(e!=="dark"&&e!=="light"&&!t)return;this.theme=e,this.container.classList.toggle("ez-dark",e==="dark");for(let o of this._appliedVars)this.container.style.removeProperty(o);this._appliedVars=[];let r={...this.options.cssVars||{},...t||{}};for(let[o,n]of Object.entries(r))this.container.style.setProperty(o,String(n)),this._appliedVars.push(o);this.emit("theme",e)}toggleTheme(){this.setTheme(this.theme==="dark"?"light":"dark")}setFileName(e){this.fileName=e,this.emit("rename",e)}addPage(){let e={id:D("page"),width:this.page.width,height:this.page.height,background:{type:"solid",color:"#ffffff"},elements:[]};this.doc.pages.splice(this.pageIndex+1,0,e),this.pageIndex+=1,this.clearSelection(),this.markDirty(),this.commit(),this.emit("page",this.pageIndex)}duplicatePage(){let e=this.page,t={id:D("page"),width:e.width,height:e.height,background:Z(e.background),elements:e.elements.map(r=>ee(r.type,r))};this.doc.pages.splice(this.pageIndex+1,0,t),this.pageIndex+=1,this.clearSelection(),this.markDirty(),this.commit(),this.emit("page",this.pageIndex)}deletePage(e=this.pageIndex){this.doc.pages.length<=1||(this.doc.pages.splice(e,1),this.pageIndex=V(this.pageIndex,0,this.doc.pages.length-1),this.clearSelection(),this.markDirty(),this.commit(),this.emit("page",this.pageIndex))}movePage(e,t){let r=this.doc.pages.length;if(e===t||e<0||e>=r||t<0||t>=r)return;this._editing&&this.commitTextEdit();let[o]=this.doc.pages.splice(e,1);this.doc.pages.splice(t,0,o),this.pageIndex===e?this.pageIndex=t:e<this.pageIndex&&t>=this.pageIndex?this.pageIndex-=1:e>this.pageIndex&&t<=this.pageIndex&&(this.pageIndex+=1),this.clearSelection(),this.markDirty(),this.commit(),this.emit("page",this.pageIndex)}goToPage(e){if(e<0||e>=this.doc.pages.length||e===this.pageIndex)return;this._editing&&this.commitTextEdit();let t=this.page.width!==this.doc.pages[e].width||this.page.height!==this.doc.pages[e].height;this.pageIndex=e,this.clearSelection(),this.markDirty(),t&&this.zoomFit(),this.emit("page",e)}async _renderPageToCanvas(e,t,r){let o=[];e.background?.type==="image"&&e.background.src&&o.push(e.background.src);for(let s of e.elements)for(let l of W(s.type).preloadProps||[])s[l]&&o.push(s[l]);await _t(o),await(document.fonts?.ready||Promise.resolve());let n=document.createElement("canvas");n.width=Math.round(e.width*t),n.height=Math.round(e.height*t);let a=n.getContext("2d");return r||(a.fillStyle="#ffffff",a.fillRect(0,0,n.width,n.height)),a.scale(t,t),Ae(a,e,{transparent:r&&e.background?.type!=="image",registry:this.registry}),n}async exportImage(e="png",{scale:t=2,transparent:r=!1,pageIndex:o=null}={}){let n=o===null?this.page:this.doc.pages[V(o,0,this.doc.pages.length-1)],s=(await this._renderPageToCanvas(n,t,r&&e==="png")).toDataURL(e==="jpeg"?"image/jpeg":"image/png",.92),l=e==="jpeg"?"jpg":"png";return qe(s,`${this.fileName.replace(/[^\w\- ]+/g,"").trim()||"design"}.${l}`),this.emit("export",{format:e,scale:t}),s}async exportAllPages(e="png",{scale:t=2}={}){for(let r=0;r<this.doc.pages.length;r++){let o=this.doc.pages[r];(await this._renderPageToCanvas(o,t,!1)).toBlob(a=>{let s=`${this.fileName.replace(/[^\w\- ]+/g,"").trim()||"design"}-page-${r+1}.${e==="jpeg"?"jpg":"png"}`;Ke(a,s)},e==="jpeg"?"image/jpeg":"image/png")}}downloadJSON(){let e=new Blob([JSON.stringify({name:this.fileName,...this.getJSON()},null,2)],{type:"application/json"});Ke(e,`${this.fileName.replace(/[^\w\- ]+/g,"").trim()||"design"}.json`),this.emit("save",this.fileName)}destroy(){this.interactions?.destroy(),pe(this);for(let e of Object.values(this.ui||{}))e?.destroy?.();this._editing&&(this._editing=!1,this._textEditorEl?.remove(),this._textEditorEl=null),this._resizeObserver?.disconnect(),this._raf&&cancelAnimationFrame(this._raf),this.container.__ezyreka=null,this.container.classList.remove("ez-editor"),this.container.innerHTML="",this._listeners.clear()}};var Kt="1.0.0";function ht(){document.querySelectorAll("[data-ez-editor]").forEach(i=>{if(i.__ezyreka)return;let e=new ye({target:i,width:parseInt(i.dataset.skWidth,10)||1080,height:parseInt(i.dataset.skHeight,10)||1080,name:i.dataset.skName||"Untitled design"});i.__ezyreka=e})}typeof document<"u"&&(document.readyState==="loading"?document.addEventListener("DOMContentLoaded",ht):ht());var Ni={Editor:ye,version:Kt,autoInit:ht};return ri(Di);})();
+`;
+
+  // src/core/editor.js
+  var Editor = class extends Emitter {
+    constructor(options = {}) {
+      super();
+      const target = typeof options.target === "string" ? document.querySelector(options.target) : options.target;
+      if (!target) throw new Error('ezyreka: "target" element is required');
+      if (target.__ezyreka) return target.__ezyreka;
+      this.options = {
+        width: 1080,
+        height: 1080,
+        name: "Untitled design",
+        ...options,
+        target
+      };
+      this.fileName = this.options.name;
+      this.zoom = 1;
+      this._themes = { ...options.themes || {} };
+      this._appliedVars = [];
+      const themeOption = typeof options.theme === "string" ? options.theme : "light";
+      this.theme = themeOption === "dark" || themeOption === "light" || this._themes[themeOption] ? themeOption : "light";
+      this.pageIndex = 0;
+      this.selection = /* @__PURE__ */ new Set();
+      this.clipboard = [];
+      this._pasteCount = 0;
+      this.uploads = [];
+      this._guides = [];
+      this._editing = false;
+      this._measureCtx = document.createElement("canvas").getContext("2d");
+      this.registry = createRegistry(options);
+      if (Array.isArray(options.chartColors)) setChartColors(options.chartColors);
+      this.doc = {
+        version: 1,
+        pages: [
+          {
+            id: uid("page"),
+            width: this.options.width,
+            height: this.options.height,
+            background: { type: "solid", color: "#ffffff" },
+            elements: []
+          }
+        ]
+      };
+      injectStyles();
+      injectFonts(this.registry.googleFonts);
+      this._buildDOM(target);
+      this.setTheme(this.theme);
+      this.history = options.history || new History();
+      for (const method of ["push", "undo", "redo", "reset"]) {
+        if (typeof this.history[method] !== "function") {
+          throw new Error(`ezyreka: custom history must implement ${method}()`);
+        }
+      }
+      this.history.push(deepClone(this.doc));
+      this.interactions = new Interactions(this);
+      const uiDefaults = {
+        topbar: Topbar,
+        sidepanel: Sidepanel,
+        toolbar: Toolbar,
+        contextMenu: ContextMenu,
+        pagesBar: PagesBar
+      };
+      const uiSpec = options.ui === false ? {} : { ...uiDefaults, ...options.ui || {} };
+      this.ui = {};
+      for (const [key, Impl] of Object.entries(uiSpec)) {
+        if (typeof Impl === "function") this.ui[key] = new Impl(this);
+      }
+      if (!this.ui.topbar) this.topbarEl.style.display = "none";
+      if (!this.ui.sidepanel) this.sidepanelEl.style.display = "none";
+      if (!this.ui.toolbar) this.toolbarEl.style.display = "none";
+      if (!this.ui.pagesBar) this.pagesBarEl.style.display = "none";
+      this.zoomFit();
+      if (options.initialDoc) this.loadJSON(options.initialDoc);
+      if (document.fonts?.ready) document.fonts.ready.then(() => this.markDirty());
+      this._resizeObserver = new ResizeObserver(() => this.markDirty());
+      this._resizeObserver.observe(this.viewport);
+      target.__ezyreka = this;
+      this.emit("ready", this);
+    }
+    _buildDOM(target) {
+      target.classList.add("ez-editor");
+      target.innerHTML = "";
+      this.container = target;
+      this.topbarEl = el("div", "ez-topbar", target);
+      const body = el("div", "ez-body", target);
+      this.sidepanelEl = el("div", "ez-sidepanel", body);
+      const sidepanelRail = el("div", "ez-sidepanel-rail", this.sidepanelEl);
+      el("div", "ez-sidepanel-tabs", sidepanelRail);
+      el("div", "ez-sidepanel-content", this.sidepanelEl);
+      const canvasWrap = el("div", "ez-canvas-wrap", body);
+      this.viewport = el("div", "ez-viewport", canvasWrap);
+      const stageWrap = el("div", "ez-stage-wrap", this.viewport);
+      this.stage = el("div", "ez-stage", stageWrap);
+      this.canvas = document.createElement("canvas");
+      this.stage.appendChild(this.canvas);
+      this.ctx = this.canvas.getContext("2d");
+      this.overlay = el("div", "ez-overlay", this.stage);
+      this.pagesBarEl = el("div", "ez-pagesbar", canvasWrap);
+      this.toolbarEl = el("div", "ez-floating-toolbar", target);
+      const fileInput = el("input", "ez-hidden", target);
+      fileInput.type = "file";
+      fileInput.accept = "image/*";
+      fileInput.multiple = true;
+      this._fileInput = fileInput;
+      fileInput.addEventListener("change", async () => {
+        for (const file of [...fileInput.files]) await this.addUpload(file);
+        fileInput.value = "";
+      });
+    }
+    get page() {
+      return this.doc.pages[clamp(this.pageIndex, 0, this.doc.pages.length - 1)];
+    }
+    getPage() {
+      return this.page;
+    }
+    getElements() {
+      return this.page.elements;
+    }
+    markDirty() {
+      if (this._raf) return;
+      this._raf = requestAnimationFrame(() => {
+        this._raf = 0;
+        this.render();
+      });
+    }
+    render() {
+      const pw = this.page.width;
+      const ph = this.page.height;
+      const dpr = window.devicePixelRatio || 1;
+      const cssW = pw * this.zoom;
+      const cssH = ph * this.zoom;
+      this.stage.style.width = cssW + "px";
+      this.stage.style.height = cssH + "px";
+      const bw = Math.max(1, Math.round(cssW * dpr));
+      const bh = Math.max(1, Math.round(cssH * dpr));
+      if (this.canvas.width !== bw || this.canvas.height !== bh) {
+        this.canvas.width = bw;
+        this.canvas.height = bh;
+        this.canvas.style.width = cssW + "px";
+        this.canvas.style.height = cssH + "px";
+      }
+      this.ctx.setTransform(this.zoom * dpr, 0, 0, this.zoom * dpr, 0, 0);
+      renderPage(this.ctx, this.page, { registry: this.registry });
+      if (!this._editing && this.interactions?.drag?.mode !== "band") this.updateOverlay();
+      this.ui?.toolbar?.update();
+    }
+    updateOverlay() {
+      const ov = this.overlay;
+      ov.innerHTML = "";
+      for (const g of this._guides) {
+        const line = el("div", "ez-guide " + (g.axis === "x" ? "ez-guide-x" : "ez-guide-y"), ov);
+        if (g.axis === "x") {
+          line.style.left = g.v * this.zoom - 0.75 + "px";
+          line.style.top = g.from * this.zoom + "px";
+          line.style.height = (g.to - g.from) * this.zoom + "px";
+        } else {
+          line.style.top = g.v * this.zoom - 0.75 + "px";
+          line.style.left = g.from * this.zoom + "px";
+          line.style.width = (g.to - g.from) * this.zoom + "px";
+        }
+      }
+      const sel = this.getSelected();
+      if (!sel.length) return;
+      const z = this.zoom;
+      if (sel.length === 1) {
+        const elx = sel[0];
+        const box2 = el("div", "ez-sel-box", ov);
+        Object.assign(box2.style, {
+          left: elx.x * z + "px",
+          top: elx.y * z + "px",
+          width: elx.w * z + "px",
+          height: elx.h * z + "px",
+          transform: `rotate(${elx.rotation || 0}deg)`,
+          transformOrigin: "50% 50%"
+        });
+        const label2 = el("div", "ez-sel-name", box2);
+        label2.textContent = elementName(elx);
+        for (const dir of ["nw", "n", "ne", "e", "se", "s", "sw", "w"]) {
+          const h = el("div", "ez-handle", box2);
+          h.dataset.dir = dir;
+          h.addEventListener("pointerdown", (e) => this.interactions.startResize(e, dir));
+        }
+        const rot = el("div", "ez-rotate-handle", box2);
+        rot.title = "Rotate";
+        rot.addEventListener("pointerdown", (e) => this.interactions.startRotate(e));
+      } else {
+        const bbox = selectionBBox(sel);
+        const box2 = el("div", "ez-sel-box ez-multi", ov);
+        Object.assign(box2.style, {
+          left: bbox.x * z + "px",
+          top: bbox.y * z + "px",
+          width: bbox.w * z + "px",
+          height: bbox.h * z + "px"
+        });
+      }
+    }
+    setGuides(guides) {
+      this._guides = guides || [];
+      if (!this._editing) this.updateOverlay();
+    }
+    select(ids, { silent = false } = {}) {
+      this.selection = new Set(ids);
+      if (!silent) {
+        this.emit("selection", this.getSelected());
+        this.markDirty();
+      }
+    }
+    toggleSelect(id) {
+      const next = new Set(this.selection);
+      next.has(id) ? next.delete(id) : next.add(id);
+      this.select([...next]);
+    }
+    selectAll() {
+      this.select(
+        this.getElements().filter((e2) => !e2.locked && !e2.hidden).map((e2) => e2.id)
+      );
+    }
+    clearSelection() {
+      if (this._editing) this.commitTextEdit();
+      if (this.selection.size) this.select([]);
+    }
+    getSelected() {
+      return this.getElements().filter((e2) => this.selection.has(e2.id));
+    }
+    hitTestElement(elx, wx, wy) {
+      return hitTest(elx, wx, wy);
+    }
+    viewportCenter() {
+      const canvasRect = this.canvas.getBoundingClientRect();
+      const vRect = this.viewport.getBoundingClientRect();
+      return {
+        x: (vRect.left + vRect.width / 2 - canvasRect.left) / this.zoom,
+        y: (vRect.top + vRect.height / 2 - canvasRect.top) / this.zoom
+      };
+    }
+    addElement(props = {}) {
+      const center = this.viewportCenter();
+      const elx = createElement(props.type, props);
+      if (props.x === void 0) elx.x = Math.round(center.x - elx.w / 2);
+      if (props.y === void 0) elx.y = Math.round(center.y - elx.h / 2);
+      this.page.elements.push(elx);
+      this.markDirty();
+      this.commit();
+      return elx;
+    }
+    addText(props = {}) {
+      const elx = this.addElement({ type: "text", ...props });
+      elx.__fresh = true;
+      return elx;
+    }
+    updateSelected(props, commit = true) {
+      const selected = this.getSelected();
+      const exclusiveKey = Object.keys(props).find((key) => Object.values(ELEMENT_MANIFESTS).some((m) => m.exclusiveProps && key in m.exclusiveProps));
+      if (exclusiveKey !== void 0) {
+        const entry = Object.values(ELEMENT_MANIFESTS).find((m) => m.exclusiveProps && exclusiveKey in m.exclusiveProps);
+        const types = new Set(Object.entries(ELEMENT_MANIFESTS).filter(([, m]) => m.exclusiveProps && exclusiveKey in m.exclusiveProps).map(([type]) => type));
+        const targets = selected.filter((item) => types.has(item.type) && !item.locked);
+        if (!targets.length) return;
+        const value = entry.exclusiveProps[exclusiveKey](props[exclusiveKey]);
+        targets.forEach((item) => Object.assign(item, props, { [exclusiveKey]: value }));
+      } else selected.forEach((elx) => Object.assign(elx, props));
+      this.markDirty();
+      if (commit) this.commit();
+    }
+    commit() {
+      this.history.push(deepClone(this.doc));
+      this.emit("change", { doc: this.doc, selection: this.getSelected() });
+    }
+    deleteSelected() {
+      const ids = this.selection;
+      if (!ids.size) return;
+      this.page.elements = this.page.elements.filter((e2) => !ids.has(e2.id));
+      this.clearSelection();
+      this.markDirty();
+      this.commit();
+    }
+    duplicateSelected() {
+      const sel = this.getSelected();
+      if (!sel.length) return;
+      const clones = sel.map((elx) => {
+        const clone = createElement(elx.type, { ...deepClone(elx), id: void 0, x: elx.x + 24, y: elx.y + 24 });
+        return clone;
+      });
+      this.page.elements.push(...clones);
+      this.select(clones.map((c) => c.id));
+      this.markDirty();
+      this.commit();
+    }
+    copy() {
+      const sel = this.getSelected();
+      if (sel.length) {
+        this.clipboard = deepClone(sel);
+        this._pasteCount = 0;
+      }
+    }
+    cut() {
+      this.copy();
+      this.deleteSelected();
+    }
+    paste() {
+      if (!this.clipboard.length) return;
+      const offset = 24 * (++this._pasteCount || 1);
+      const clones = this.clipboard.map(
+        (elx) => createElement(elx.type, { ...deepClone(elx), id: void 0, x: elx.x + offset, y: elx.y + offset })
+      );
+      this.page.elements.push(...clones);
+      this.select(clones.map((c) => c.id));
+      this.markDirty();
+      this.commit();
+    }
+    _reorder(fn) {
+      const els = this.page.elements;
+      const indices = this.getSelected().map((elx) => els.indexOf(elx)).filter((i) => i >= 0).sort((a, b) => a - b);
+      if (!indices.length) return;
+      fn(els, indices);
+      this.markDirty();
+      this.commit();
+    }
+    bringToFront() {
+      this._reorder((els, idx) => {
+        const picked = idx.map((i) => els[i]);
+        this.page.elements = els.filter((e2) => !picked.includes(e2)).concat(picked);
+      });
+    }
+    bringForward() {
+      this._reorder((els, idx) => {
+        for (let i = idx.length - 1; i >= 0; i--) {
+          const j = idx[i];
+          if (j < els.length - 1 && !idx.includes(j + 1)) {
+            [els[j], els[j + 1]] = [els[j + 1], els[j]];
+          }
+        }
+      });
+    }
+    sendBackward() {
+      this._reorder((els, idx) => {
+        for (const i of idx) {
+          if (i > 0 && !idx.includes(i - 1)) {
+            [els[i], els[i - 1]] = [els[i - 1], els[i]];
+          }
+        }
+      });
+    }
+    sendToBack() {
+      this._reorder((els, idx) => {
+        const picked = idx.map((i) => els[i]);
+        this.page.elements = picked.concat(els.filter((e2) => !picked.includes(e2)));
+      });
+    }
+    moveLayer(from, to) {
+      const els = this.getElements();
+      if (!Number.isInteger(from) || !Number.isInteger(to) || from === to || from < 0 || to < 0 || from >= els.length || to >= els.length) return;
+      const [item] = els.splice(from, 1);
+      els.splice(to, 0, item);
+      this.markDirty();
+      this.commit();
+    }
+    toggleLock() {
+      const sel = this.getSelected();
+      if (!sel.length) return;
+      const lock = !sel.every((s) => s.locked);
+      sel.forEach((s) => s.locked = lock);
+      this.commit();
+      this.markDirty();
+    }
+    setZoom(zoom, anchor) {
+      const z = clamp(zoom, 0.05, 5);
+      if (z === this.zoom) return;
+      const vRect = this.viewport.getBoundingClientRect();
+      const a = anchor || { x: vRect.left + vRect.width / 2, y: vRect.top + vRect.height / 2 };
+      const canvasRect = this.canvas.getBoundingClientRect();
+      const wx = (a.x - canvasRect.left) / this.zoom;
+      const wy = (a.y - canvasRect.top) / this.zoom;
+      this.zoom = z;
+      this.render();
+      const rect2 = this.canvas.getBoundingClientRect();
+      this.viewport.scrollLeft += rect2.left + wx * z - a.x;
+      this.viewport.scrollTop += rect2.top + wy * z - a.y;
+      this.emit("zoom", z);
+    }
+    zoomFit() {
+      const pw = this.page.width;
+      const ph = this.page.height;
+      const vRect = this.viewport.getBoundingClientRect();
+      if (!vRect.width || !vRect.height) {
+        this.zoom = 1;
+        this.render();
+        this.emit("zoom", this.zoom);
+        return;
+      }
+      const z = clamp(Math.min((vRect.width - 96) / pw, (vRect.height - 96) / ph), 0.05, 2);
+      this.zoom = z;
+      this.render();
+      this.viewport.scrollLeft = (this.viewport.scrollWidth - this.viewport.clientWidth) / 2;
+      this.viewport.scrollTop = (this.viewport.scrollHeight - this.viewport.clientHeight) / 2;
+      this.emit("zoom", z);
+    }
+    fitTextHeight(elx) {
+      if (elx.type !== "text") return;
+      const lines = measureTextElement(this._measureCtx, elx);
+      const needed = lines.length * elx.fontSize * elx.lineHeight + 6;
+      if (needed > elx.h) elx.h = Math.round(needed);
+    }
+    startTextEdit(elx) {
+      if (this._editing) this.commitTextEdit();
+      this._editing = true;
+      this.editingId = elx.id;
+      const z = this.zoom;
+      const ed = el("div", "ez-text-editor", this.overlay);
+      ed.contentEditable = "true";
+      ed.innerText = elx.text || "";
+      Object.assign(ed.style, {
+        left: elx.x * z + "px",
+        top: elx.y * z + "px",
+        width: elx.w * z + "px",
+        minHeight: elx.h * z + "px",
+        fontFamily: elx.fontFamily,
+        fontSize: elx.fontSize * z + "px",
+        fontWeight: elx.fontWeight,
+        fontStyle: elx.italic ? "italic" : "normal",
+        textDecoration: elx.underline ? "underline" : "none",
+        lineHeight: String(elx.lineHeight),
+        letterSpacing: (elx.letterSpacing || 0) * z + "px",
+        color: elx.color,
+        textAlign: elx.align,
+        transform: `rotate(${elx.rotation || 0}deg)`,
+        transformOrigin: "50% 50%"
+      });
+      this._textEditorEl = ed;
+      ed.addEventListener("input", () => {
+        elx.text = ed.innerText.replace(/\n$/, "");
+        this.markDirty();
+      });
+      ed.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          this.commitTextEdit();
+        }
+        e.stopPropagation();
+      });
+      ed.addEventListener("blur", () => this.commitTextEdit());
+      this.ui.toolbar?.update();
+      ed.focus();
+      if (elx.__fresh) {
+        const range = document.createRange();
+        range.selectNodeContents(ed);
+        const s = window.getSelection();
+        s.removeAllRanges();
+        s.addRange(range);
+        delete elx.__fresh;
+      } else {
+        const range = document.createRange();
+        range.selectNodeContents(ed);
+        range.collapse(false);
+        const s = window.getSelection();
+        s.removeAllRanges();
+        s.addRange(range);
+      }
+    }
+    commitTextEdit() {
+      if (!this._editing) return;
+      const ed = this._textEditorEl;
+      const elx = this.getElements().find((e2) => e2.id === this.editingId);
+      this._editing = false;
+      this._textEditorEl = null;
+      this.editingId = null;
+      if (ed) ed.remove();
+      if (elx) {
+        elx.text = (elx.text || "").replace(/\n+$/, "");
+        if (!elx.text.trim()) {
+          this.page.elements = this.page.elements.filter((e2) => e2.id !== elx.id);
+          this.select([]);
+        } else {
+          this.fitTextHeight(elx);
+        }
+      }
+      this.markDirty();
+      this.commit();
+    }
+    undo() {
+      const snap = this.history.undo(deepClone(this.doc));
+      if (!snap) return;
+      this._applySnapshot(snap);
+    }
+    redo() {
+      const snap = this.history.redo(deepClone(this.doc));
+      if (!snap) return;
+      this._applySnapshot(snap);
+    }
+    _applySnapshot(snap) {
+      if (this._editing) this.commitTextEdit();
+      this.doc = snap;
+      this.pageIndex = clamp(this.pageIndex, 0, this.doc.pages.length - 1);
+      this.selection = /* @__PURE__ */ new Set();
+      this.emit("selection", []);
+      this.markDirty();
+      this.emit("change", { doc: this.doc, selection: [] });
+    }
+    getJSON() {
+      return deepClone(this.doc);
+    }
+    loadJSON(doc) {
+      if (!doc || !Array.isArray(doc.pages) || !doc.pages.length) {
+        throw new Error("Invalid design document");
+      }
+      this.doc = {
+        version: 1,
+        pages: doc.pages.map((p) => ({
+          id: uid("page"),
+          width: p.width || this.options.width,
+          height: p.height || this.options.height,
+          background: p.background || { type: "solid", color: "#ffffff" },
+          elements: (p.elements || []).map((e2) => {
+            try {
+              return createElement(e2.type, e2);
+            } catch {
+              return null;
+            }
+          }).filter(Boolean)
+        }))
+      };
+      if (typeof doc.name === "string" && doc.name) this.setFileName(doc.name);
+      this.pageIndex = 0;
+      this.selection = /* @__PURE__ */ new Set();
+      this.history.reset();
+      this.history.push(deepClone(this.doc));
+      this.emit("selection", []);
+      this.zoomFit();
+      this.emit("change", { doc: this.doc, selection: [] });
+    }
+    applyTemplate(tpl) {
+      if (!tpl || typeof tpl !== "object" || !tpl.page || !Number.isFinite(tpl.page.width) || !Number.isFinite(tpl.page.height) || !Array.isArray(tpl.page.elements)) {
+        throw new Error("ezyreka: templates need { name, page: { width, height, elements } }");
+      }
+      if (this._editing) this.commitTextEdit();
+      this.doc = {
+        version: 1,
+        pages: [
+          {
+            id: uid("page"),
+            width: tpl.page.width,
+            height: tpl.page.height,
+            background: deepClone(tpl.page.background),
+            elements: tpl.page.elements.map((e2) => createElement(e2.type, e2))
+          }
+        ]
+      };
+      this.pageIndex = 0;
+      this.selection = /* @__PURE__ */ new Set();
+      this.emit("selection", []);
+      this.commit();
+      this.zoomFit();
+    }
+    resizeCanvas(width, height) {
+      if (![width, height].every((value) => Number.isInteger(value) && value >= 1 && value <= 1e4)) {
+        throw new RangeError("Canvas dimensions must be whole numbers from 1 to 10000 pixels.");
+      }
+      if (this.page.width === width && this.page.height === height) return;
+      if (this._editing) this.commitTextEdit();
+      this.page.width = width;
+      this.page.height = height;
+      this.zoomFit();
+      this.commit();
+    }
+    setBackground(bg, commit = true) {
+      this.page.background = bg;
+      this.markDirty();
+      if (commit) this.commit();
+    }
+    addUpload(file) {
+      return readAsDataURL(file).then((src) => {
+        this.uploads.push({ id: uid("up"), src, name: file.name });
+        this.emit("upload", this.uploads);
+        return src;
+      });
+    }
+    openFilePicker() {
+      this._fileInput.click();
+    }
+    pickImageFile() {
+      return new Promise((resolve) => {
+        const input = el("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.style.display = "none";
+        document.body.appendChild(input);
+        input.onchange = () => {
+          resolve(input.files[0] || null);
+          input.remove();
+        };
+        input.click();
+      });
+    }
+    // ---- Customization: register assets on this editor's registry ----
+    registerTemplates(templates) {
+      const list = Array.isArray(templates) ? templates : [templates];
+      for (const tpl of list) {
+        if (!tpl || typeof tpl !== "object" || !tpl.page || !Number.isFinite(tpl.page.width) || !Number.isFinite(tpl.page.height) || !Array.isArray(tpl.page.elements)) {
+          throw new Error("ezyreka: templates need { name, page: { width, height, elements } }");
+        }
+      }
+      this.registry.templates.push(...list.map((tpl) => deepClone(tpl)));
+      this._refreshPanels("templates");
+    }
+    registerFont(name, { google } = {}) {
+      if (typeof name !== "string" || !name.trim()) {
+        throw new Error("ezyreka: registerFont needs a font family name");
+      }
+      name = name.trim();
+      if (!this.registry.fonts.includes(name)) this.registry.fonts.push(name);
+      if (google) {
+        const family = typeof google === "string" && google.trim() ? google.trim() : name.replace(/ /g, "+");
+        const spec = /[:@]/.test(family) ? family : `${family}:wght@400;600;700`;
+        if (!this.registry.googleFonts.includes(spec)) this.registry.googleFonts.push(spec);
+        injectFonts(this.registry.googleFonts);
+        document.fonts?.ready?.then(() => this.markDirty());
+      }
+      this._refreshPanels("text");
+      return name;
+    }
+    registerIcons(icons) {
+      if (!icons || typeof icons !== "object") {
+        throw new Error("ezyreka: registerIcons needs { name: pathOrPathPair }");
+      }
+      for (const [name, def] of Object.entries(icons)) {
+        const solid = typeof def === "string" ? def : def?.solid;
+        const outline = typeof def === "string" ? def : def?.outline;
+        if (typeof solid !== "string") {
+          throw new Error(`ezyreka: icon "${name}" needs an SVG path string`);
+        }
+        this.registry.icons[name] = solid;
+        this.registry.iconOutlines[name] = typeof outline === "string" ? outline : solid;
+      }
+      this._refreshPanels("elements");
+    }
+    registerShapes(shapes) {
+      const list = Array.isArray(shapes) ? shapes : [shapes];
+      const entries = list.map((item) => {
+        if (!item || typeof item.label !== "string") {
+          throw new Error("ezyreka: shapes need at least { label }");
+        }
+        const entry = { type: item.type || "shape", label: item.label, props: item.props };
+        if (typeof item.path === "string") {
+          const name = item.shape || item.label.toLowerCase().replace(/\s+/g, "-");
+          this.registry.shapePaths[name] = item.path;
+          entry.svg = item.svg || `<path d="${item.path}" transform="translate(8 8) scale(.84)" fill-rule="evenodd" />`;
+          entry.props = item.props || { shape: name };
+        } else {
+          if (typeof item.svg !== "string") {
+            throw new Error(`ezyreka: shape "${item.label}" needs "path" or "svg"`);
+          }
+          entry.svg = item.svg;
+        }
+        return entry;
+      });
+      this.registry.shapes.push(...entries);
+      this._refreshPanels("elements");
+    }
+    // ---- Customization: extend rendering, panels and image sources ----
+    /** Overrides or adds the canvas renderer for an element type: fn(ctx, el, registry). */
+    registerElementRenderer(type, renderer) {
+      registerElementRenderer(type, renderer);
+      this.registry.elementRenderers[type] = renderer;
+      this.markDirty();
+    }
+    /** Registers a brand-new element type: { defaults, manifest, render }. */
+    registerElementType(type, def = {}) {
+      registerElementType(type, { defaults: def.defaults, manifest: def.manifest });
+      if (typeof def.render === "function") {
+        registerElementRenderer(type, def.render);
+        this.registry.elementRenderers[type] = def.render;
+      }
+      this._refreshPanels("layers");
+    }
+    /** Overrides or adds the painter for a chart type: fn(ctx, chart, series, plotBox, font, bounds). */
+    registerChartRenderer(type, renderer) {
+      registerChartRenderer(type, renderer);
+      this.registry.chartRenderers[type] = renderer;
+      this.markDirty();
+    }
+    /**
+     * Registers a brand-new chart type: a preset ({ type, label, group, kind,
+     * circular, multiSeries, validate }) plus an optional painter. It becomes
+     * available in the gallery, type dropdown, normalization and validation.
+     */
+    registerChartType(preset, renderFn) {
+      registerChartPreset(preset);
+      if (typeof renderFn === "function") this.registerChartRenderer(preset.type, renderFn);
+      this._refreshPanels("charts");
+      return preset;
+    }
+    /** Replaces this editor's color swatches; entries are hex strings or { label, colors } groups. */
+    registerPalette(palette) {
+      if (!Array.isArray(palette) || !palette.length) {
+        throw new Error("ezyreka: registerPalette needs a non-empty array");
+      }
+      this.registry.palette = palette;
+      this._refreshPanels("background");
+    }
+    /** Registers a background type painter: fn(ctx, bg, pageWidth, pageHeight). */
+    registerBackgroundPainter(type, painter) {
+      registerBackgroundPainter(type, painter);
+      this.registry.backgroundPainters[type] = painter;
+      this.markDirty();
+    }
+    /** Extends or overrides an element type's capability manifest. */
+    registerElementManifest(type, manifest) {
+      registerElementManifest(type, manifest);
+      this._refreshPanels("layers");
+    }
+    /** Adds a sidebar tab: { id, label, icon, render(contentEl, editor) }. */
+    registerPanel(panel) {
+      if (!this.ui.sidepanel) {
+        throw new Error("ezyreka: registerPanel requires the sidepanel UI module");
+      }
+      this.ui.sidepanel.registerPanel(panel);
+    }
+    /** Registers an existing image (URL or data URL) into the uploads library. */
+    registerImage(image) {
+      const src = typeof image === "string" ? image : image?.src;
+      const name = typeof image === "object" && image?.name || "Image";
+      if (typeof src !== "string" || !src) {
+        throw new Error("ezyreka: registerImage needs a src string or { src, name }");
+      }
+      const entry = { id: uid("up"), src, name };
+      this.uploads.push(entry);
+      this.emit("upload", this.uploads);
+      return entry;
+    }
+    /** Adds an image source provider: { id, label?, search(query) => [{ src, name, thumb? }] }. */
+    registerImageSource(source) {
+      if (!source || typeof source.id !== "string" || typeof source.search !== "function") {
+        throw new Error("ezyreka: image sources need { id, search(query) }");
+      }
+      this.registry.imageSources.push(source);
+      this._refreshPanels("uploads");
+      return source;
+    }
+    _refreshPanels(...tabs) {
+      if (this.ui?.sidepanel && tabs.includes(this.ui.sidepanel.activeTab)) {
+        this.ui.sidepanel.rerender();
+      }
+      if (this.ui?.toolbar) this.ui.toolbar.lastSig = null;
+    }
+    /** Registers a named theme from CSS custom properties, usable via setTheme(). */
+    registerTheme(name, vars) {
+      if (typeof name !== "string" || !name || typeof vars !== "object" || !vars) {
+        throw new Error("ezyreka: registerTheme needs a name and a CSS variables object");
+      }
+      this._themes[name] = vars;
+      return name;
+    }
+    setTheme(theme) {
+      const custom = this._themes[theme];
+      if (theme !== "dark" && theme !== "light" && !custom) return;
+      this.theme = theme;
+      this.container.classList.toggle("ez-dark", theme === "dark");
+      for (const name of this._appliedVars) this.container.style.removeProperty(name);
+      this._appliedVars = [];
+      const vars = { ...this.options.cssVars || {}, ...custom || {} };
+      for (const [name, value] of Object.entries(vars)) {
+        this.container.style.setProperty(name, String(value));
+        this._appliedVars.push(name);
+      }
+      this.emit("theme", theme);
+    }
+    toggleTheme() {
+      this.setTheme(this.theme === "dark" ? "light" : "dark");
+    }
+    setFileName(name) {
+      this.fileName = name;
+      this.emit("rename", name);
+    }
+    addPage() {
+      const page = {
+        id: uid("page"),
+        width: this.page.width,
+        height: this.page.height,
+        background: { type: "solid", color: "#ffffff" },
+        elements: []
+      };
+      this.doc.pages.splice(this.pageIndex + 1, 0, page);
+      this.pageIndex += 1;
+      this.clearSelection();
+      this.markDirty();
+      this.commit();
+      this.emit("page", this.pageIndex);
+    }
+    duplicatePage() {
+      const src = this.page;
+      const page = {
+        id: uid("page"),
+        width: src.width,
+        height: src.height,
+        background: deepClone(src.background),
+        elements: src.elements.map((e2) => createElement(e2.type, e2))
+      };
+      this.doc.pages.splice(this.pageIndex + 1, 0, page);
+      this.pageIndex += 1;
+      this.clearSelection();
+      this.markDirty();
+      this.commit();
+      this.emit("page", this.pageIndex);
+    }
+    deletePage(index = this.pageIndex) {
+      if (this.doc.pages.length <= 1) return;
+      this.doc.pages.splice(index, 1);
+      this.pageIndex = clamp(this.pageIndex, 0, this.doc.pages.length - 1);
+      this.clearSelection();
+      this.markDirty();
+      this.commit();
+      this.emit("page", this.pageIndex);
+    }
+    movePage(from, to) {
+      const n = this.doc.pages.length;
+      if (from === to || from < 0 || from >= n || to < 0 || to >= n) return;
+      if (this._editing) this.commitTextEdit();
+      const [page] = this.doc.pages.splice(from, 1);
+      this.doc.pages.splice(to, 0, page);
+      if (this.pageIndex === from) this.pageIndex = to;
+      else if (from < this.pageIndex && to >= this.pageIndex) this.pageIndex -= 1;
+      else if (from > this.pageIndex && to <= this.pageIndex) this.pageIndex += 1;
+      this.clearSelection();
+      this.markDirty();
+      this.commit();
+      this.emit("page", this.pageIndex);
+    }
+    goToPage(index) {
+      if (index < 0 || index >= this.doc.pages.length || index === this.pageIndex) return;
+      if (this._editing) this.commitTextEdit();
+      const sizeChanged = this.page.width !== this.doc.pages[index].width || this.page.height !== this.doc.pages[index].height;
+      this.pageIndex = index;
+      this.clearSelection();
+      this.markDirty();
+      if (sizeChanged) this.zoomFit();
+      this.emit("page", index);
+    }
+    async _renderPageToCanvas(page, scale, transparent) {
+      const srcs = [];
+      if (page.background?.type === "image" && page.background.src) srcs.push(page.background.src);
+      for (const e2 of page.elements) {
+        for (const prop of manifestFor(e2.type).preloadProps || []) {
+          if (e2[prop]) srcs.push(e2[prop]);
+        }
+      }
+      await whenImagesReady(srcs);
+      await (document.fonts?.ready || Promise.resolve());
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(page.width * scale);
+      canvas.height = Math.round(page.height * scale);
+      const ctx = canvas.getContext("2d");
+      if (!transparent) {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      ctx.scale(scale, scale);
+      renderPage(ctx, page, {
+        transparent: transparent && page.background?.type !== "image",
+        registry: this.registry
+      });
+      return canvas;
+    }
+    async exportImage(format = "png", { scale = 2, transparent = false, pageIndex = null } = {}) {
+      const page = pageIndex === null ? this.page : this.doc.pages[clamp(pageIndex, 0, this.doc.pages.length - 1)];
+      const canvas = await this._renderPageToCanvas(page, scale, transparent && format === "png");
+      const dataURL = canvas.toDataURL(format === "jpeg" ? "image/jpeg" : "image/png", 0.92);
+      const ext = format === "jpeg" ? "jpg" : "png";
+      downloadDataURL(dataURL, `${this.fileName.replace(/[^\w\- ]+/g, "").trim() || "design"}.${ext}`);
+      this.emit("export", { format, scale });
+      return dataURL;
+    }
+    async exportAllPages(format = "png", { scale = 2 } = {}) {
+      for (let i = 0; i < this.doc.pages.length; i++) {
+        const page = this.doc.pages[i];
+        const canvas = await this._renderPageToCanvas(page, scale, false);
+        canvas.toBlob((blob) => {
+          const name = `${this.fileName.replace(/[^\w\- ]+/g, "").trim() || "design"}-page-${i + 1}.${format === "jpeg" ? "jpg" : "png"}`;
+          downloadBlob(blob, name);
+        }, format === "jpeg" ? "image/jpeg" : "image/png");
+      }
+    }
+    downloadJSON() {
+      const blob = new Blob([JSON.stringify({ name: this.fileName, ...this.getJSON() }, null, 2)], {
+        type: "application/json"
+      });
+      downloadBlob(blob, `${this.fileName.replace(/[^\w\- ]+/g, "").trim() || "design"}.json`);
+      this.emit("save", this.fileName);
+    }
+    destroy() {
+      this.interactions?.destroy();
+      closeMenus(this);
+      for (const module of Object.values(this.ui || {})) module?.destroy?.();
+      if (this._editing) {
+        this._editing = false;
+        this._textEditorEl?.remove();
+        this._textEditorEl = null;
+      }
+      this._resizeObserver?.disconnect();
+      if (this._raf) cancelAnimationFrame(this._raf);
+      this.container.__ezyreka = null;
+      this.container.classList.remove("ez-editor");
+      this.container.innerHTML = "";
+      this._listeners.clear();
+    }
+  };
+
+  // src/index.js
+  var version = "1.0.0";
+  function autoInit() {
+    document.querySelectorAll("[data-ez-editor]").forEach((node) => {
+      if (node.__ezyreka) return;
+      const editor = new Editor({
+        target: node,
+        width: parseInt(node.dataset.skWidth, 10) || 1080,
+        height: parseInt(node.dataset.skHeight, 10) || 1080,
+        name: node.dataset.skName || "Untitled design"
+      });
+      node.__ezyreka = editor;
+    });
+  }
+  if (typeof document !== "undefined") {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", autoInit);
+    } else {
+      autoInit();
+    }
+  }
+  var index_default = { Editor, version, autoInit };
+  return __toCommonJS(index_exports);
+})();
+//# sourceMappingURL=ezyreka.umd.js.map
