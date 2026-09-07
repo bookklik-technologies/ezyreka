@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: Ezyreka
-  text: The Canva-style design editor for the web
-  tagline: A standalone, full-featured design editor library. No frameworks, no runtime dependencies — one script tag.
+  text: Embeddable Canva-style design editor library
+  tagline: Add a full canvas design editor to web apps with a dependency-free JS bundle, built-in UI, headless mode, and one-script-tag setup.
   actions:
     - theme: brand
       text: Get started

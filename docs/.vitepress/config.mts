@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitepress'
 
 const description =
-  'Ezyreka is a standalone, full-featured, Canva-style design editor for the web. No frameworks, no runtime dependencies — one script tag.'
+  'Ezyreka is an embeddable, dependency-free JavaScript library for adding a Canva-style design editor to web apps.'
 
 export default defineConfig({
   lang: 'en-US',

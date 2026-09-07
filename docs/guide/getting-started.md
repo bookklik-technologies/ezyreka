@@ -1,6 +1,6 @@
 # Introduction
 
-**Ezyreka** is a standalone, full-featured, Canva-style design editor for the web. It ships as a single dependency-free JS library that you can initialize **programmatically** with JavaScript or **automatically** via `<div data-ez-editor></div>`.
+**Ezyreka** is an embeddable, dependency-free JavaScript library for adding a Canva-style design editor to web apps. It ships as a single JS bundle and can run with the built-in UI or as a headless canvas engine, initialized **programmatically** with JavaScript or **declaratively** via `<div data-ez-editor></div>`.
 
 No frameworks. No runtime dependencies. One script tag.
 
