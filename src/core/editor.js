@@ -1,14 +1,21 @@
 import { Emitter, uid, deepClone, clamp, el, readAsDataURL, downloadDataURL, downloadBlob } from './utils.js';
 import { History } from './history.js';
-import { normalizeChart, validateChart } from './charts.js';
+import { setChartColors, registerChartPreset } from './charts.js';
+import { createRegistry } from './registry.js';
 import {
   createElement,
   hitTest,
   elementCenter,
   selectionBBox,
-  elementName
+  elementName,
+  manifestFor,
+  ELEMENT_MANIFESTS,
+  registerElementType as registerElementDefaults,
+  registerElementManifest
 } from './elements.js';
-import { renderPage, whenImagesReady, measureTextElement } from './renderer.js';
+import { renderPage, whenImagesReady, measureTextElement, registerElementRenderer } from './renderer.js';
+import { registerChartRenderer } from './chart-renderer.js';
+import { registerBackgroundPainter } from './renderer.js';
 import { Interactions } from '../interactions.js';
 import { Topbar } from '../ui/topbar.js';
 import { Sidepanel } from '../ui/sidepanel.js';
@@ -36,7 +43,12 @@ export class Editor extends Emitter {
     };
     this.fileName = this.options.name;
     this.zoom = 1;
-    this.theme = options.theme === 'dark' ? 'dark' : 'light';
+    this._themes = { ...(options.themes || {}) };
+    this._appliedVars = [];
+    const themeOption = typeof options.theme === 'string' ? options.theme : 'light';
+    this.theme = themeOption === 'dark' || themeOption === 'light' || this._themes[themeOption]
+      ? themeOption
+      : 'light';
     this.pageIndex = 0;
     this.selection = new Set();
     this.clipboard = [];
@@ -45,6 +57,10 @@ export class Editor extends Emitter {
     this._guides = [];
     this._editing = false;
     this._measureCtx = document.createElement('canvas').getContext('2d');
+
+    // Per-editor asset registries: built-ins merged with injected options.
+    this.registry = createRegistry(options);
+    if (Array.isArray(options.chartColors)) setChartColors(options.chartColors);
 
     this.doc = {
       version: 1,
@@ -60,22 +76,41 @@ export class Editor extends Emitter {
     };
 
     injectStyles();
-    injectFonts();
+    injectFonts(this.registry.googleFonts);
     this._buildDOM(target);
     this.setTheme(this.theme);
-    this.history = new History();
+    // Custom history strategies (e.g. server-backed or memory-pruned) can be
+    // injected as long as they implement the same snapshot interface.
+    this.history = options.history || new History();
+    for (const method of ['push', 'undo', 'redo', 'reset']) {
+      if (typeof this.history[method] !== 'function') {
+        throw new Error(`SenangDesign: custom history must implement ${method}()`);
+      }
+    }
     this.history.push(deepClone(this.doc));
 
     this.interactions = new Interactions(this);
-    this.ui = {
-      topbar: new Topbar(this),
-      sidepanel: new Sidepanel(this),
-      toolbar: new Toolbar(this),
-      contextMenu: new ContextMenu(this),
-      pagesBar: new PagesBar(this)
+    // UI modules are configurable per instance: `ui: false` runs headless,
+    // `{ sidepanel: false }` disables one module, and a constructor replaces it.
+    const uiDefaults = {
+      topbar: Topbar,
+      sidepanel: Sidepanel,
+      toolbar: Toolbar,
+      contextMenu: ContextMenu,
+      pagesBar: PagesBar
     };
+    const uiSpec = options.ui === false ? {} : { ...uiDefaults, ...(options.ui || {}) };
+    this.ui = {};
+    for (const [key, Impl] of Object.entries(uiSpec)) {
+      if (typeof Impl === 'function') this.ui[key] = new Impl(this);
+    }
+    if (!this.ui.topbar) this.topbarEl.style.display = 'none';
+    if (!this.ui.sidepanel) this.sidepanelEl.style.display = 'none';
+    if (!this.ui.toolbar) this.toolbarEl.style.display = 'none';
+    if (!this.ui.pagesBar) this.pagesBarEl.style.display = 'none';
 
     this.zoomFit();
+    if (options.initialDoc) this.loadJSON(options.initialDoc);
     if (document.fonts?.ready) document.fonts.ready.then(() => this.markDirty());
     this._resizeObserver = new ResizeObserver(() => this.markDirty());
     this._resizeObserver.observe(this.viewport);
@@ -152,7 +187,7 @@ export class Editor extends Emitter {
       this.canvas.style.height = cssH + 'px';
     }
     this.ctx.setTransform(this.zoom * dpr, 0, 0, this.zoom * dpr, 0, 0);
-    renderPage(this.ctx, this.page);
+    renderPage(this.ctx, this.page, { registry: this.registry });
     if (!this._editing && this.interactions?.drag?.mode !== 'band') this.updateOverlay();
     this.ui?.toolbar?.update();
   }
@@ -276,11 +311,20 @@ export class Editor extends Emitter {
 
   updateSelected(props, commit = true) {
     const selected = this.getSelected();
-    if (props.chart !== undefined) {
-      const targets = selected.filter(item => item.type === 'chart' && !item.locked);
+    // Props listed in a type manifest's exclusiveProps target only the types
+    // that declare them (and run their normalizer), instead of hitting all.
+    const exclusiveKey = Object.keys(props).find((key) =>
+      Object.values(ELEMENT_MANIFESTS).some((m) => m.exclusiveProps && key in m.exclusiveProps));
+    if (exclusiveKey !== undefined) {
+      const entry = Object.values(ELEMENT_MANIFESTS)
+        .find((m) => m.exclusiveProps && exclusiveKey in m.exclusiveProps);
+      const types = new Set(Object.entries(ELEMENT_MANIFESTS)
+        .filter(([, m]) => m.exclusiveProps && exclusiveKey in m.exclusiveProps)
+        .map(([type]) => type));
+      const targets = selected.filter(item => types.has(item.type) && !item.locked);
       if (!targets.length) return;
-      const chart = validateChart(normalizeChart(props.chart));
-      targets.forEach(item => Object.assign(item, props, { chart: normalizeChart(chart) }));
+      const value = entry.exclusiveProps[exclusiveKey](props[exclusiveKey]);
+      targets.forEach(item => Object.assign(item, props, { [exclusiveKey]: value }));
     } else selected.forEach((elx) => Object.assign(elx, props));
     this.markDirty();
     if (commit) this.commit();
@@ -483,7 +527,7 @@ export class Editor extends Emitter {
       e.stopPropagation();
     });
     ed.addEventListener('blur', () => this.commitTextEdit());
-    this.ui.toolbar.update();
+    this.ui.toolbar?.update();
     ed.focus();
     if (elx.__fresh) {
       const range = document.createRange();
@@ -582,6 +626,11 @@ export class Editor extends Emitter {
   }
 
   applyTemplate(tpl) {
+    if (!tpl || typeof tpl !== 'object' || !tpl.page ||
+        !Number.isFinite(tpl.page.width) || !Number.isFinite(tpl.page.height) ||
+        !Array.isArray(tpl.page.elements)) {
+      throw new Error('SenangDesign: templates need { name, page: { width, height, elements } }');
+    }
     if (this._editing) this.commitTextEdit();
     this.doc = {
       version: 1,
@@ -647,10 +696,204 @@ export class Editor extends Emitter {
     });
   }
 
+  // ---- Customization: register assets on this editor's registry ----
+
+  registerTemplates(templates) {
+    const list = Array.isArray(templates) ? templates : [templates];
+    for (const tpl of list) {
+      if (!tpl || typeof tpl !== 'object' || !tpl.page ||
+          !Number.isFinite(tpl.page.width) || !Number.isFinite(tpl.page.height) ||
+          !Array.isArray(tpl.page.elements)) {
+        throw new Error('SenangDesign: templates need { name, page: { width, height, elements } }');
+      }
+    }
+    this.registry.templates.push(...list.map((tpl) => deepClone(tpl)));
+    this._refreshPanels('templates');
+  }
+
+  registerFont(name, { google } = {}) {
+    if (typeof name !== 'string' || !name.trim()) {
+      throw new Error('SenangDesign: registerFont needs a font family name');
+    }
+    name = name.trim();
+    if (!this.registry.fonts.includes(name)) this.registry.fonts.push(name);
+    if (google) {
+      const family = typeof google === 'string' && google.trim()
+        ? google.trim()
+        : name.replace(/ /g, '+');
+      // Accept either a full css2 spec ("Familia:wght@400;700") or a family
+      // name, to which a default weight range is applied.
+      const spec = /[:@]/.test(family) ? family : `${family}:wght@400;600;700`;
+      if (!this.registry.googleFonts.includes(spec)) this.registry.googleFonts.push(spec);
+      injectFonts(this.registry.googleFonts);
+      document.fonts?.ready?.then(() => this.markDirty());
+    }
+    this._refreshPanels('text');
+    return name;
+  }
+
+  registerIcons(icons) {
+    if (!icons || typeof icons !== 'object') {
+      throw new Error('SenangDesign: registerIcons needs { name: pathOrPathPair }');
+    }
+    for (const [name, def] of Object.entries(icons)) {
+      const solid = typeof def === 'string' ? def : def?.solid;
+      const outline = typeof def === 'string' ? def : def?.outline;
+      if (typeof solid !== 'string') {
+        throw new Error(`SenangDesign: icon "${name}" needs an SVG path string`);
+      }
+      this.registry.icons[name] = solid;
+      this.registry.iconOutlines[name] = typeof outline === 'string' ? outline : solid;
+    }
+    this._refreshPanels('elements');
+  }
+
+  registerShapes(shapes) {
+    const list = Array.isArray(shapes) ? shapes : [shapes];
+    const entries = list.map((item) => {
+      if (!item || typeof item.label !== 'string') {
+        throw new Error('SenangDesign: shapes need at least { label }');
+      }
+      const entry = { type: item.type || 'shape', label: item.label, props: item.props };
+      if (typeof item.path === 'string') {
+        const name = item.shape || item.label.toLowerCase().replace(/\s+/g, '-');
+        this.registry.shapePaths[name] = item.path;
+        entry.svg = item.svg ||
+          `<path d="${item.path}" transform="translate(8 8) scale(.84)" fill-rule="evenodd" />`;
+        entry.props = item.props || { shape: name };
+      } else {
+        if (typeof item.svg !== 'string') {
+          throw new Error(`SenangDesign: shape "${item.label}" needs "path" or "svg"`);
+        }
+        entry.svg = item.svg;
+      }
+      return entry;
+    });
+    this.registry.shapes.push(...entries);
+    this._refreshPanels('elements');
+  }
+
+  // ---- Customization: extend rendering, panels and image sources ----
+
+  /** Overrides or adds the canvas renderer for an element type: fn(ctx, el, registry). */
+  registerElementRenderer(type, renderer) {
+    registerElementRenderer(type, renderer);
+    this.registry.elementRenderers[type] = renderer;
+    this.markDirty();
+  }
+
+  /** Registers a brand-new element type: { defaults, manifest, render }. */
+  registerElementType(type, def = {}) {
+    registerElementDefaults(type, { defaults: def.defaults, manifest: def.manifest });
+    if (typeof def.render === 'function') {
+      registerElementRenderer(type, def.render);
+      this.registry.elementRenderers[type] = def.render;
+    }
+    this._refreshPanels('layers');
+  }
+
+  /** Overrides or adds the painter for a chart type: fn(ctx, chart, series, plotBox, font, bounds). */
+  registerChartRenderer(type, renderer) {
+    registerChartRenderer(type, renderer);
+    this.registry.chartRenderers[type] = renderer;
+    this.markDirty();
+  }
+
+  /**
+   * Registers a brand-new chart type: a preset ({ type, label, group, kind,
+   * circular, multiSeries, validate }) plus an optional painter. It becomes
+   * available in the gallery, type dropdown, normalization and validation.
+   */
+  registerChartType(preset, renderFn) {
+    registerChartPreset(preset);
+    if (typeof renderFn === 'function') this.registerChartRenderer(preset.type, renderFn);
+    this._refreshPanels('charts');
+    return preset;
+  }
+
+  /** Replaces this editor's color swatches; entries are hex strings or { label, colors } groups. */
+  registerPalette(palette) {
+    if (!Array.isArray(palette) || !palette.length) {
+      throw new Error('SenangDesign: registerPalette needs a non-empty array');
+    }
+    this.registry.palette = palette;
+    this._refreshPanels('background');
+  }
+
+  /** Registers a background type painter: fn(ctx, bg, pageWidth, pageHeight). */
+  registerBackgroundPainter(type, painter) {
+    registerBackgroundPainter(type, painter);
+    this.registry.backgroundPainters[type] = painter;
+    this.markDirty();
+  }
+
+  /** Extends or overrides an element type's capability manifest. */
+  registerElementManifest(type, manifest) {
+    registerElementManifest(type, manifest);
+    this._refreshPanels('layers');
+  }
+
+  /** Adds a sidebar tab: { id, label, icon, render(contentEl, editor) }. */
+  registerPanel(panel) {
+    if (!this.ui.sidepanel) {
+      throw new Error('SenangDesign: registerPanel requires the sidepanel UI module');
+    }
+    this.ui.sidepanel.registerPanel(panel);
+  }
+
+  /** Registers an existing image (URL or data URL) into the uploads library. */
+  registerImage(image) {
+    const src = typeof image === 'string' ? image : image?.src;
+    const name = (typeof image === 'object' && image?.name) || 'Image';
+    if (typeof src !== 'string' || !src) {
+      throw new Error('SenangDesign: registerImage needs a src string or { src, name }');
+    }
+    const entry = { id: uid('up'), src, name };
+    this.uploads.push(entry);
+    this.emit('upload', this.uploads);
+    return entry;
+  }
+
+  /** Adds an image source provider: { id, label?, search(query) => [{ src, name, thumb? }] }. */
+  registerImageSource(source) {
+    if (!source || typeof source.id !== 'string' || typeof source.search !== 'function') {
+      throw new Error('SenangDesign: image sources need { id, search(query) }');
+    }
+    this.registry.imageSources.push(source);
+    this._refreshPanels('uploads');
+    return source;
+  }
+
+  _refreshPanels(...tabs) {
+    if (this.ui?.sidepanel && tabs.includes(this.ui.sidepanel.activeTab)) {
+      this.ui.sidepanel.rerender();
+    }
+    if (this.ui?.toolbar) this.ui.toolbar.lastSig = null;
+  }
+
+  /** Registers a named theme from CSS custom properties, usable via setTheme(). */
+  registerTheme(name, vars) {
+    if (typeof name !== 'string' || !name || typeof vars !== 'object' || !vars) {
+      throw new Error('SenangDesign: registerTheme needs a name and a CSS variables object');
+    }
+    this._themes[name] = vars;
+    return name;
+  }
+
   setTheme(theme) {
-    if (theme !== 'dark' && theme !== 'light') return;
+    const custom = this._themes[theme];
+    if (theme !== 'dark' && theme !== 'light' && !custom) return;
     this.theme = theme;
     this.container.classList.toggle('sk-dark', theme === 'dark');
+    // Custom themes and the cssVars option are applied as inline variables;
+    // previously applied ones are removed first so switching is reversible.
+    for (const name of this._appliedVars) this.container.style.removeProperty(name);
+    this._appliedVars = [];
+    const vars = { ...(this.options.cssVars || {}), ...(custom || {}) };
+    for (const [name, value] of Object.entries(vars)) {
+      this.container.style.setProperty(name, String(value));
+      this._appliedVars.push(name);
+    }
     this.emit('theme', theme);
   }
 
@@ -737,7 +980,11 @@ export class Editor extends Emitter {
   async _renderPageToCanvas(page, scale, transparent) {
     const srcs = [];
     if (page.background?.type === 'image' && page.background.src) srcs.push(page.background.src);
-    for (const e2 of page.elements) if (e2.type === 'image' && e2.src) srcs.push(e2.src);
+    for (const e2 of page.elements) {
+      for (const prop of manifestFor(e2.type).preloadProps || []) {
+        if (e2[prop]) srcs.push(e2[prop]);
+      }
+    }
     await whenImagesReady(srcs);
     await (document.fonts?.ready || Promise.resolve());
     const canvas = document.createElement('canvas');
@@ -749,7 +996,10 @@ export class Editor extends Emitter {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
     ctx.scale(scale, scale);
-    renderPage(ctx, page, { transparent: transparent && page.background?.type !== 'image' });
+    renderPage(ctx, page, {
+      transparent: transparent && page.background?.type !== 'image',
+      registry: this.registry
+    });
     return canvas;
   }
 
@@ -788,6 +1038,8 @@ export class Editor extends Emitter {
   destroy() {
     this.interactions?.destroy();
     closeMenus(this);
+    // UI modules unsubscribe their editor listeners and release references.
+    for (const module of Object.values(this.ui || {})) module?.destroy?.();
     if (this._editing) {
       this._editing = false;
       this._textEditorEl?.remove();

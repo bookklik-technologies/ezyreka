@@ -1,5 +1,6 @@
 import { uid, rotatePoint, deg2rad } from './utils.js';
 import { normalizeChart, validateChart, sampleChart, CHART_PRESETS } from './charts.js';
+import { ACCENT } from './constants.js';
 
 const BASE = {
   x: 0,
@@ -29,17 +30,17 @@ const TYPE_DEFAULTS = {
     w: 420,
     h: 64
   },
-  rect: { fill: '#d97706', stroke: '', strokeWidth: 0, radius: 0 },
-  ellipse: { fill: '#d97706', stroke: '', strokeWidth: 0 },
-  triangle: { fill: '#d97706', stroke: '', strokeWidth: 0 },
+  rect: { fill: ACCENT, stroke: '', strokeWidth: 0, radius: 0 },
+  ellipse: { fill: ACCENT, stroke: '', strokeWidth: 0 },
+  triangle: { fill: ACCENT, stroke: '', strokeWidth: 0 },
   star: { fill: '#f59e0b', stroke: '', strokeWidth: 0 },
-  hexagon: { fill: '#d97706', stroke: '', strokeWidth: 0 },
-  diamond: { fill: '#d97706', stroke: '', strokeWidth: 0 },
+  hexagon: { fill: ACCENT, stroke: '', strokeWidth: 0 },
+  diamond: { fill: ACCENT, stroke: '', strokeWidth: 0 },
   heart: { fill: '#ef4444', stroke: '', strokeWidth: 0 },
   line: { stroke: '#111827', strokeWidth: 4, arrow: false, w: 220, h: 0 },
   image: { src: '' },
   icon: { icon: 'star', iconStyle: 'solid', fill: '#111827', w: 120, h: 120 },
-  shape: { shape: 'pentagon', fill: '#d97706', stroke: '', strokeWidth: 0 },
+  shape: { shape: 'pentagon', fill: ACCENT, stroke: '', strokeWidth: 0 },
   chart: { w: 600, h: 400 }
 };
 
@@ -58,6 +59,85 @@ const TYPE_NAMES = {
   shape: 'Shape'
 };
 
+// Per-type capability manifest: one place describing display names, layer
+// icons, double-click behavior, toolbar control groups, hit-testing and
+// asset preloading. Consulted by the renderer-adjacent UI, interactions and
+// the editor, so a new element type describes itself instead of scattering
+// if-chains across modules. `name` may be a string or an element function.
+export const ELEMENT_MANIFESTS = {
+  text: {
+    name: (el) => {
+      const t = (el.text || '').trim().replace(/\s+/g, ' ');
+      return t ? (t.length > 22 ? t.slice(0, 22) + '…' : t) : 'Text';
+    },
+    layerIcon: 'text',
+    edit: 'text',
+    autoFitHeight: true,
+    toolbar: ['text', 'opacity'],
+    create: (el, props) => {
+      if (!props.h) el.h = Math.round(el.fontSize * el.lineHeight) + 8;
+    }
+  },
+  rect: { name: 'Rectangle', toolbar: ['fill', 'opacity'], radius: true },
+  ellipse: { name: 'Ellipse', toolbar: ['fill', 'opacity'] },
+  triangle: { name: 'Triangle', toolbar: ['fill', 'opacity'] },
+  star: { name: 'Star', toolbar: ['fill', 'opacity'] },
+  hexagon: { name: 'Hexagon', toolbar: ['fill', 'opacity'] },
+  diamond: { name: 'Diamond', toolbar: ['fill', 'opacity'] },
+  heart: { name: 'Heart', toolbar: ['fill', 'opacity'] },
+  line: { name: 'Line', hitTest: 'segment', toolbar: ['line'] },
+  image: { name: 'Image', layerIcon: 'image', toolbar: ['opacity'], preloadProps: ['src'] },
+  icon: {
+    name: (el) => 'Icon (' + el.icon + ')',
+    toolbar: ['fill', 'iconStyle', 'opacity']
+  },
+  shape: {
+    name: (el) => (el.shape || 'Shape').replace(/-/g, ' ').replace(/^./, c => c.toUpperCase()),
+    toolbar: ['fill', 'opacity']
+  },
+  chart: {
+    name: (el) => el.chart?.title || `${CHART_PRESETS.find(p => p.type === el.chart?.type)?.label || 'Data'} chart`,
+    layerIcon: 'chart',
+    edit: 'chart',
+    toolbar: ['chartEdit', 'opacity'],
+    create: (el, props) => {
+      el.chart = validateChart(props.chart ? normalizeChart(props.chart) : sampleChart());
+    },
+    // Props in this map target only this type; the value normalizes them.
+    exclusiveProps: { chart: (c) => normalizeChart(validateChart(normalizeChart(c))) }
+  }
+};
+
+export function manifestFor(type) {
+  return ELEMENT_MANIFESTS[type] || {};
+}
+
+// Extends or overrides a type's manifest. Global (like setChartColors):
+// manifests are behavior contracts, not per-instance assets.
+export function registerElementManifest(type, partial = {}) {
+  if (typeof type !== 'string' || !type) {
+    throw new Error('SenangDesign: registerElementManifest needs a type name');
+  }
+  if (typeof partial !== 'object' || !partial) {
+    throw new Error('SenangDesign: manifest must be an object');
+  }
+  ELEMENT_MANIFESTS[type] = { ...ELEMENT_MANIFESTS[type], ...partial };
+}
+
+// Registers a brand-new element type: defaults for the factory plus an
+// optional manifest. Pair with registerElementRenderer for canvas output.
+export function registerElementType(type, { defaults = {}, manifest = {} } = {}) {
+  if (typeof type !== 'string' || !/^[a-z][a-z0-9-]*$/i.test(type)) {
+    throw new Error('SenangDesign: element type names must be simple identifiers');
+  }
+  if (TYPE_DEFAULTS[type]) throw new Error(`SenangDesign: element type "${type}" already exists`);
+  if (typeof defaults !== 'object' || !defaults) {
+    throw new Error('SenangDesign: element type defaults must be an object');
+  }
+  TYPE_DEFAULTS[type] = defaults;
+  registerElementManifest(type, { name: type, ...manifest });
+}
+
 export function createElement(type, props = {}) {
   const defaults = TYPE_DEFAULTS[type];
   if (!defaults) throw new Error(`SenangDesign: unknown element type "${type}"`);
@@ -68,22 +148,14 @@ export function createElement(type, props = {}) {
     id: props.id || uid(type),
     type
   };
-  if (type === 'text' && !props.h) {
-    el.h = Math.round(el.fontSize * el.lineHeight) + 8;
-  }
-  if (type === 'chart') el.chart = validateChart(props.chart ? normalizeChart(props.chart) : sampleChart());
+  const create = manifestFor(type).create;
+  if (create) create(el, props);
   return el;
 }
 
 export function elementName(el) {
-  if (el.type === 'chart') return el.chart?.title || `${CHART_PRESETS.find(p => p.type === el.chart?.type)?.label || 'Data'} chart`;
-  if (el.type === 'text') {
-    const t = (el.text || '').trim().replace(/\s+/g, ' ');
-    return t ? (t.length > 22 ? t.slice(0, 22) + '…' : t) : 'Text';
-  }
-  if (el.type === 'icon') return 'Icon (' + el.icon + ')';
-  if (el.type === 'shape') return (el.shape || 'Shape').replace(/-/g, ' ').replace(/^./, c => c.toUpperCase());
-  return TYPE_NAMES[el.type] || el.type;
+  const name = manifestFor(el.type).name;
+  return typeof name === 'function' ? name(el) : (name || el.type);
 }
 
 export function elementCenter(el) {
@@ -128,7 +200,7 @@ export function hitTest(el, wx, wy, tolerance = 4) {
   // Undoing rotation leaves world coordinates; hit areas use the element's local origin.
   p.x -= el.x;
   p.y -= el.y;
-  if (el.type === 'line') {
+  if (manifestFor(el.type).hitTest === 'segment') {
     const tol = Math.max(10, (el.strokeWidth || 4) + tolerance);
     return distToSegment(p.x, p.y, 0, 0, el.w, el.h) <= tol;
   }

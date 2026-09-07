@@ -1,6 +1,8 @@
-import { el, clamp } from '../core/utils.js';
+import { el, clamp, hexOr } from '../core/utils.js';
 import { UI_ICONS } from '../core/assets.js';
-import { selectionBBox } from '../core/elements.js';
+import { selectionBBox, manifestFor } from '../core/elements.js';
+import { colorField } from './colorfield.js';
+import { ACCENT, GRADIENT_FALLBACKS } from '../core/constants.js';
 
 export class Toolbar {
   constructor(editor) {
@@ -8,7 +10,12 @@ export class Toolbar {
     this.root = editor.toolbarEl;
     this.root.classList.add('sk-floating-toolbar');
     this.lastSig = null;
-    editor.on('selection', () => (this.lastSig = null));
+    this._unsubs = [editor.on('selection', () => (this.lastSig = null))];
+  }
+
+  destroy() {
+    this._unsubs?.forEach((off) => off());
+    this._unsubs = [];
   }
 
   selectionSig() {
@@ -58,17 +65,20 @@ export class Toolbar {
     this.root.innerHTML = '';
     this.fillControls = null;
     const first = sel[0];
-    const allText = sel.every((s) => s.type === 'text');
-    const isLine = sel.every((s) => s.type === 'line');
-    if (sel.length === 1 && first.type === 'chart') {
+    // Control groups come from each type's capability manifest; a group shows
+    // only when every selected element's type supports it.
+    const groups = ['chartEdit', 'text', 'fill', 'line', 'iconStyle', 'opacity'];
+    const common = groups.filter((group) =>
+      sel.every((s) => manifestFor(s.type).toolbar?.includes(group)));
+    if (common.includes('chartEdit') && sel.length === 1) {
       const edit = el('button', 'sk-btn sk-btn-ghost', this.root);
       edit.textContent = 'Edit chart';
-      edit.onclick = () => ed.ui.sidepanel.charts.open();
+      edit.onclick = () => ed.ui.sidepanel?.charts?.open();
     }
 
-    if (allText) {
+    if (common.includes('text')) {
       const fontSel = el('select', 'sk-input sk-font-select', this.root);
-      for (const f of ['Poppins', 'Inter', 'Montserrat', 'Playfair Display', 'Lobster', 'Bebas Neue', 'Rubik', 'Arial', 'Georgia', 'Times New Roman', 'Courier New', 'Verdana', 'Impact'])
+      for (const f of ed.registry.fonts)
         fontSel.innerHTML += `<option>${f}</option>`;
       fontSel.value = first.fontFamily;
       this.bind(fontSel, 'fontFamily', (n) => n.value);
@@ -98,17 +108,17 @@ export class Toolbar {
       this.colorInput('Text color', first.color, 'color');
     }
 
-    if (!allText && !isLine && first.fill !== undefined) {
+    if (common.includes('fill')) {
       this.fillInput();
       if (first.stroke !== undefined && first.type !== 'image') {
         this.colorInput('Stroke', first.stroke || '#000000', 'stroke');
         this.numInput('Stroke', first.strokeWidth || 0, 0, 100, (v) => ({ strokeWidth: v }));
       }
-      if (first.type === 'rect') {
+      if (manifestFor(first.type).radius) {
         this.numInput('Radius', first.radius || 0, 0, 400, (v) => ({ radius: v }));
       }
     }
-    if (isLine) {
+    if (common.includes('line')) {
       this.colorInput('Color', first.stroke, 'stroke');
       this.numInput('Width', first.strokeWidth, 1, 100, (v) => ({ strokeWidth: v }));
       const arrowBtn = el('button', 'sk-tool-toggle', this.root);
@@ -117,14 +127,14 @@ export class Toolbar {
       arrowBtn.dataset.prop = 'arrow';
       arrowBtn.onclick = () => ed.updateSelected({ arrow: !first.arrow });
     }
-    if (sel.every(s => s.type === 'icon')) {
+    if (common.includes('iconStyle')) {
       const style = el('select', 'sk-input', this.root);
       style.setAttribute('aria-label', 'Icon style');
       style.innerHTML = '<option value="solid">Solid</option><option value="outline">Outline</option>';
       style.value = first.iconStyle || 'solid';
       this.bind(style, 'iconStyle');
     }
-    if (first.type !== 'line') {
+    if (common.includes('opacity')) {
       this.numInput('Opacity', Math.round((first.opacity ?? 1) * 100), 0, 100, (v) => ({ opacity: v / 100 }));
     }
 
@@ -171,6 +181,12 @@ export class Toolbar {
       if (prop === 'opacity') v = Math.round((v ?? 1) * 100);
       if (document.activeElement !== input) input.value = v ?? '';
     });
+    // Keep hex companions of bound color inputs in sync with the same values.
+    this.root.querySelectorAll('input[data-hex-for]').forEach((hex) => {
+      if (document.activeElement === hex) return;
+      const target = this.root.querySelector(`[data-bind="${hex.dataset.hexFor}"]`);
+      if (target) hex.value = target.value;
+    });
   }
 
   bind(input, prop, getter = (n) => n.value) {
@@ -194,7 +210,7 @@ export class Toolbar {
     mode.onchange = () => {
       const fill = ed.getSelected()[0]?.fill;
       const color = fill?.type === 'gradient' ? fill.from : fill;
-      const from = color && color !== 'none' ? color : '#d97706';
+      const from = color && color !== 'none' ? color : ACCENT;
       ed.updateSelected({ fill: mode.value === 'gradient'
         ? { type: 'gradient', from, to: '#ffffff', angle: 135 }
         : mode.value === 'none' ? 'none' : from });
@@ -202,18 +218,17 @@ export class Toolbar {
 
     const colors = {};
     for (const [key, title] of [['solid', 'Fill color'], ['from', 'Gradient start color'], ['to', 'Gradient end color']]) {
-      const label = el('label', 'sk-color-wrap', this.root);
-      label.title = title;
-      const input = el('input', 'sk-color-input', label);
-      input.type = 'color';
-      input.setAttribute('aria-label', title);
-      input.oninput = () => {
-        const fill = ed.getSelected()[0]?.fill;
-        if (key === 'solid') ed.updateSelected({ fill: input.value }, false);
-        else if (fill?.type === 'gradient') ed.updateSelected({ fill: { ...fill, [key]: input.value } }, false);
-      };
-      input.onchange = () => ed.commit();
-      colors[key] = { label, input };
+      const field = colorField(this.root, {
+        title,
+        value: '#000000',
+        onInput: (value) => {
+          const fill = ed.getSelected()[0]?.fill;
+          if (key === 'solid') ed.updateSelected({ fill: value }, false);
+          else if (fill?.type === 'gradient') ed.updateSelected({ fill: { ...fill, [key]: value } }, false);
+        },
+        onCommit: () => ed.commit()
+      });
+      colors[key] = { label: field.group, input: field.input, field };
     }
     const angleWrap = el('label', 'sk-num-wrap', this.root);
     el('span', 'sk-num-label', angleWrap).textContent = 'Angle';
@@ -239,10 +254,11 @@ export class Toolbar {
     const { mode, colors, angleWrap, angle } = this.fillControls;
     const gradient = fill?.type === 'gradient';
     mode.value = gradient ? 'gradient' : fill === 'none' ? 'none' : 'solid';
-    for (const [key, { label, input }] of Object.entries(colors)) {
+    for (const [key, { label, input, field }] of Object.entries(colors)) {
       label.style.display = (key === 'solid' ? !gradient && fill !== 'none' : gradient) ? '' : 'none';
-      const color = key === 'solid' ? fill : fill?.[key] || (key === 'from' ? '#ffffff' : '#eeeeee');
-      if (document.activeElement !== input) input.value = /^#[0-9a-f]{6}$/i.test(color || '') ? color : '#000000';
+      const color = key === 'solid' ? fill : fill?.[key] || GRADIENT_FALLBACKS[key];
+      if (document.activeElement !== input) input.value = hexOr(color, '#000000');
+      if (document.activeElement !== field.hex) field.hex.value = hexOr(color, '#000000');
     }
     angleWrap.style.display = gradient ? '' : 'none';
     if (document.activeElement !== angle) angle.value = gradient ? fill.angle ?? 135 : 135;
@@ -250,12 +266,14 @@ export class Toolbar {
 
   colorInput(title, value, prop) {
     const ed = this.editor;
-    const wrap = el('label', 'sk-color-wrap', this.root);
-    wrap.title = title;
-    const input = el('input', 'sk-color-input', wrap);
-    input.type = 'color';
-    input.value = /^#([0-9a-f]{6})$/i.test(value || '') ? value : '#000000';
-    this.bind(input, prop, (n) => n.value);
+    const field = colorField(this.root, {
+      title,
+      value: hexOr(value, '#000000'),
+      onInput: (next) => ed.updateSelected({ [prop]: next }, false),
+      onCommit: () => ed.commit()
+    });
+    field.input.dataset.bind = prop;
+    field.hex.dataset.hexFor = prop;
   }
 
   numInput(label, value, min, max, mapper) {

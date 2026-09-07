@@ -1,7 +1,9 @@
-import { EXTRA_SHAPES, EXTRA_ICONS, GEAR_PATH } from './element-artwork.js';
+import { EXTRA_SHAPES, EXTRA_ICONS, GEAR_PATH, SHAPE_PATHS, ICON_OUTLINES } from './element-artwork.js';
 export { SHAPE_PATHS, ICON_OUTLINES } from './element-artwork.js';
 
-export const GOOGLE_FONTS = [
+// Single source of truth for the built-in Google Fonts. styles.js builds the
+// webfont <link> from this array; registry.js extends it with user fonts.
+export const GOOGLE_FONT_FAMILIES = [
   'Poppins:wght@400;600;700;800',
   'Inter:wght@400;600;700;800',
   'Montserrat:wght@400;600;700;800',
@@ -9,7 +11,7 @@ export const GOOGLE_FONTS = [
   'Lobster',
   'Bebas+Neue',
   'Rubik:wght@400;600;700'
-].join('&family=');
+];
 
 export const FONTS = [
   'Poppins',
@@ -47,43 +49,58 @@ export const GRADIENTS = [
   { from: '#111111', to: '#333333', angle: 90 }
 ];
 
+// Primitive previews derive from the same SHAPE_PATHS geometry the canvas
+// renders, so panel artwork can never drift from output.
+const shapePreview = (name) => `<path d="${SHAPE_PATHS[name]}" />`;
+
 export const SHAPES = [
   { type: 'rect', label: 'Square', svg: '<rect x="12" y="12" width="76" height="76" />' },
   { type: 'rect', label: 'Rounded', props: { radius: 40 }, svg: '<rect x="12" y="12" width="76" height="76" rx="15.2" />' },
-  { type: 'ellipse', label: 'Circle', svg: '<circle cx="50" cy="50" r="38" />' },
-  { type: 'triangle', label: 'Triangle', svg: '<polygon points="50,8 92,92 8,92" />' },
-  { type: 'star', label: 'Star', svg: '<polygon points="50,6 61,38 95,38 67,59 78,92 50,72 22,92 33,59 5,38 39,38" />' },
-  { type: 'hexagon', label: 'Hexagon', svg: '<polygon points="26,8 74,8 96,50 74,92 26,92 4,50" />' },
-  { type: 'diamond', label: 'Diamond', svg: '<polygon points="50,6 94,50 50,94 6,50" />' },
-  { type: 'heart', label: 'Heart', svg: '<path d="M50 86 C22 64 8 47 8 31 C8 17 19 9 30 9 C39 9 46 15 50 23 C54 15 61 9 70 9 C81 9 92 17 92 31 C92 47 78 64 50 86 Z" />' },
+  { type: 'ellipse', label: 'Circle', svg: shapePreview('ellipse') },
+  { type: 'triangle', label: 'Triangle', svg: shapePreview('triangle') },
+  { type: 'star', label: 'Star', svg: shapePreview('star') },
+  { type: 'hexagon', label: 'Hexagon', svg: shapePreview('hexagon') },
+  { type: 'diamond', label: 'Diamond', svg: shapePreview('diamond') },
+  { type: 'heart', label: 'Heart', svg: shapePreview('heart') },
   { type: 'line', label: 'Line', props: { w: 260, h: 0, strokeWidth: 6 }, svg: '<line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" stroke-width="6" fill="none" />' },
-  { type: 'line', label: 'Arrow', props: { w: 260, h: 0, arrow: true, strokeWidth: 6 }, svg: '<path d="M10 50H88" stroke="currentColor" stroke-width="6" stroke-linecap="round" fill="none"/><path d="M88 50L66 40V60Z" />' },
+  { type: 'line', label: 'Arrow', props: { w: 260, h: 0, arrow: true, strokeWidth: 6 }, svg: '<path d="M10 50H66" stroke="currentColor" stroke-width="6" stroke-linecap="round" fill="none"/><path d="M88 50L66 40V60Z" />' },
   ...EXTRA_SHAPES
 ];
 
-export const ICONS = {
+// Single source of icon geometry: one entry per glyph pairing its solid and
+// outline paths, so the two styles can never drift apart. The renderer and
+// registries consume the derived ICONS / ICON_OUTLINES views.
+const BASE_ICONS = {
   star: 'M12 1.8l3 6.4 7 .9-5.2 4.8 1.4 6.9L12 17.4 5.8 20.8l1.4-6.9L2 9.1l7-.9z',
   heart: 'M12 21.2S3.6 15.8 1.9 10.4C.7 6.6 3.2 3 6.8 3 9 3 10.9 4.2 12 6c1.1-1.8 3-3 5.2-3 3.6 0 6.1 3.6 4.9 7.4C20.4 15.8 12 21.2 12 21.2z',
-  check: 'M9.5 17.6l-4.8-4.8 1.7-1.7 3.1 3.1 8.1-8.1 1.7 1.7z',
-  'arrow-right': 'M4 10.5h11.2l-4.6-4.6L12 4.5l7.5 7.5-7.5 7.5-1.4-1.4 4.6-4.6H4z',
+  check: 'M2.5 12.5L5.5 9.5L9 13L18.5 3.5L21.5 6.5L9 19Z',
+  'arrow-right': 'M3 9.5H13V3L22 12L13 21V14.5H3Z',
   sun: 'M12 6.5A5.5 5.5 0 1 1 6.5 12 5.5 5.5 0 0 1 12 6.5zm0-5.5l1.8 3.4h-3.6zM12 23l-1.8-3.4h3.6zM1 12l3.4-1.8v3.6zM23 12l-3.4 1.8v-3.6zM4.2 4.2l3.8 1.5-2.3 2.3zM19.8 19.8L16 18.3l2.3-2.3zM19.8 4.2l-1.5 3.8L16 5.7zM4.2 19.8l1.5-3.8 2.3 2.3z',
   moon: 'M20.4 14.2A8.8 8.8 0 0 1 9.8 3.6 9.2 9.2 0 1 0 20.4 14.2z',
   cloud: 'M6.5 19a4.5 4.5 0 0 1-.4-9A6 6 0 0 1 17.8 8.6 4 4 0 0 1 17.5 19z',
   home: 'M12 3l9 8h-2.5v9.5H14V15h-4v5.5H5.5V11H3z',
-  mail: 'M2 5h20v14H2zm2 2.4V17h16V7.4l-8 5.4zm14.6-.4H5.4l6.6 4.4z',
+  mail: 'M4 4H20A2 2 0 0 1 22 6V18A2 2 0 0 1 20 20H4A2 2 0 0 1 2 18V6A2 2 0 0 1 4 4ZM4 6.5L12 12L20 6.5V8.7L12 14.2L4 8.7Z',
   phone: 'M6.6 3c.5 0 1 .3 1.2.8l1.7 3.6c.2.5.1 1.1-.3 1.5L7.8 10.3a13.4 13.4 0 0 0 5.9 5.9l1.4-1.4c.4-.4 1-.5 1.5-.3l3.6 1.7c.5.2.8.7.8 1.2v3.1c0 .8-.6 1.4-1.4 1.4C10.2 21.9 2.1 13.8 2.1 4.4 2.1 3.6 2.7 3 3.5 3z',
   camera: 'M9 4l-1.5 2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.5L15 4zm3 5.5A4.5 4.5 0 1 1 7.5 14 4.5 4.5 0 0 1 12 9.5zm0 2A2.5 2.5 0 1 0 14.5 14 2.5 2.5 0 0 0 12 11.5z',
   user: 'M12 4a4 4 0 1 1-4 4 4 4 0 0 1 4-4zm0 9c4.4 0 8 2.2 8 5v2H4v-2c0-2.8 3.6-5 8-5z',
-  calendar: 'M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2zm14 8v10H5V10zM7 12v2h2v-2zm4 0v2h2v-2zm4 0v2h2v-2z',
+  calendar: 'M7 2H9V4H15V2H17V4H19A2 2 0 0 1 21 6V20A2 2 0 0 1 19 22H5A2 2 0 0 1 3 20V6A2 2 0 0 1 5 4H7ZM5 8V10H19V8ZM6 12V14H8V12ZM11 12V14H13V12ZM16 12V14H18V12ZM6 17V19H8V17ZM11 17V19H13V17ZM16 17V19H18V17Z',
   clock: 'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 5v5.2l4 2.4-.8 1.4L11 13V7z',
-  chat: 'M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2z',
-  search: 'M10 2A8 8 0 1 0 14.9 16.3L20.6 22L22 20.6L16.3 14.9A8 8 0 0 0 10 2ZM10 4A6 6 0 1 1 10 16A6 6 0 1 1 10 4Z',
+  chat: 'M5 3H19Q22 3 22 6V15Q22 18 19 18H8L3 22V6Q3 3 5 3ZM7 7H17A1 1 0 0 1 17 9H7A1 1 0 0 1 7 7ZM7 11H14A1 1 0 0 1 14 13H7A1 1 0 0 1 7 11Z',
+  search: 'M10 2A8 8 0 1 0 14.2 16.8L19.9 22.5L22.5 19.9L16.8 14.2A8 8 0 0 0 10 2ZM10 5.5A4.5 4.5 0 1 1 10 14.5A4.5 4.5 0 1 1 10 5.5Z',
   bell: 'M12 2a6 6 0 0 1 6 6v4l2 3v1H4v-1l2-3V8a6 6 0 0 1 6-6zm-2.5 16h5A2.5 2.5 0 0 1 12 21.5 2.5 2.5 0 0 1 9.5 18z',
   gear: GEAR_PATH,
   trash: 'M9 3h6l1 2h4v2H4V5h4zM5 8h14l-1 13H6z',
-  chart: 'M4 20V4h2v14h14v2zm3-3V9h3v8zm5 0V5h3v12zm5 0v-6h3v6z',
-  ...EXTRA_ICONS
+  chart: 'M4 20V4h2v14h14v2zm3-3V9h3v8zm5 0V5h3v12zm5 0v-6h3v6z'
 };
+
+export const ICON_PATHS = Object.fromEntries(
+  [...Object.entries(BASE_ICONS), ...Object.entries(EXTRA_ICONS)]
+    .map(([name, solid]) => [name, { solid, outline: ICON_OUTLINES[name] || solid }])
+);
+
+export const ICONS = Object.fromEntries(
+  Object.entries(ICON_PATHS).map(([name, pair]) => [name, pair.solid])
+);
 
 // UI icons: Lucide (https://lucide.dev) - ISC License
 const UI_ICON_PATHS = {"undo": '<path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11" />',

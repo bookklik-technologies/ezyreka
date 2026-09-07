@@ -85,6 +85,13 @@ export class Emitter {
     this._listeners.get(event).add(fn);
     return () => this.off(event, fn);
   }
+  once(event, fn) {
+    const off = this.on(event, (payload) => {
+      off();
+      fn(payload);
+    });
+    return off;
+  }
   off(event, fn) {
     this._listeners.get(event)?.delete(fn);
   }
@@ -96,5 +103,37 @@ export class Emitter {
         console.error('SenangDesign listener error:', err);
       }
     });
+    // Wildcard listeners receive every event as (event, payload).
+    this._listeners.get('*')?.forEach((fn) => {
+      try {
+        fn(event, payload);
+      } catch (err) {
+        console.error('SenangDesign listener error:', err);
+      }
+    });
   }
+}
+
+// Shared color validation: the single source for the 6-digit hex rule used
+// by charts, toolbar pickers, background controls and imports.
+const HEX6 = /^#([0-9a-f]{6})$/i;
+const HEX3 = /^#([0-9a-f]{3})$/i;
+
+export function isHexColor(value) {
+  return typeof value === 'string' && (HEX6.test(value) || HEX3.test(value));
+}
+
+/** Expands 3-digit hex and lowercases; returns null for anything invalid. */
+export function normalizeHexColor(value) {
+  if (typeof value !== 'string') return null;
+  if (HEX6.test(value)) return value.toLowerCase();
+  if (HEX3.test(value)) {
+    const [r, g, b] = value.slice(1);
+    return ('#' + r + r + g + g + b + b).toLowerCase();
+  }
+  return null;
+}
+
+export function hexOr(value, fallback) {
+  return normalizeHexColor(value) || fallback;
 }

@@ -83,14 +83,21 @@ export class Topbar {
       openInput.value = '';
     };
     this.root.querySelector('[data-act="theme"]').onclick = () => ed.toggleTheme();
-    ed.on('theme', () => this.updateThemeIcon());
+    this._unsubs = [
+      ed.on('theme', () => this.updateThemeIcon()),
+      ed.on('zoom', () => this.updateZoomLabel()),
+      ed.on('rename', (name) => {
+        const input = this.root.querySelector('.sk-filename');
+        if (input && document.activeElement !== input) input.value = name;
+      })
+    ];
     this.updateThemeIcon();
-    ed.on('zoom', () => this.updateZoomLabel());
-    ed.on('rename', (name) => {
-      const input = this.root.querySelector('.sk-filename');
-      if (input && document.activeElement !== input) input.value = name;
-    });
     this.updateZoomLabel();
+  }
+
+  destroy() {
+    this._unsubs?.forEach((off) => off());
+    this._unsubs = [];
   }
 
   updateZoomLabel() {

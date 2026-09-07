@@ -9,12 +9,17 @@ export class ChartPanel {
     this.bindings = [];
     this.gallery = false;
     this.key = null;
-    for (const event of ['selection', 'change', 'page']) this.editor.on(event, () => {
+    this._unsubs = ['selection', 'change', 'page'].map(event => this.editor.on(event, () => {
       const target = this.target();
       if (event === 'page' || target?.id !== this.lastId) this.gallery = false;
       this.lastId = target?.id;
       this.refresh();
-    });
+    }));
+  }
+
+  destroy() {
+    this._unsubs?.forEach((off) => off());
+    this._unsubs = [];
   }
 
   target(id) {

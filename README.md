@@ -120,6 +120,151 @@ The sidebar uses a vertical tool rail with icons and labels. Click its top chevr
 | `height` | `number` | `1080` | Initial page height |
 | `name` | `string` | `'Untitled design'` | File name |
 | `theme` | `'light' \| 'dark'` | `'light'` | UI color scheme |
+| `templates` | `EditorTemplate[]` | — | Extra templates shown in the Templates panel (appended after the built-ins) |
+| `fonts` | `string[]` | — | Extra font family names offered in the font pickers |
+| `googleFonts` | `string[]` | — | Extra Google Fonts css2 family specs, e.g. `'Familia:wght@400;700'` |
+| `palette` | `string[]` | built-in | Replaces the default color swatches for this editor |
+| `gradients` | `{ from, to, angle? }[]` | built-in | Replaces the default gradient presets for this editor |
+| `chartColors` | `string[]` | built-in | Replaces the default chart series colors (applies to every editor on the page) |
+| `initialDoc` | `object` | — | Design document loaded during initialization |
+| `imageSources` | `ImageSource[]` | — | Image search providers shown in the Uploads panel |
+| `ui` | `boolean \| object` | all enabled | `false` for headless; per-module `false` to disable or a constructor to replace (`topbar`, `sidepanel`, `toolbar`, `contextMenu`, `pagesBar`) |
+
+## Customization
+
+Every editor owns its own asset registries. Built-in templates, fonts, palette, gradients, shapes and icons are merged with the options above, and registration APIs extend them at runtime — no core code changes or module monkey-patching required.
+
+```js
+const editor = new Editor({
+  target: '#app',
+  fonts: ['Brand Sans'],
+  palette: ['#1e293b', '#d97706', '#f1f5f9'],
+  templates: [{
+    name: 'Ad banner',
+    category: 'Business',
+    page: { width: 1200, height: 628, background: { type: 'solid', color: '#1e293b' }, elements: [] }
+  }]
+});
+
+// More templates later — appear in the Templates panel immediately.
+editor.registerTemplates([{ name: 'Footer', page: { width: 1080, height: 200, background: { type: 'solid', color: '#fff' }, elements: [] } }]);
+
+// A custom font, loaded from Google Fonts and offered in both pickers.
+editor.registerFont('Cabinet Grotesk');                       // picker only
+editor.registerFont('Cabinet Grotesk', { google: true });     // + webfont link (default weights)
+editor.registerFont('Cabinet Grotesk', { google: 'Cabinet+Grotesk:wght@400;700' });
+
+// Icon packs: 24×24 viewBox path data. Outline falls back to solid.
+editor.registerIcons({ 'logo-mark': { solid: 'M12 2L22 22H2Z' } });
+
+// Shape packs: `path` geometry is 0–100 viewBox; the panel preview is generated.
+editor.registerShapes([{ label: 'Ninja Star', path: 'M50 0L100 50L50 100L0 50Z' }]);
+```
+
+Registered shapes and icons render on the canvas through the same per-editor registry, so they are saved, exported and previewed like the built-ins. Templates accept the same shape as `applyTemplate()`.
+
+### New element types, renderers and background painters
+
+Every canvas dispatch is a registry, so new visuals plug in without touching core code:
+
+```js
+// A brand-new element type: defaults + manifest + renderer in one call.
+editor.registerElementType('badge', {
+  defaults: { fill: '#477cf5', w: 120, h: 40 },
+  manifest: { name: 'Badge', toolbar: ['fill', 'opacity'] },
+  render: (ctx, el) => {
+    ctx.fillStyle = el.fill;
+    ctx.fillRect(0, 0, el.w, el.h);
+  }
+});
+
+// Or override the renderer of an existing type…
+editor.registerElementRenderer('star', (ctx, el) => { /* custom draw */ });
+
+// …register a chart painter (new types or overrides)…
+editor.registerChartRenderer('bar', (ctx, chart, series, plotBox, font, bounds) => { /* … */ });
+
+// …or register a full chart type — gallery, type dropdown, normalization,
+// validation and rendering all pick it up:
+editor.registerChartType({
+  type: 'radar',
+  label: 'Radar',
+  group: 'Radar charts',
+  kind: 'radar',
+  multiSeries: true,
+  validate: (chart) => { /* throw on invalid data */ }
+}, (ctx, chart, series, plotBox, font, bounds) => { /* custom draw */ });
+
+// …or a new background type. It becomes usable via editor.setBackground({ type: 'stripes', … }).
+editor.registerBackgroundPainter('stripes', (ctx, bg, pw, ph) => { /* … */ });
+```
+
+The **capability manifest** per element type (`name`, `layerIcon`, `edit`, `autoFitHeight`, `toolbar`, `hitTest`, `preloadProps`, `create`, `exclusiveProps`) centralizes how the editor treats each type — layers panel, double-click behavior, floating toolbar controls, hit-testing and export preloading. Override it per type with `editor.registerElementManifest(type, partial)`.
+
+### Custom sidebar panels
+
+```js
+editor.registerPanel({
+  id: 'brand',
+  label: 'Brand kit',
+  icon: '<svg …>…</svg>',          // tool-rail icon
+  render(contentEl, ed) {
+    // Build your panel DOM into contentEl; subscribe via ed.on(...) as needed.
+  }
+});
+```
+
+### Image sources
+
+Extend the Uploads panel with stock/CDN/brand-asset providers. Each provider exposes a `search(query)` (debounced) returning `{ src, name?, thumb? }` items; clicking a result adds it to the canvas and the recents library.
+
+```js
+editor.registerImageSource({
+  id: 'stock',
+  label: 'Stock photos',
+  search: async (query) => (await fetch(`https://api.example.com?q=${query}`)).json()
+});
+
+// Seed the uploads library with existing assets (URLs or data URLs):
+editor.registerImage({ src: 'https://cdn.example.com/logo.png', name: 'Logo' });
+```
+
+### Headless and configurable UI
+
+```js
+new Editor({ target: '#app', ui: false });                       // headless: canvas + API only
+new Editor({ target: '#app', ui: { contextMenu: false } });      // disable one module
+new Editor({ target: '#app', ui: { toolbar: MyToolbar } });      // replace a module
+```
+
+### Colors, themes and history
+
+```js
+// Brand-kit palettes: flat hex list or labeled groups, at init or later.
+new Editor({ target: '#app', palette: [{ label: 'Brand', colors: ['#1e293b', '#d97706'] }] });
+editor.registerPalette(['#101010', '#202020']);
+
+// Every color picker pairs a hex text field (3-digit hex expands) with the
+// native swatch. Multi-stop gradients work through the API:
+editor.updateSelected({
+  fill: { type: 'gradient', stops: [
+    { color: '#111827', offset: 0 }, { color: '#7d2ae8', offset: 0.5 }, { color: '#f97316', offset: 1 }
+  ], angle: 135 }
+});
+
+// Custom themes are named CSS-variable sets; cssVars applies on top of any theme.
+const editor = new Editor({
+  target: '#app',
+  themes: { ocean: { '--sk-accent': '#0ea5e9', '--sk-bg': '#0f172a' } },
+  cssVars: { '--sk-radius': '12px' }
+});
+editor.setTheme('ocean');
+
+// Swap the history strategy (anything implementing push/undo/redo/reset):
+new Editor({ target: '#app', history: myServerBackedHistory });
+```
+
+> Notes: `chartColors` normalizes into chart data and therefore applies globally to all editors on the page; element type/manifest and chart type registration are likewise page-global, while asset registries (templates, fonts, shapes, icons, palette) are per editor instance.
 
 ### Documents
 
@@ -266,6 +411,7 @@ npm test        # smoke + DOM tests (jsdom)
 │   │   ├── renderer.js     # canvas 2D renderer (shapes, text wrap, images, icons)
 │   │   ├── elements.js     # element factory, geometry, hit-testing
 │   │   ├── history.js      # undo/redo stack
+│   │   ├── registry.js     # per-editor asset registries (templates, fonts, palette, icons…)
 │   │   ├── assets.js       # fonts, palette, shapes, icons, templates, UI icons
 │   │   └── utils.js        # geometry, DOM helpers, emitter
 │   └── ui/

@@ -1,3 +1,5 @@
+import { GOOGLE_FONT_FAMILIES } from './core/assets.js';
+
 let injected = false;
 
 export function injectStyles() {
@@ -9,14 +11,27 @@ export function injectStyles() {
   document.head.appendChild(style);
 }
 
-export function injectFonts() {
-  if (document.getElementById('sk-fonts')) return;
-  const link = document.createElement('link');
-  link.id = 'sk-fonts';
-  link.rel = 'stylesheet';
-  link.href =
-    'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Poppins:wght@400;600;700;800&family=Inter:wght@400;600;700;800&family=Montserrat:wght@400;600;700;800&family=Playfair+Display:wght@400;700&family=Lobster&family=Bebas+Neue&family=Rubik:wght@400;600;700&display=swap';
-  document.head.appendChild(link);
+// Outfit is the editor chrome font and is always loaded alongside the
+// document font families.
+const UI_FONT_FAMILY = 'Outfit:wght@400;500;600;700;800';
+
+export function buildGoogleFontsUrl(families = GOOGLE_FONT_FAMILIES) {
+  const all = [UI_FONT_FAMILY, ...families.filter((f) => f && f !== UI_FONT_FAMILY)];
+  return `https://fonts.googleapis.com/css2?family=${all.join('&family=')}&display=swap`;
+}
+
+// Creates the webfont <link> on first use and rewrites it whenever custom
+// families are registered, so a single link tracks the active font set.
+export function injectFonts(families = GOOGLE_FONT_FAMILIES) {
+  const href = buildGoogleFontsUrl(families);
+  let link = document.getElementById('sk-fonts');
+  if (!link) {
+    link = document.createElement('link');
+    link.id = 'sk-fonts';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+  }
+  if (link.getAttribute('href') !== href) link.setAttribute('href', href);
 }
 
 const CSS = `
@@ -337,19 +352,23 @@ const CSS = `
 }
 .sk-swatch:hover { transform: scale(1.12); }
 .sk-swatch-border { border-color: #c9c9d4; }
-.sk-bg-custom { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.sk-bg-custom { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .sk-bg-custom .sk-btn { min-width: 0; }
-.sk-bg-custom .sk-bg-remove { flex-basis: 100%; }
-.sk-bg-gradient-controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.sk-bg-gradient-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 8px; }
 .sk-bg-gradient-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.sk-bg-gradient-field input { width: 100%; height: 36px; }
-.sk-bg-gradient-field input[type='color'] { padding: 2px; cursor: pointer; }
+.sk-bg-gradient-angle { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; }
+.sk-bg-gradient-angle > .sk-input { width: 80px; height: 36px; }
+.sk-bg-gradient-field .sk-color-field, .sk-bg-custom .sk-color-field {
+  display: flex; min-width: 0; height: 36px; gap: 6px; padding: 4px;
+  border: 1px solid var(--sk-border); border-radius: 8px; background: var(--sk-surface);
+}
+.sk-bg-gradient-field .sk-color-field:focus-within, .sk-bg-custom .sk-color-field:focus-within { border-color: var(--sk-accent); }
+.sk-bg-gradient-field .sk-color-wrap, .sk-bg-custom .sk-color-wrap { width: 26px; height: 26px; border-radius: 5px; }
+.sk-bg-gradient-field .sk-hex-input, .sk-bg-custom .sk-hex-input {
+  flex: 1; min-width: 0; width: 0; height: 26px; padding: 0; border: 0; border-radius: 0; background: transparent;
+}
 .sk-bg-gradient-preview { height: 42px; border: 1px solid var(--sk-border); border-radius: var(--sk-panel-radius); margin: var(--sk-panel-gap) 0; }
 .sk-bg-gradient-apply { width: 100%; }
-.sk-bg-custom input[type='color'] {
-  width: 42px; height: 36px; padding: 2px; border: 1px solid var(--sk-border);
-  border-radius: 8px; background: var(--sk-surface); cursor: pointer;
-}
 
 .sk-layer-list { display: flex; flex-direction: column; gap: 8px; }
 .sk-layer-drag-handle {
@@ -504,12 +523,18 @@ const CSS = `
 .sk-num-label { font-size: 11px; font-weight: 600; color: var(--sk-text-dim); }
 .sk-num-input { width: 56px; }
 .sk-color-wrap {
-  position: relative; width: 30px; height: 30px; border-radius: 7px;
+  display: block; position: relative; width: 30px; height: 30px; border-radius: 7px;
   border: 1px solid var(--sk-border); overflow: hidden; cursor: pointer; flex-shrink: 0;
 }
+.sk-color-wrap:focus-within { outline: 2px solid var(--sk-accent); outline-offset: 2px; }
 .sk-color-input {
-  position: absolute; inset: -6px; width: calc(100% + 12px); height: calc(100% + 12px);
-  border: none; padding: 0; cursor: pointer; background: none;
+  position: absolute; inset: 0; width: 100%; height: 100%; margin: 0;
+  border: none; padding: 0; opacity: 0; cursor: pointer;
+}
+.sk-color-field { display: inline-flex; align-items: center; gap: 4px; }
+.sk-hex-input {
+  width: 62px; padding: 2px 6px; font-size: 11px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 .sk-menu {

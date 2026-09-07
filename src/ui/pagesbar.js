@@ -6,9 +6,16 @@ export class PagesBar {
     this.editor = editor;
     this.root = editor.pagesBarEl;
     this.dragIndex = null;
-    editor.on('page', () => this.render());
-    editor.on('change', () => this.render());
+    this._unsubs = [
+      editor.on('page', () => this.render()),
+      editor.on('change', () => this.render())
+    ];
     this.render();
+  }
+
+  destroy() {
+    this._unsubs?.forEach((off) => off());
+    this._unsubs = [];
   }
 
   render() {

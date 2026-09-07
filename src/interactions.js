@@ -4,7 +4,7 @@ import {
   clamp,
   rotatePoint
 } from './core/utils.js';
-import { hitTest, elementAABB, elementCenter, rectsIntersect, selectionBBox } from './core/elements.js';
+import { hitTest, elementAABB, elementCenter, rectsIntersect, selectionBBox, manifestFor } from './core/elements.js';
 
 const SNAP_THRESHOLD = 6;
 
@@ -99,8 +99,9 @@ export class Interactions {
     for (let i = els.length - 1; i >= 0; i--) {
       if (hitTest(els[i], p.x, p.y)) {
         ed.select([els[i].id]);
-        if (els[i].type === 'chart') ed.ui.sidepanel.charts.open();
-        else if (els[i].type === 'text') ed.startTextEdit(els[i]);
+        const edit = manifestFor(els[i].type).edit;
+        if (edit === 'chart') ed.ui.sidepanel?.charts?.open();
+        else if (edit === 'text') ed.startTextEdit(els[i]);
         return;
       }
     }
@@ -325,7 +326,7 @@ export class Interactions {
       return;
     }
     if (drag.mode === 'resize' || drag.mode === 'rotate') {
-      if (drag.el.type === 'text') ed.fitTextHeight(drag.el);
+      if (manifestFor(drag.el.type).autoFitHeight) ed.fitTextHeight(drag.el);
       ed.markDirty();
       ed.commit();
     }

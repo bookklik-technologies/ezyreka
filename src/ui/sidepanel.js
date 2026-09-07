@@ -1,11 +1,24 @@
-import { el, escapeHtml, readAsDataURL, clamp, uid } from '../core/utils.js';
-import { SHAPES, ICONS, ICON_OUTLINES, FONTS, PALETTE, GRADIENTS, TEMPLATES, UI_ICONS } from '../core/assets.js';
-import { elementName } from '../core/elements.js';
+import { el, escapeHtml, readAsDataURL, clamp, uid, hexOr, isHexColor } from '../core/utils.js';
+import { UI_ICONS } from '../core/assets.js';
+import { elementName, manifestFor } from '../core/elements.js';
 import { renderPage } from '../core/renderer.js';
 import { createElement } from '../core/elements.js';
 import { ChartPanel } from './chartpanel.js';
+import { colorField } from './colorfield.js';
+import { GRADIENT_FALLBACKS } from '../core/constants.js';
 
-const TABS = [
+// Accepts a flat color array or { label, colors } brand-kit groups.
+function normalizePalette(palette) {
+  if (!Array.isArray(palette)) return [];
+  const flat = palette.filter((entry) => typeof entry === 'string');
+  const groups = palette.filter((entry) => entry && Array.isArray(entry.colors));
+  if (groups.length) return groups;
+  return flat.length ? [{ colors: flat }] : [];
+}
+
+// Built-in tabs. Consumer panels register at runtime via
+// editor.registerPanel({ id, label, icon, render }) and are appended here.
+const BUILTIN_TABS = [
   { id: 'templates', label: 'Templates', icon: UI_ICONS.templates },
   { id: 'elements', label: 'Elements', icon: UI_ICONS.shapes },
   { id: 'text', label: 'Text', icon: UI_ICONS.text },
@@ -36,28 +49,36 @@ export class Sidepanel {
       if (e.key === ' ') e.stopPropagation();
     };
     this.activeTab = 'elements';
+    this.tabs = [...BUILTIN_TABS];
     this.renderTabs();
     this.setTab('elements');
     this.charts = new ChartPanel(this);
-    editor.on('selection', () => {
-      if (this.activeTab === 'layers') this.renderLayers();
-    });
-    editor.on('change', () => {
-      if (this.activeTab === 'layers') this.renderLayers();
-      if (this.activeTab === 'background') this.syncBackgroundControls?.();
-    });
-    editor.on('upload', () => {
-      if (this.activeTab === 'uploads') this.renderUploads();
-    });
-    editor.on('page', () => {
-      if (this.activeTab === 'background') this.renderBackground();
-      if (this.activeTab === 'layers') this.renderLayers();
-    });
+    this._unsubs = [
+      editor.on('selection', () => {
+        if (this.activeTab === 'layers') this.renderLayers();
+      }),
+      editor.on('change', () => {
+        if (this.activeTab === 'layers') this.renderLayers();
+        if (this.activeTab === 'background') this.syncBackgroundControls?.();
+      }),
+      editor.on('upload', () => {
+        if (this.activeTab === 'uploads') this.renderUploads();
+      }),
+      editor.on('page', () => {
+        if (this.activeTab === 'background') this.renderBackground();
+        if (this.activeTab === 'layers') this.renderLayers();
+      })
+    ];
+  }
+
+  destroy() {
+    this._unsubs?.forEach((off) => off());
+    this._unsubs = [];
   }
 
   renderTabs() {
     this.tabsEl.innerHTML = '';
-    for (const tab of TABS) {
+    for (const tab of this.tabs) {
       const btn = el('button', 'sk-tab-btn' + (tab.id === this.activeTab ? ' sk-active' : ''), this.tabsEl);
       btn.type = 'button';
       btn.id = `${this.contentEl.id}-${tab.id}`;
@@ -73,20 +94,22 @@ export class Sidepanel {
       };
       btn.onkeydown = (e) => {
         if (e.key === ' ') e.stopPropagation();
-        const index = TABS.indexOf(tab);
-        const next = e.key === 'ArrowDown' ? (index + 1) % TABS.length
-          : e.key === 'ArrowUp' ? (index + TABS.length - 1) % TABS.length
-            : e.key === 'Home' ? 0 : e.key === 'End' ? TABS.length - 1 : null;
+        const index = this.tabs.indexOf(tab);
+        const next = e.key === 'ArrowDown' ? (index + 1) % this.tabs.length
+          : e.key === 'ArrowUp' ? (index + this.tabs.length - 1) % this.tabs.length
+            : e.key === 'Home' ? 0 : e.key === 'End' ? this.tabs.length - 1 : null;
         if (next === null) return;
         e.preventDefault();
         e.stopPropagation();
-        this.setTab(TABS[next].id);
+        this.setTab(this.tabs[next].id);
         this.tabsEl.children[next].focus();
       };
     }
   }
 
   setTab(id) {
+    const tab = this.tabs.find((t) => t.id === id);
+    if (!tab) return;
     const alreadyRendered = this.activeTab === id && this.contentEl.hasChildNodes();
     this.activeTab = id;
     this.setCollapsed(false);
@@ -94,13 +117,40 @@ export class Sidepanel {
     if (alreadyRendered) return;
     this.contentEl.innerHTML = '';
     this.contentEl.scrollTop = 0;
+    if (typeof tab.render === 'function') {
+      tab.render(this.contentEl, this.editor);
+      return;
+    }
     ({ templates: () => this.renderTemplates(),
        elements: () => this.renderElements(),
        text: () => this.renderText(),
        charts: () => this.charts.render(),
        uploads: () => this.renderUploads(),
        background: () => this.renderBackground(),
-       layers: () => this.renderLayers() })[id]();
+       layers: () => this.renderLayers() })[id]?.();
+  }
+
+  registerPanel(panel) {
+    if (!panel || typeof panel.id !== 'string' || typeof panel.render !== 'function') {
+      throw new Error('SenangDesign: panels need { id, label, icon, render(contentEl, editor) }');
+    }
+    if (this.tabs.some((t) => t.id === panel.id)) {
+      throw new Error(`SenangDesign: panel "${panel.id}" already exists`);
+    }
+    this.tabs.push({
+      id: panel.id,
+      label: panel.label || panel.id,
+      icon: panel.icon || UI_ICONS.shapes,
+      render: panel.render
+    });
+    this.renderTabs();
+    return panel;
+  }
+
+  // Rebuilds the active tab, e.g. after registering templates, fonts or icons.
+  rerender() {
+    this.contentEl.innerHTML = '';
+    this.setTab(this.activeTab);
   }
 
   setCollapsed(collapsed) {
@@ -145,7 +195,7 @@ export class Sidepanel {
     const filters = el('div', 'sk-panel-filters sk-template-filters', this.contentEl);
     filters.setAttribute('role', 'group');
     filters.setAttribute('aria-label', 'Template categories');
-    const categories = ['All', ...new Set(TEMPLATES.map(tpl => tpl.category))];
+    const categories = ['All', ...new Set(this.editor.registry.templates.map(tpl => tpl.category))];
     for (const category of categories) {
       const button = el('button', 'sk-panel-filter sk-template-filter', filters);
       button.type = 'button';
@@ -166,7 +216,7 @@ export class Sidepanel {
         button.classList.toggle('sk-active', active);
         button.setAttribute('aria-pressed', String(active));
       }
-      const matches = TEMPLATES.filter(tpl =>
+      const matches = this.editor.registry.templates.filter(tpl =>
         (category === 'All' || tpl.category === category) &&
         `${tpl.name} ${tpl.category} ${tpl.format}`.toLowerCase().includes(query)
       );
@@ -190,7 +240,7 @@ export class Sidepanel {
         canvas.setAttribute('aria-hidden', 'true');
         const ctx = canvas.getContext('2d');
         ctx.scale(scale, scale);
-        renderPage(ctx, { ...tpl.page, elements: tpl.page.elements.map((e) => createElement(e.type, e)) });
+        renderPage(ctx, { ...tpl.page, elements: tpl.page.elements.map((e) => createElement(e.type, e)) }, { registry: this.editor.registry });
         preview.appendChild(canvas);
         const label = el('div', 'sk-template-name', card);
         label.textContent = tpl.name;
@@ -250,8 +300,8 @@ export class Sidepanel {
         button.classList.toggle('sk-active', active);
         button.setAttribute('aria-pressed', String(active));
       }
-      const shapes = category === 'Icons' ? [] : SHAPES.filter(shape => shape.label.toLowerCase().includes(query));
-      const icons = category === 'Shapes' ? [] : Object.keys(ICONS).filter(name => name.replace(/-/g, ' ').includes(query));
+      const shapes = category === 'Icons' ? [] : this.editor.registry.shapes.filter(shape => shape.label.toLowerCase().includes(query));
+      const icons = category === 'Shapes' ? [] : Object.keys(this.editor.registry.icons).filter(name => name.replace(/-/g, ' ').includes(query));
       const total = shapes.length + icons.length;
       count.textContent = `${total} ${total === 1 ? 'element' : 'elements'}`;
       results.innerHTML = '';
@@ -292,7 +342,7 @@ export class Sidepanel {
             ? 'fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"'
             : 'fill="currentColor" fill-rule="evenodd"';
           addCard(grid, label,
-            `<svg viewBox="0 0 24 24" ${attrs} aria-hidden="true" focusable="false"><path d="${style === 'outline' ? ICON_OUTLINES[name] : ICONS[name]}" /></svg>`,
+            `<svg viewBox="0 0 24 24" ${attrs} aria-hidden="true" focusable="false"><path d="${style === 'outline' ? this.editor.registry.iconOutlines[name] : this.editor.registry.icons[name]}" /></svg>`,
             { type: 'icon', icon: name, iconStyle: style, w: 160, h: 160 });
         }
       }
@@ -331,7 +381,7 @@ export class Sidepanel {
     }
     this.sectionTitle('Fonts (apply to selection)');
     const fontList = el('div', 'sk-font-list', this.contentEl);
-    for (const font of FONTS) {
+    for (const font of this.editor.registry.fonts) {
       const btn = el('button', 'sk-panel-card sk-font-item', fontList);
       btn.type = 'button';
       btn.style.fontFamily = font;
@@ -372,7 +422,73 @@ export class Sidepanel {
         ed.select([el2.id]);
       };
     }
+    for (const source of ed.registry.imageSources || []) {
+      this.renderImageSource(source);
+    }
     this.contentEl.scrollTop = scrollTop;
+  }
+
+  // Renders one registered image source provider: an optional search box
+  // plus its result thumbnails. Providers shape their own results.
+  renderImageSource(source) {
+    const ed = this.editor;
+    this.sectionTitle(source.label || source.id);
+    if (typeof source.search !== 'function') return;
+    const search = el('input', 'sk-input sk-panel-search', this.contentEl);
+    search.type = 'search';
+    search.placeholder = `Search ${source.label || source.id}…`;
+    search.setAttribute('aria-label', `Search ${source.label || source.id} images`);
+    const results = el('div', 'sk-upload-grid', this.contentEl);
+    const status = el('div', 'sk-empty', this.contentEl);
+    status.hidden = true;
+    const renderResults = (items) => {
+      results.innerHTML = '';
+      status.hidden = true;
+      if (!items.length) {
+        status.textContent = 'No images found.';
+        status.hidden = false;
+        return;
+      }
+      for (const item of items) {
+        if (!item?.src) continue;
+        const name = item.name || 'Image';
+        const thumb = el('button', 'sk-panel-card sk-upload-thumb', results);
+        thumb.type = 'button';
+        thumb.title = name;
+        thumb.setAttribute('aria-label', `Add ${name} to canvas`);
+        const img = document.createElement('img');
+        img.src = item.thumb || item.src;
+        img.alt = name;
+        img.loading = 'lazy';
+        thumb.appendChild(img);
+        thumb.onclick = () => {
+          const el2 = ed.addElement({ type: 'image', src: item.src, name });
+          ed.select([el2.id]);
+          ed.registerImage({ src: item.src, name });
+        };
+      }
+    };
+    let timer = 0;
+    let seq = 0;
+    const runSearch = () => {
+      const query = search.value.trim();
+      const run = ++seq;
+      Promise.resolve(source.search(query))
+        .then((items) => {
+          if (run === seq) renderResults(Array.isArray(items) ? items : []);
+        })
+        .catch(() => {
+          if (run !== seq) return;
+          results.innerHTML = '';
+          status.textContent = 'Image search failed. Try again.';
+          status.hidden = false;
+        });
+    };
+    search.addEventListener('input', () => {
+      clearTimeout(timer);
+      timer = setTimeout(runSearch, 250);
+    });
+    runSearch();
   }
 
   renderBackground() {
@@ -381,41 +497,56 @@ export class Sidepanel {
     this.contentEl.innerHTML = '';
     this.panelHeader('Background', 'Set the mood with a color, gradient, or image.');
     this.sectionTitle('Solid colors');
-    const swatches = el('div', 'sk-swatch-grid', this.contentEl);
-    for (const color of PALETTE) {
-      const sw = el('button', 'sk-swatch', swatches);
-      sw.style.background = color;
-      if (color === '#ffffff') sw.classList.add('sk-swatch-border');
-      sw.title = color;
-      sw.onclick = () => ed.setBackground({ type: 'solid', color });
+    // Palette entries are hex strings, or { label, colors } groups for
+    // brand kits registered via options.palette / registerPalette().
+    for (const group of normalizePalette(ed.registry.palette)) {
+      if (group.label) this.sectionTitle(group.label);
+      const swatches = el('div', 'sk-swatch-grid', this.contentEl);
+      for (const color of group.colors) {
+        const sw = el('button', 'sk-swatch', swatches);
+        sw.style.background = color;
+        if (color === '#ffffff') sw.classList.add('sk-swatch-border');
+        sw.title = color;
+        sw.onclick = () => ed.setBackground({ type: 'solid', color });
+      }
     }
     this.sectionTitle('Gradients');
     const grads = el('div', 'sk-swatch-grid', this.contentEl);
-    for (const g of GRADIENTS) {
+    const gradients = this.editor.registry.gradients;
+    for (const g of gradients) {
       const sw = el('button', 'sk-swatch', grads);
       sw.style.background = `linear-gradient(${(g.angle ?? 135) + 90}deg, ${g.from}, ${g.to})`;
       sw.title = `${g.from} → ${g.to}`;
       sw.onclick = () => ed.setBackground({ ...g, type: 'gradient' });
     }
     this.sectionTitle('Custom gradient');
-    const gradient = bg.type === 'gradient' ? bg : GRADIENTS[0];
+    const gradient = bg.type === 'gradient' ? bg
+      : gradients[0] || { from: GRADIENT_FALLBACKS.from, to: GRADIENT_FALLBACKS.to, angle: 135 };
     const gradientRow = el('div', 'sk-bg-gradient-controls', this.contentEl);
     const fields = {};
     for (const [key, label] of [['from', 'Start color'], ['to', 'End color'], ['angle', 'Angle']]) {
-      const wrap = el('label', 'sk-bg-gradient-field', gradientRow);
+      const wrap = el(key === 'angle' ? 'label' : 'div', 'sk-bg-gradient-field', gradientRow);
       el('span', 'sk-num-label', wrap).textContent = label;
-      const field = el('input', 'sk-input', wrap);
-      field.type = key === 'angle' ? 'number' : 'color';
-      field.setAttribute('aria-label', `Background gradient ${label.toLowerCase()}`);
       if (key === 'angle') {
+        wrap.classList.add('sk-bg-gradient-angle');
+        const field = el('input', 'sk-input', wrap);
+        field.type = 'number';
+        field.setAttribute('aria-label', 'Background gradient angle');
         field.min = 0;
         field.max = 360;
         field.step = 1;
         field.value = gradient.angle ?? 135;
+        field.oninput = () => applyGradient(false);
+        field.onchange = () => ed.commit();
+        fields.angle = field;
       } else {
-        field.value = gradient[key] || (key === 'from' ? '#ffffff' : '#eeeeee');
+        fields[key] = colorField(wrap, {
+          title: `Background gradient ${label.toLowerCase()}`,
+          value: gradient[key] || GRADIENT_FALLBACKS[key],
+          onInput: () => applyGradient(false),
+          onCommit: () => ed.commit()
+        });
       }
-      fields[key] = field;
     }
     const preview = el('div', 'sk-bg-gradient-preview', this.contentEl);
     preview.setAttribute('aria-hidden', 'true');
@@ -428,10 +559,6 @@ export class Sidepanel {
       const angle = clamp(fields.angle.valueAsNumber, 0, 360);
       ed.setBackground({ type: 'gradient', from: fields.from.value, to: fields.to.value, angle }, commit);
       updatePreview();
-    };
-    for (const field of Object.values(fields)) {
-      field.oninput = () => applyGradient(false);
-      field.onchange = () => ed.commit();
     }
     const apply = el('button', 'sk-btn sk-btn-ghost sk-bg-gradient-apply', this.contentEl);
     apply.type = 'button';
@@ -440,12 +567,13 @@ export class Sidepanel {
 
     this.sectionTitle('Solid color & image');
     const row = el('div', 'sk-bg-custom', this.contentEl);
-    const input = el('input', '', row);
-    input.type = 'color';
-    input.value = /^#([0-9a-f]{6})$/i.test(bg.color || '') ? bg.color : '#ffffff';
-    input.setAttribute('aria-label', 'Background solid color');
-    input.oninput = () => ed.setBackground({ type: 'solid', color: input.value }, false);
-    input.onchange = () => ed.commit();
+    const solidField = colorField(row, {
+      title: 'Background solid color',
+      value: hexOr(bg.color, '#ffffff'),
+      onInput: (value) => ed.setBackground({ type: 'solid', color: value }, false),
+      onCommit: () => ed.commit()
+    });
+    const input = solidField.input;
     const imgBtn = el('button', 'sk-btn sk-btn-ghost sk-grow', row);
     imgBtn.textContent = 'Image background';
     imgBtn.onclick = async () => {
@@ -460,11 +588,11 @@ export class Sidepanel {
     this.syncBackgroundControls = () => {
       const current = ed.getPage().background || {};
       if (current.type === 'gradient') {
-        fields.from.value = current.from || '#ffffff';
-        fields.to.value = current.to || '#eeeeee';
+        fields.from.value = current.from || GRADIENT_FALLBACKS.from;
+        fields.to.value = current.to || GRADIENT_FALLBACKS.to;
         fields.angle.value = current.angle ?? 135;
       }
-      if (/^#[0-9a-f]{6}$/i.test(current.color || '')) input.value = current.color;
+      if (isHexColor(current.color || '')) solidField.value = current.color;
       rm.style.display = current.type === 'image' ? '' : 'none';
       updatePreview();
     };
@@ -559,7 +687,7 @@ export class Sidepanel {
         const insertion = target + (before ? 1 : 0);
         ed.moveLayer(from, insertion - (from < insertion ? 1 : 0));
       };
-      const icon = item.type === 'chart' ? UI_ICONS.chart : item.type === 'text' ? UI_ICONS.text : item.type === 'image' ? UI_ICONS.image : UI_ICONS.shapes;
+      const icon = UI_ICONS[manifestFor(item.type).layerIcon || 'shapes'];
       const name = el('span', 'sk-layer-name', row);
       name.draggable = true;
       name.title = 'Click to select, or drag to reorder';

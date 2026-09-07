@@ -22,6 +22,11 @@ global.ResizeObserver = class {
 global.Path2D = class Path2D {
   moveTo() {} lineTo() {} arc() {} arcTo() {} ellipse() {}
   rect() {} bezierCurveTo() {} quadraticCurveTo() {} closePath() {}
+  addPath() {}
+};
+global.DOMMatrix = global.DOMMatrix || class {
+  constructor() {}
+  scale() { return this; }
 };
 
 const gradient = { addColorStop() {} };

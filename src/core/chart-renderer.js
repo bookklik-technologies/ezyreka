@@ -1,4 +1,5 @@
-import { normalizeChart, validateChart, isCircularChart, isMultiSeriesChart, chartDomain, chartStacks } from './charts.js';
+import { normalizeChart, validateChart, isCircularChart, isMultiSeriesChart, chartDomain, chartStacks, chartPreset } from './charts.js';
+import { CHART_FONT_STACK } from './constants.js';
 
 const formatValue = value => new Intl.NumberFormat('en', { notation: Math.abs(value) >= 10000 ? 'compact' : 'standard', maximumFractionDigits: 2 }).format(value);
 
@@ -12,13 +13,37 @@ function text(ctx, value, x, y, width, align = 'left') {
   ctx.fillText(label, x, y);
 }
 
-export function drawChart(ctx, element) {
+// Per-chart-type painters. Registered renderers receive
+// (ctx, chart, series, plotBox, font, bounds) where bounds is the full
+// { w, h, top, bottom } frame. Register new types via registerChartRenderer
+// (or editor.registerChartRenderer) instead of editing the dispatch here.
+const circularPainter = (ctx, chart, series, box, font) => drawCircular(ctx, chart, box, font);
+const cartesianPainter = (ctx, chart, series, box, font, bounds) => drawCartesian(ctx, chart, series, bounds, font);
+const chartRenderers = {
+  bar: cartesianPainter,
+  row: cartesianPainter,
+  'grouped-bar': cartesianPainter,
+  line: cartesianPainter,
+  'multi-line': cartesianPainter,
+  area: cartesianPainter,
+  'stacked-area': cartesianPainter,
+  pie: circularPainter,
+  donut: circularPainter
+};
+
+export function registerChartRenderer(type, renderer) {
+  if (typeof type !== 'string' || !type) throw new Error('SenangDesign: chart renderer needs a type name');
+  if (typeof renderer !== 'function') throw new Error('SenangDesign: chart renderer must be a function');
+  chartRenderers[type] = renderer;
+}
+
+export function drawChart(ctx, element, registry = {}) {
   const chart = normalizeChart(element.chart);
   const w = Math.max(1, element.w), h = Math.max(1, element.h);
   const font = Math.min(chart.fontSize, Math.max(6, Math.min(w / 12, h / 10)));
   ctx.save();
   ctx.beginPath(); ctx.rect(0, 0, w, h); ctx.clip();
-  ctx.font = `${font}px Inter, Arial, sans-serif`;
+  ctx.font = `${font}px ${CHART_FONT_STACK}`;
   ctx.textBaseline = 'middle';
   ctx.fillStyle = chart.textColor;
   let invalid = '';
@@ -30,9 +55,9 @@ export function drawChart(ctx, element) {
   }
   let top = 14, bottom = 14;
   if (chart.title) {
-    ctx.font = `600 ${font * 1.25}px Inter, Arial, sans-serif`;
+    ctx.font = `600 ${font * 1.25}px ${CHART_FONT_STACK}`;
     text(ctx, chart.title, w / 2, 14 + font / 2, w - 24, 'center');
-    ctx.font = `${font}px Inter, Arial, sans-serif`;
+    ctx.font = `${font}px ${CHART_FONT_STACK}`;
     top += font * 2;
   }
   if (chart.showLegend) {
@@ -49,8 +74,9 @@ export function drawChart(ctx, element) {
       text(ctx, entry.name, x + font, y, cellWidth - font - 8);
     });
   }
-  if (isCircularChart(chart.type)) drawCircular(ctx, chart, { x: 12, y: top, w: w - 24, h: Math.max(1, h - top - bottom) }, font);
-  else drawCartesian(ctx, chart, series, { w, h, top, bottom }, font);
+  const painter = (registry.chartRenderers && registry.chartRenderers[chart.type]) || chartRenderers[chart.type]
+    || (isCircularChart(chart.type) ? circularPainter : cartesianPainter);
+  painter(ctx, chart, series, { x: 12, y: top, w: w - 24, h: Math.max(1, h - top - bottom) }, font, { w, h, top, bottom });
   ctx.restore();
 }
 
@@ -85,8 +111,9 @@ function drawCircular(ctx, chart, box, font) {
 }
 
 function drawCartesian(ctx, chart, series, bounds, font) {
-  const horizontal = chart.type === 'row';
-  const bar = ['bar', 'row', 'grouped-bar'].includes(chart.type);
+  const preset = chartPreset(chart.type) || {};
+  const horizontal = preset.horizontal === true;
+  const bar = preset.kind === 'bar';
   const x = chart.showAxes ? Math.min(bounds.w * 0.28, font * (horizontal ? 6 : 4)) : 12;
   const y = bounds.top + (chart.showValues ? font : 0);
   const w = Math.max(1, bounds.w - x - 16);
@@ -128,7 +155,7 @@ function drawCartesian(ctx, chart, series, bounds, font) {
       else text(ctx, label, categoryAt(i), y + h + font, Math.min(font * 6, w * step / count), 'center');
     });
   }
-  const stacks = chart.type === 'stacked-area' ? chartStacks(chart) : null;
+  const stacks = preset.kind === 'stacked-area' ? chartStacks(chart) : null;
   const labels = [];
   ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
   series.forEach((s, si) => {
@@ -151,7 +178,7 @@ function drawCartesian(ctx, chart, series, bounds, font) {
     let run = [];
     const flush = () => {
       if (!run.length) return;
-      if (chart.type === 'area' || stacks) {
+      if (preset.kind === 'area' || stacks) {
         ctx.save(); ctx.globalAlpha *= stacks ? 0.9 : 0.35;
         ctx.beginPath();
         run.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
