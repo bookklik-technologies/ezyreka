@@ -122,27 +122,32 @@ export class Sidepanel {
     this.editor.markDirty();
   }
 
-  sectionTitle(text) {
-    const t = el('div', 'sk-panel-title', this.contentEl);
+  panelHeader(title, description) {
+    const header = el('header', 'sk-panel-header', this.contentEl);
+    el('h2', 'sk-panel-heading', header).textContent = title;
+    el('p', 'sk-panel-description', header).textContent = description;
+    return header;
+  }
+
+  sectionTitle(text, parent = this.contentEl) {
+    const t = el('h3', 'sk-panel-title', parent);
     t.textContent = text;
     return t;
   }
 
   renderTemplates() {
-    this.sectionTitle('Find your starting point');
-    const intro = el('p', 'sk-template-intro', this.contentEl);
-    intro.textContent = 'Fresh layouts. Make every detail yours.';
-    const search = el('input', 'sk-input sk-template-search', this.contentEl);
+    this.panelHeader('Templates', 'Find your starting point. Make every detail yours.');
+    const search = el('input', 'sk-input sk-panel-search sk-template-search', this.contentEl);
     search.type = 'search';
     search.placeholder = 'Search templates…';
     search.setAttribute('aria-label', 'Search templates');
     search.value = this.templateQuery || '';
-    const filters = el('div', 'sk-template-filters', this.contentEl);
+    const filters = el('div', 'sk-panel-filters sk-template-filters', this.contentEl);
     filters.setAttribute('role', 'group');
     filters.setAttribute('aria-label', 'Template categories');
     const categories = ['All', ...new Set(TEMPLATES.map(tpl => tpl.category))];
     for (const category of categories) {
-      const button = el('button', 'sk-template-filter', filters);
+      const button = el('button', 'sk-panel-filter sk-template-filter', filters);
       button.type = 'button';
       button.textContent = category;
       button.onclick = () => {
@@ -150,7 +155,7 @@ export class Sidepanel {
         update();
       };
     }
-    const count = el('div', 'sk-template-count', this.contentEl);
+    const count = el('div', 'sk-panel-count sk-template-count', this.contentEl);
     count.setAttribute('role', 'status');
     const grid = el('div', 'sk-template-grid', this.contentEl);
     const update = () => {
@@ -172,7 +177,7 @@ export class Sidepanel {
         empty.textContent = 'No templates found. Try another search or category.';
       }
       for (const tpl of matches) {
-        const card = el('button', 'sk-template-card', grid);
+        const card = el('button', 'sk-panel-card sk-template-card', grid);
         card.type = 'button';
         card.setAttribute('aria-label', `Use ${tpl.name}, ${tpl.format}, ${tpl.page.width} by ${tpl.page.height} pixels`);
         const preview = el('div', 'sk-template-preview', card);
@@ -202,19 +207,17 @@ export class Sidepanel {
   }
 
   renderElements() {
-    this.sectionTitle('Make it yours');
-    const intro = el('p', 'sk-elements-intro', this.contentEl);
-    intro.textContent = 'Simple shapes. A little extra character.';
-    const search = el('input', 'sk-input sk-elements-search', this.contentEl);
+    this.panelHeader('Elements', 'Add shapes and icons to make your design yours.');
+    const search = el('input', 'sk-input sk-panel-search sk-elements-search', this.contentEl);
     search.type = 'search';
     search.placeholder = 'Search shapes & icons';
     search.setAttribute('aria-label', 'Search shapes and icons');
     search.value = this.elementQuery || '';
-    const filters = el('div', 'sk-element-filters', this.contentEl);
+    const filters = el('div', 'sk-panel-filters sk-element-filters', this.contentEl);
     filters.setAttribute('role', 'group');
     filters.setAttribute('aria-label', 'Element types');
     for (const category of ['All', 'Shapes', 'Icons']) {
-      const button = el('button', 'sk-element-filter', filters);
+      const button = el('button', 'sk-panel-filter sk-element-filter', filters);
       button.type = 'button';
       button.textContent = category;
       button.onclick = () => {
@@ -222,11 +225,11 @@ export class Sidepanel {
         update();
       };
     }
-    const count = el('div', 'sk-element-count', this.contentEl);
+    const count = el('div', 'sk-panel-count sk-element-count', this.contentEl);
     count.setAttribute('role', 'status');
     const results = el('div', 'sk-element-results', this.contentEl);
     const addCard = (grid, label, svg, props) => {
-      const button = el('button', 'sk-element-btn', grid);
+      const button = el('button', 'sk-panel-card sk-element-btn', grid);
       button.type = 'button';
       button.title = label;
       button.setAttribute('aria-label', `Add ${label}`);
@@ -257,7 +260,7 @@ export class Sidepanel {
         empty.textContent = 'No elements found. Try another search or filter.';
       }
       if (shapes.length) {
-        el('div', 'sk-panel-title', results).textContent = 'Shapes';
+        this.sectionTitle('Shapes', results);
         const grid = el('div', 'sk-element-grid', results);
         for (const shape of shapes) {
           addCard(grid, shape.label,
@@ -267,7 +270,7 @@ export class Sidepanel {
       }
       if (icons.length) {
         const heading = el('div', 'sk-element-heading', results);
-        el('div', 'sk-panel-title', heading).textContent = 'Icons';
+        this.sectionTitle('Icons', heading);
         const styles = el('div', 'sk-icon-styles', heading);
         styles.setAttribute('role', 'group');
         styles.setAttribute('aria-label', 'Icon style');
@@ -302,15 +305,18 @@ export class Sidepanel {
   }
 
   renderText() {
+    this.panelHeader('Text', 'Add text, then choose a font for your selection.');
     this.sectionTitle('Default text styles');
     const presets = [
       { label: 'Add a heading', size: 72, weight: 700, h: 100 },
       { label: 'Add a subheading', size: 40, weight: 600, h: 60 },
       { label: 'Add body text', size: 24, weight: 400, h: 40 }
     ];
+    const styles = el('div', 'sk-text-presets', this.contentEl);
     for (const p of presets) {
-      const btn = el('button', 'sk-text-preset', this.contentEl);
-      btn.style.fontSize = Math.max(16, p.size / 2.4) + 'px';
+      const btn = el('button', 'sk-panel-card sk-text-preset', styles);
+      btn.type = 'button';
+      btn.style.fontSize = Math.max(14, p.size / 3) + 'px';
       btn.style.fontWeight = p.weight;
       btn.textContent = p.label;
       btn.onclick = () => {
@@ -326,7 +332,8 @@ export class Sidepanel {
     this.sectionTitle('Fonts (apply to selection)');
     const fontList = el('div', 'sk-font-list', this.contentEl);
     for (const font of FONTS) {
-      const btn = el('button', 'sk-font-item', fontList);
+      const btn = el('button', 'sk-panel-card sk-font-item', fontList);
+      btn.type = 'button';
       btn.style.fontFamily = font;
       btn.textContent = font;
       btn.onclick = () => {
@@ -338,17 +345,24 @@ export class Sidepanel {
 
   renderUploads() {
     const ed = this.editor;
+    const scrollTop = this.contentEl.scrollTop;
+    this.contentEl.innerHTML = '';
+    this.panelHeader('Uploads', 'Upload images or drag and drop them onto the canvas.');
     const btn = el('button', 'sk-upload-btn', this.contentEl);
+    btn.type = 'button';
     btn.innerHTML = `${UI_ICONS.upload}<span>Upload an image</span>`;
     btn.onclick = () => ed.openFilePicker();
     this.sectionTitle('Recent uploads');
     const grid = el('div', 'sk-upload-grid', this.contentEl);
     if (!ed.uploads.length) {
-      const empty = el('div', 'sk-empty', this.contentEl);
-      empty.textContent = 'Your uploads will appear here. Drag & drop images onto the canvas too.';
+      const empty = el('div', 'sk-empty', grid);
+      empty.textContent = 'No uploads yet. Upload an image to get started.';
     }
     for (const up of ed.uploads) {
-      const thumb = el('button', 'sk-upload-thumb', grid);
+      const thumb = el('button', 'sk-panel-card sk-upload-thumb', grid);
+      thumb.type = 'button';
+      thumb.title = up.name;
+      thumb.setAttribute('aria-label', `Add ${up.name} to canvas`);
       const img = document.createElement('img');
       img.src = up.src;
       img.alt = up.name;
@@ -358,12 +372,14 @@ export class Sidepanel {
         ed.select([el2.id]);
       };
     }
+    this.contentEl.scrollTop = scrollTop;
   }
 
   renderBackground() {
     const ed = this.editor;
     const bg = ed.getPage().background || {};
     this.contentEl.innerHTML = '';
+    this.panelHeader('Background', 'Set the mood with a color, gradient, or image.');
     this.sectionTitle('Solid colors');
     const swatches = el('div', 'sk-swatch-grid', this.contentEl);
     for (const color of PALETTE) {
@@ -438,7 +454,7 @@ export class Sidepanel {
       const src = await readAsDataURL(file);
       ed.setBackground({ type: 'image', src });
     };
-    const rm = el('button', 'sk-btn sk-btn-ghost sk-grow', row);
+    const rm = el('button', 'sk-btn sk-btn-ghost sk-grow sk-bg-remove', row);
     rm.textContent = 'Remove image';
     rm.onclick = () => ed.setBackground({ type: 'solid', color: '#ffffff' });
     this.syncBackgroundControls = () => {
@@ -459,9 +475,8 @@ export class Sidepanel {
     const ed = this.editor;
     const scrollTop = this.contentEl.scrollTop;
     this.contentEl.innerHTML = '';
-    this.sectionTitle('Layers');
-    const hint = el('p', 'sk-layer-hint', this.contentEl);
-    hint.textContent = 'Drag layers to reorder. Top layers appear in front.';
+    this.panelHeader('Layers', 'Drag layers to reorder. Top layers appear in front.');
+    this.sectionTitle('Page layers');
     const list = el('div', 'sk-layer-list', this.contentEl);
     let draggedId = null;
     const clearDropMarks = () => {

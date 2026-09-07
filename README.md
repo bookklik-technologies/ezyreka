@@ -168,7 +168,7 @@ In the Layers panel, drag a layer name or its grip above or below another layer.
 
 The Background panel includes gradient presets and a **Custom gradient** section with start/end colors, an angle, and a preview. Editing a gradient control updates the canvas immediately; **Apply gradient** also lets you reuse the displayed colors after switching to a solid or image background. Gradients support undo/redo and are saved with the design.
 
-Use **Resize** in the top bar to enter the current page's width and height in pixels. Resizing preserves element sizes and positions and supports undo/redo. Saved designs and image exports use the updated dimensions.
+Use **Resize** in the top bar to browse visual preset cards under **Social media**, **Print**, or **Presentation**, or choose **Custom size** and enter width and height in pixels. Each card previews the format's proportions and shows its name and dimensions; the selected card is highlighted with a checkmark. Presets include square posts, stories/reels, A5/A4/A3, US Letter, business cards, and 16:9, 4:3, and 16:10 slides. Print dimensions are calculated at 300 pixels per inch without bleed. Choosing a preset fills the dimensions; click **Resize canvas** to apply. Resizing preserves element sizes and positions and supports undo/redo. Saved designs and image exports use the updated dimensions.
 
 ### Export
 

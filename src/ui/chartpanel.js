@@ -106,20 +106,19 @@ export class ChartPanel {
     const target = this.target();
     if (this.gallery || !target) {
       this.key = 'gallery';
-      if (target) this.button(root, 'Edit selected chart', () => this.open());
       this.renderGallery(root);
       return;
     }
     this.key = `${target.id}:${target.locked}:${target.chart.type}:${target.chart.categories.length}:${target.chart.series.length}`;
-    this.button(root, 'Back to charts', () => { this.gallery = true; this.render(); });
-    el('h3', 'sk-chart-heading', root).textContent = 'Edit chart';
+    this.sidepanel.panelHeader('Charts', 'Edit your chart with data, labels, and colors.');
+    this.button(root, 'Back to charts', () => { this.gallery = true; this.render(); }, 'sk-btn sk-btn-ghost sk-panel-action');
     if (target.locked) el('p', 'sk-chart-note', root).textContent = 'This chart is locked. Unlock it in Layers to edit.';
     const error = el('p', 'sk-chart-error', root);
     error.setAttribute('role', 'alert'); error.hidden = true;
-    const tabs = el('div', 'sk-chart-editor-tabs', root);
+    const tabs = el('div', 'sk-panel-filters sk-chart-editor-tabs', root);
     for (const tab of ['Data', 'Style']) {
       const active = (this.section || 'Data') === tab;
-      const button = this.button(tabs, tab, () => { this.section = tab; this.render(); });
+      const button = this.button(tabs, tab, () => { this.section = tab; this.render(); }, 'sk-panel-filter');
       button.classList.toggle('sk-active', active);
       button.setAttribute('aria-pressed', String(active));
     }
@@ -132,17 +131,17 @@ export class ChartPanel {
   }
 
   renderGallery(root) {
-    el('h3', 'sk-chart-heading', root).textContent = 'Charts';
-    el('p', 'sk-chart-note', root).textContent = 'Choose a chart, then make it yours with data and colors.';
+    this.sidepanel.panelHeader('Charts', 'Choose a chart, then make it yours with data and colors.');
+    if (this.target()) this.button(root, 'Edit selected chart', () => this.open(), 'sk-btn sk-btn-ghost sk-panel-action');
     for (const group of [...new Set(CHART_PRESETS.map(p => p.group))]) {
-      el('h4', 'sk-chart-group-title', root).textContent = group;
+      this.sidepanel.sectionTitle(group, root);
       const grid = el('div', 'sk-chart-gallery', root);
       for (const preset of CHART_PRESETS.filter(p => p.group === group)) {
         const button = this.button(grid, '', () => {
           const item = this.editor.addElement({ type: 'chart', chart: sampleChart(preset.type) });
           this.editor.select([item.id]);
           this.section = 'Data'; this.open();
-        }, 'sk-chart-card');
+        }, 'sk-panel-card sk-chart-card');
         button.setAttribute('aria-label', `Add ${preset.label} chart`);
         const canvas = el('canvas', '', button);
         canvas.width = 240; canvas.height = 170; canvas.setAttribute('aria-hidden', 'true');
