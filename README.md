@@ -14,7 +14,7 @@ No frameworks. No runtime dependencies. One script tag.
 - **Smart snapping** — edge/center alignment guides against other elements and the page, with pink guide lines
 - **Inline text editing** — double-click any text to edit in place, auto-growing text boxes, wrapping, alignment, letter spacing
 - **Pages** — multi-page documents, add/duplicate/delete/switch pages
-- **Templates** — 16 editable templates across Social, Business, Events, and Lifestyle, with search, category filters, and live previews
+- **Templates** — 32 fully editable templates across Social, Business, Events, Lifestyle, Education, and Community, with search, category filters, and live previews; includes announcements, invitations, pricing sheets, invoices, planners, worksheets, and community notices
 - **Backgrounds** — solid palette, gradients, image backgrounds
 - **Uploads** — image upload, drag & drop onto canvas, recent uploads panel
 - **Layers panel** — reorder, show/hide, lock, delete
