@@ -1,5 +1,6 @@
 import { Emitter, uid, deepClone, clamp, el, readAsDataURL, downloadDataURL, downloadBlob } from './utils.js';
 import { History } from './history.js';
+import { normalizeChart, validateChart } from './charts.js';
 import {
   createElement,
   hitTest,
@@ -89,7 +90,8 @@ export class Editor extends Emitter {
     this.topbarEl = el('div', 'sk-topbar', target);
     const body = el('div', 'sk-body', target);
     this.sidepanelEl = el('div', 'sk-sidepanel', body);
-    el('div', 'sk-sidepanel-tabs', this.sidepanelEl);
+    const sidepanelRail = el('div', 'sk-sidepanel-rail', this.sidepanelEl);
+    el('div', 'sk-sidepanel-tabs', sidepanelRail);
     el('div', 'sk-sidepanel-content', this.sidepanelEl);
     const canvasWrap = el('div', 'sk-canvas-wrap', body);
     this.viewport = el('div', 'sk-viewport', canvasWrap);
@@ -273,7 +275,13 @@ export class Editor extends Emitter {
   }
 
   updateSelected(props, commit = true) {
-    this.getSelected().forEach((elx) => Object.assign(elx, props));
+    const selected = this.getSelected();
+    if (props.chart !== undefined) {
+      const targets = selected.filter(item => item.type === 'chart' && !item.locked);
+      if (!targets.length) return;
+      const chart = validateChart(normalizeChart(props.chart));
+      targets.forEach(item => Object.assign(item, props, { chart: normalizeChart(chart) }));
+    } else selected.forEach((elx) => Object.assign(elx, props));
     this.markDirty();
     if (commit) this.commit();
   }
@@ -296,7 +304,7 @@ export class Editor extends Emitter {
     const sel = this.getSelected();
     if (!sel.length) return;
     const clones = sel.map((elx) => {
-      const clone = createElement(elx.type, { ...deepClone(elx), x: elx.x + 24, y: elx.y + 24 });
+      const clone = createElement(elx.type, { ...deepClone(elx), id: undefined, x: elx.x + 24, y: elx.y + 24 });
       return clone;
     });
     this.page.elements.push(...clones);
@@ -322,7 +330,7 @@ export class Editor extends Emitter {
     if (!this.clipboard.length) return;
     const offset = 24 * (++this._pasteCount || 1);
     const clones = this.clipboard.map((elx) =>
-      createElement(elx.type, { ...deepClone(elx), x: elx.x + offset, y: elx.y + offset })
+      createElement(elx.type, { ...deepClone(elx), id: undefined, x: elx.x + offset, y: elx.y + offset })
     );
     this.page.elements.push(...clones);
     this.select(clones.map((c) => c.id));
@@ -375,6 +383,16 @@ export class Editor extends Emitter {
       const picked = idx.map((i) => els[i]);
       this.page.elements = picked.concat(els.filter((e2) => !picked.includes(e2)));
     });
+  }
+
+  moveLayer(from, to) {
+    const els = this.getElements();
+    if (!Number.isInteger(from) || !Number.isInteger(to) ||
+        from === to || from < 0 || to < 0 || from >= els.length || to >= els.length) return;
+    const [item] = els.splice(from, 1);
+    els.splice(to, 0, item);
+    this.markDirty();
+    this.commit();
   }
 
   toggleLock() {
@@ -584,10 +602,22 @@ export class Editor extends Emitter {
     this.zoomFit();
   }
 
-  setBackground(bg) {
+  resizeCanvas(width, height) {
+    if (![width, height].every(value => Number.isInteger(value) && value >= 1 && value <= 10000)) {
+      throw new RangeError('Canvas dimensions must be whole numbers from 1 to 10000 pixels.');
+    }
+    if (this.page.width === width && this.page.height === height) return;
+    if (this._editing) this.commitTextEdit();
+    this.page.width = width;
+    this.page.height = height;
+    this.zoomFit();
+    this.commit();
+  }
+
+  setBackground(bg, commit = true) {
     this.page.background = bg;
     this.markDirty();
-    this.commit();
+    if (commit) this.commit();
   }
 
   addUpload(file) {

@@ -1,4 +1,5 @@
 import { uid, rotatePoint, deg2rad } from './utils.js';
+import { normalizeChart, validateChart, sampleChart, CHART_PRESETS } from './charts.js';
 
 const BASE = {
   x: 0,
@@ -38,7 +39,8 @@ const TYPE_DEFAULTS = {
   line: { stroke: '#111827', strokeWidth: 4, arrow: false, w: 220, h: 0 },
   image: { src: '' },
   icon: { icon: 'star', iconStyle: 'solid', fill: '#111827', w: 120, h: 120 },
-  shape: { shape: 'pentagon', fill: '#d97706', stroke: '', strokeWidth: 0 }
+  shape: { shape: 'pentagon', fill: '#d97706', stroke: '', strokeWidth: 0 },
+  chart: { w: 600, h: 400 }
 };
 
 const TYPE_NAMES = {
@@ -69,10 +71,12 @@ export function createElement(type, props = {}) {
   if (type === 'text' && !props.h) {
     el.h = Math.round(el.fontSize * el.lineHeight) + 8;
   }
+  if (type === 'chart') el.chart = validateChart(props.chart ? normalizeChart(props.chart) : sampleChart());
   return el;
 }
 
 export function elementName(el) {
+  if (el.type === 'chart') return el.chart?.title || `${CHART_PRESETS.find(p => p.type === el.chart?.type)?.label || 'Data'} chart`;
   if (el.type === 'text') {
     const t = (el.text || '').trim().replace(/\s+/g, ' ');
     return t ? (t.length > 22 ? t.slice(0, 22) + '…' : t) : 'Text';

@@ -103,6 +103,7 @@ const UI_ICON_PATHS = {"undo": '<path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5
   "plus": '<path d="M5 12h14" /><path d="M12 5v14" />',
   "close": '<path d="M18 6 6 18" /><path d="m6 6 12 12" />',
   "chevron": '<path d="m6 9 6 6 6-6" />',
+  "chart": '<path d="M3 3v18h18" /><path d="M7 17v-5M12 17V7M17 17V4" />',
   "image": '<rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />',
   "layers": '<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" /><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" /><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" />',
   "text": '<path d="M12 4v16" /><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2" /><path d="M9 20h6" />',

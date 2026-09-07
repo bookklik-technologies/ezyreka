@@ -56,9 +56,15 @@ export class Toolbar {
   buildControls(sel) {
     const ed = this.editor;
     this.root.innerHTML = '';
+    this.fillControls = null;
     const first = sel[0];
     const allText = sel.every((s) => s.type === 'text');
     const isLine = sel.every((s) => s.type === 'line');
+    if (sel.length === 1 && first.type === 'chart') {
+      const edit = el('button', 'sk-btn sk-btn-ghost', this.root);
+      edit.textContent = 'Edit chart';
+      edit.onclick = () => ed.ui.sidepanel.charts.open();
+    }
 
     if (allText) {
       const fontSel = el('select', 'sk-input sk-font-select', this.root);
@@ -93,7 +99,7 @@ export class Toolbar {
     }
 
     if (!allText && !isLine && first.fill !== undefined) {
-      this.colorInput('Fill', first.fill, 'fill');
+      this.fillInput();
       if (first.stroke !== undefined && first.type !== 'image') {
         this.colorInput('Stroke', first.stroke || '#000000', 'stroke');
         this.numInput('Stroke', first.strokeWidth || 0, 0, 100, (v) => ({ strokeWidth: v }));
@@ -142,6 +148,7 @@ export class Toolbar {
 
   syncValues(sel) {
     const first = sel[0];
+    this.syncFill(first.fill);
     this.root.querySelectorAll('[data-prop]').forEach((btn) => {
       const prop = btn.dataset.prop;
       let active = false;
@@ -175,6 +182,70 @@ export class Toolbar {
       }
     });
     input.addEventListener('change', () => this.editor.commit());
+  }
+
+  fillInput() {
+    const ed = this.editor;
+    const wrap = el('label', 'sk-num-wrap', this.root);
+    el('span', 'sk-num-label', wrap).textContent = 'Fill';
+    const mode = el('select', 'sk-input', wrap);
+    mode.setAttribute('aria-label', 'Fill type');
+    mode.innerHTML = '<option value="solid">Solid</option><option value="gradient">Gradient</option><option value="none">None</option>';
+    mode.onchange = () => {
+      const fill = ed.getSelected()[0]?.fill;
+      const color = fill?.type === 'gradient' ? fill.from : fill;
+      const from = color && color !== 'none' ? color : '#d97706';
+      ed.updateSelected({ fill: mode.value === 'gradient'
+        ? { type: 'gradient', from, to: '#ffffff', angle: 135 }
+        : mode.value === 'none' ? 'none' : from });
+    };
+
+    const colors = {};
+    for (const [key, title] of [['solid', 'Fill color'], ['from', 'Gradient start color'], ['to', 'Gradient end color']]) {
+      const label = el('label', 'sk-color-wrap', this.root);
+      label.title = title;
+      const input = el('input', 'sk-color-input', label);
+      input.type = 'color';
+      input.setAttribute('aria-label', title);
+      input.oninput = () => {
+        const fill = ed.getSelected()[0]?.fill;
+        if (key === 'solid') ed.updateSelected({ fill: input.value }, false);
+        else if (fill?.type === 'gradient') ed.updateSelected({ fill: { ...fill, [key]: input.value } }, false);
+      };
+      input.onchange = () => ed.commit();
+      colors[key] = { label, input };
+    }
+    const angleWrap = el('label', 'sk-num-wrap', this.root);
+    el('span', 'sk-num-label', angleWrap).textContent = 'Angle';
+    const angle = el('input', 'sk-input sk-num-input', angleWrap);
+    angle.type = 'number';
+    angle.min = 0;
+    angle.max = 360;
+    angle.step = 1;
+    angle.setAttribute('aria-label', 'Gradient angle');
+    angle.oninput = () => {
+      const fill = ed.getSelected()[0]?.fill;
+      const value = angle.valueAsNumber;
+      if (fill?.type === 'gradient' && Number.isFinite(value)) {
+        ed.updateSelected({ fill: { ...fill, angle: clamp(value, 0, 360) } }, false);
+      }
+    };
+    angle.onchange = () => ed.commit();
+    this.fillControls = { mode, colors, angleWrap, angle };
+  }
+
+  syncFill(fill) {
+    if (!this.fillControls) return;
+    const { mode, colors, angleWrap, angle } = this.fillControls;
+    const gradient = fill?.type === 'gradient';
+    mode.value = gradient ? 'gradient' : fill === 'none' ? 'none' : 'solid';
+    for (const [key, { label, input }] of Object.entries(colors)) {
+      label.style.display = (key === 'solid' ? !gradient && fill !== 'none' : gradient) ? '' : 'none';
+      const color = key === 'solid' ? fill : fill?.[key] || (key === 'from' ? '#ffffff' : '#eeeeee');
+      if (document.activeElement !== input) input.value = /^#[0-9a-f]{6}$/i.test(color || '') ? color : '#000000';
+    }
+    angleWrap.style.display = gradient ? '' : 'none';
+    if (document.activeElement !== angle) angle.value = gradient ? fill.angle ?? 135 : 135;
   }
 
   colorInput(title, value, prop) {

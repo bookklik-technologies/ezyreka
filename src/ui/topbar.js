@@ -1,6 +1,6 @@
-import { el, clamp } from '../core/utils.js';
+import { el, uid } from '../core/utils.js';
 import { UI_ICONS } from '../core/assets.js';
-import { showMenu } from './contextmenu.js';
+import { showMenu, closeMenus } from './contextmenu.js';
 
 export class Topbar {
   constructor(editor) {
@@ -14,6 +14,7 @@ export class Topbar {
     this.root.innerHTML = `
       <div class="sk-brand"><span class="sk-logo">S</span><span class="sk-brand-name">SenangDesign</span></div>
       <input class="sk-filename" value="${ed.fileName.replace(/"/g, '&quot;')}" spellcheck="false" />
+      <button class="sk-btn sk-btn-ghost" data-act="resize" title="Resize current canvas" aria-haspopup="dialog">Resize</button>
       <div class="sk-topbar-group">
         <button class="sk-icon-btn" data-act="undo" title="Undo (Ctrl+Z)">${UI_ICONS.undo}</button>
         <button class="sk-icon-btn" data-act="redo" title="Redo (Ctrl+Shift+Z)">${UI_ICONS.redo}</button>
@@ -33,6 +34,7 @@ export class Topbar {
     `;
 
     this.root.querySelector('[data-act="undo"]').onclick = () => ed.undo();
+    this.root.querySelector('[data-act="resize"]').onclick = () => this.resizeDialog();
     this.root.querySelector('[data-act="redo"]').onclick = () => ed.redo();
     this.root.querySelector('[data-act="zoom-out"]').onclick = () => ed.setZoom(ed.zoom / 1.2);
     this.root.querySelector('[data-act="zoom-in"]').onclick = () => ed.setZoom(ed.zoom * 1.2);
@@ -73,6 +75,57 @@ export class Topbar {
   updateZoomLabel() {
     const btn = this.root.querySelector('[data-act="zoom-menu"]');
     if (btn) btn.textContent = Math.round(this.editor.zoom * 100) + '%';
+  }
+
+  resizeDialog() {
+    const ed = this.editor;
+    closeMenus(ed);
+    const page = ed.getPage();
+    const titleId = uid('resize-title');
+    const helpId = uid('resize-help');
+    const dialog = el('dialog', 'sk-resize-dialog', ed.container);
+    dialog.setAttribute('aria-labelledby', titleId);
+    dialog.setAttribute('aria-describedby', helpId);
+    dialog.innerHTML = `
+      <form class="sk-resize-form">
+        <h2 id="${titleId}">Resize canvas</h2>
+        <p id="${helpId}">Resize the current page. Elements keep their size and position.</p>
+        <div class="sk-resize-fields">
+          <label>Width (px)<input class="sk-input" name="width" type="number" min="1" max="10000" step="1" required autofocus /></label>
+          <label>Height (px)<input class="sk-input" name="height" type="number" min="1" max="10000" step="1" required /></label>
+        </div>
+        <p class="sk-resize-limit">Enter whole numbers from 1 to 10,000 pixels.</p>
+        <div class="sk-resize-actions">
+          <button class="sk-btn sk-btn-ghost" type="button" data-act="cancel">Cancel</button>
+          <button class="sk-btn sk-btn-primary" type="submit">Resize canvas</button>
+        </div>
+      </form>
+    `;
+    const form = dialog.querySelector('form');
+    const width = form.elements.namedItem('width');
+    const height = form.elements.namedItem('height');
+    width.value = page.width;
+    height.value = page.height;
+    dialog.querySelector('[data-act="cancel"]').onclick = () => dialog.close();
+    // Keep dialog shortcuts from moving or deleting selected canvas elements.
+    dialog.addEventListener('keydown', (e) => e.stopPropagation());
+    dialog.addEventListener('close', () => {
+      dialog.remove();
+      this.root.querySelector('[data-act="resize"]').focus();
+    });
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      if (!form.reportValidity()) return;
+      // A programmatic page switch must not resize a different page with stale values.
+      if (ed.getPage() !== page) {
+        dialog.close();
+        return;
+      }
+      ed.resizeCanvas(width.valueAsNumber, height.valueAsNumber);
+      dialog.close();
+    };
+    dialog.showModal();
+    width.select();
   }
 
   updateThemeIcon() {

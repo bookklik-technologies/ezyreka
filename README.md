@@ -78,6 +78,39 @@ editor.on('ready', () => {
 
 ## API
 
+### Editable charts
+
+Open **Charts** in the sidebar to add a Bar, Row, Grouped bar, Line, Multi-line, Pie, Donut, Area, or Stacked area chart. Each chart is a canvas element with editable data, rather than an image. Use **Edit chart** in its toolbar or double-click it to reopen the editor.
+
+The **Data** tab supports editable categories and series, adding/removing rows and columns, and spreadsheet paste. Paste into a value cell to replace a numeric block, into a category cell to include labels, or into the Category header to include series names. Pasted tables expand the grid and apply as one undo step. Blank values represent missing data; invalid numeric cells reject the entire paste. **Expand data table** provides a larger live editor.
+
+The **Style** tab controls type, title, legend, value labels, axes/gridlines, text size/color, and series or pie-slice colors. Single-series charts display the first series while keeping additional series for later type changes. Pie and donut values must be non-negative; Cartesian charts accept negative values. Charts retain their data through copy/paste, layers, transforms, undo/redo, JSON save/load, and image export. Locked charts are read-only.
+
+```js
+const chart = editor.addElement({
+  type: 'chart',
+  w: 600,
+  h: 400,
+  chart: {
+    type: 'grouped-bar',
+    categories: ['Jan', 'Feb', 'Mar'],
+    series: [
+      { name: 'Sales', values: [24, 42, 35], color: '#477cf5' },
+      { name: 'Costs', values: [16, null, 28], color: '#aa87ef' }
+    ],
+    title: 'Monthly results',
+    showLegend: true
+  }
+});
+editor.select([chart.id]);
+// Replace the chart configuration; omitted appearance options use defaults.
+editor.updateSelected({ chart: { ...chart.chart, title: 'Updated results' } });
+```
+
+Charts use the existing dependency-free canvas renderer. Invalid non-finite API/imported values normalize to missing values; negative pie/donut data is rejected. New documents containing charts require a version of the editor with chart support.
+
+The sidebar uses a vertical tool rail with icons and labels. Click its top chevron (or the active tool) to collapse it to icons only. Click a tool icon to reopen its panel. Use Up/Down arrow keys to navigate focused tool tabs.
+
 ### `new Editor(options)`
 
 | Option | Type | Default | Description |
@@ -106,18 +139,36 @@ editor.on('ready', () => {
 | `deleteSelected()` / `duplicateSelected()` | — |
 | `copy()` / `cut()` / `paste()` | Internal clipboard |
 | `bringToFront()` / `bringForward()` / `sendBackward()` / `sendToBack()` | Z-order |
+| `moveLayer(from, to)` | Reorder by element-array index (0 is backmost); supports undo/redo |
 | `toggleLock()` | Lock/unlock selection |
 | `getElements()` / `getSelected()` | Current page elements / selection |
 | `select(ids)` / `selectAll()` / `clearSelection()` | Selection control |
+
+Shape and icon fills support solid colors, no fill (`'none'`), or a two-color linear gradient. Select **Fill → Gradient** in the floating toolbar to edit both colors and the angle, or set it through the API:
+
+```js
+editor.updateSelected({
+  fill: { type: 'gradient', from: '#d97706', to: '#ffffff', angle: 135 }
+});
+```
+
+Angles run clockwise: `0` is left to right and `90` is top to bottom. Gradient fills are preserved in design JSON and PNG/JPEG exports.
+
+In the Layers panel, drag a layer name or its grip above or below another layer. The insertion line shows where it will land; the top layer appears in front on the canvas. You can also focus a grip and use Up/Down arrow keys. Reordering preserves selection and supports undo/redo.
 
 ### Pages & view
 
 | Method | Description |
 | --- | --- |
 | `addPage()` / `duplicatePage()` / `deletePage(i?)` / `goToPage(i)` | Page management |
-| `setBackground(bg)` | `{ type: 'solid', color }` \| `{ type: 'gradient', from, to, angle }` \| `{ type: 'image', src }` |
+| `setBackground(bg, commit?)` | `{ type: 'solid', color }` \| `{ type: 'gradient', from, to, angle }` \| `{ type: 'image', src }`; pass `false` for a live preview, then call `commit()` |
 | `setZoom(z, anchor?)` / `zoomFit()` | Zoom (0.05–5), anchored zoom support |
+| `resizeCanvas(width, height)` | Resize the current page to 1–10,000 whole pixels per side and fit it in view; undoable |
 | `undo()` / `redo()` / `commit()` | History |
+
+The Background panel includes gradient presets and a **Custom gradient** section with start/end colors, an angle, and a preview. Editing a gradient control updates the canvas immediately; **Apply gradient** also lets you reuse the displayed colors after switching to a solid or image background. Gradients support undo/redo and are saved with the design.
+
+Use **Resize** in the top bar to enter the current page's width and height in pixels. Resizing preserves element sizes and positions and supports undo/redo. Saved designs and image exports use the updated dimensions.
 
 ### Export
 

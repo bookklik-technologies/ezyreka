@@ -97,9 +97,10 @@ export class Interactions {
     const p = this.clientToWorld(e);
     const els = ed.getElements();
     for (let i = els.length - 1; i >= 0; i--) {
-      if (els[i].type === 'text' && hitTest(els[i], p.x, p.y)) {
+      if (hitTest(els[i], p.x, p.y)) {
         ed.select([els[i].id]);
-        ed.startTextEdit(els[i]);
+        if (els[i].type === 'chart') ed.ui.sidepanel.charts.open();
+        else if (els[i].type === 'text') ed.startTextEdit(els[i]);
         return;
       }
     }
@@ -161,6 +162,9 @@ export class Interactions {
   startRubberBand(e) {
     const ed = this.editor;
     const p = this.clientToWorld(e);
+    // Rendering preserves the overlay during band selection, so first remove
+    // any handles left behind by the blank-canvas deselection.
+    ed.updateOverlay();
     this.drag = { mode: 'band', start: p };
     const band = document.createElement('div');
     band.className = 'sk-band';
@@ -294,6 +298,8 @@ export class Interactions {
     }
     if (drag.mode === 'band') {
       drag.band.remove();
+      // Refresh even when a click or an empty drag selects no elements.
+      ed.markDirty();
       if (drag.rect) {
         const hits = ed
           .getElements()

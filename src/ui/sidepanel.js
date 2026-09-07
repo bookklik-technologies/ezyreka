@@ -1,13 +1,15 @@
-import { el, escapeHtml, readAsDataURL } from '../core/utils.js';
+import { el, escapeHtml, readAsDataURL, clamp, uid } from '../core/utils.js';
 import { SHAPES, ICONS, ICON_OUTLINES, FONTS, PALETTE, GRADIENTS, TEMPLATES, UI_ICONS } from '../core/assets.js';
 import { elementName } from '../core/elements.js';
 import { renderPage } from '../core/renderer.js';
 import { createElement } from '../core/elements.js';
+import { ChartPanel } from './chartpanel.js';
 
 const TABS = [
   { id: 'templates', label: 'Templates', icon: UI_ICONS.templates },
   { id: 'elements', label: 'Elements', icon: UI_ICONS.shapes },
   { id: 'text', label: 'Text', icon: UI_ICONS.text },
+  { id: 'charts', label: 'Charts', icon: UI_ICONS.chart },
   { id: 'uploads', label: 'Uploads', icon: UI_ICONS.upload },
   { id: 'background', label: 'Background', icon: UI_ICONS.palette },
   { id: 'layers', label: 'Layers', icon: UI_ICONS.layers }
@@ -18,14 +20,31 @@ export class Sidepanel {
     this.editor = editor;
     this.tabsEl = editor.sidepanelEl.querySelector('.sk-sidepanel-tabs');
     this.contentEl = editor.sidepanelEl.querySelector('.sk-sidepanel-content');
+    this.contentEl.id = uid('panel');
+    this.contentEl.setAttribute('role', 'tabpanel');
+    this.tabsEl.setAttribute('role', 'tablist');
+    this.tabsEl.setAttribute('aria-label', 'Design tools');
+    this.tabsEl.setAttribute('aria-orientation', 'vertical');
+    this.collapsed = false;
+    this.collapseBtn = el('button', 'sk-sidepanel-toggle', editor.sidepanelEl.querySelector('.sk-sidepanel-rail'));
+    this.tabsEl.before(this.collapseBtn);
+    this.collapseBtn.type = 'button';
+    this.collapseBtn.innerHTML = UI_ICONS.chevron;
+    this.collapseBtn.setAttribute('aria-controls', this.contentEl.id);
+    this.collapseBtn.onclick = () => this.setCollapsed(!this.collapsed);
+    this.collapseBtn.onkeydown = (e) => {
+      if (e.key === ' ') e.stopPropagation();
+    };
     this.activeTab = 'elements';
     this.renderTabs();
     this.setTab('elements');
+    this.charts = new ChartPanel(this);
     editor.on('selection', () => {
       if (this.activeTab === 'layers') this.renderLayers();
     });
     editor.on('change', () => {
       if (this.activeTab === 'layers') this.renderLayers();
+      if (this.activeTab === 'background') this.syncBackgroundControls?.();
     });
     editor.on('upload', () => {
       if (this.activeTab === 'uploads') this.renderUploads();
@@ -40,21 +59,67 @@ export class Sidepanel {
     this.tabsEl.innerHTML = '';
     for (const tab of TABS) {
       const btn = el('button', 'sk-tab-btn' + (tab.id === this.activeTab ? ' sk-active' : ''), this.tabsEl);
+      btn.type = 'button';
+      btn.id = `${this.contentEl.id}-${tab.id}`;
+      btn.dataset.tab = tab.id;
+      btn.title = tab.label;
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-label', tab.label);
+      btn.setAttribute('aria-controls', this.contentEl.id);
       btn.innerHTML = `${tab.icon}<span>${tab.label}</span>`;
-      btn.onclick = () => this.setTab(tab.id);
+      btn.onclick = () => {
+        if (tab.id === this.activeTab && !this.collapsed) this.setCollapsed(true);
+        else this.setTab(tab.id);
+      };
+      btn.onkeydown = (e) => {
+        if (e.key === ' ') e.stopPropagation();
+        const index = TABS.indexOf(tab);
+        const next = e.key === 'ArrowDown' ? (index + 1) % TABS.length
+          : e.key === 'ArrowUp' ? (index + TABS.length - 1) % TABS.length
+            : e.key === 'Home' ? 0 : e.key === 'End' ? TABS.length - 1 : null;
+        if (next === null) return;
+        e.preventDefault();
+        e.stopPropagation();
+        this.setTab(TABS[next].id);
+        this.tabsEl.children[next].focus();
+      };
     }
   }
 
   setTab(id) {
+    const alreadyRendered = this.activeTab === id && this.contentEl.hasChildNodes();
     this.activeTab = id;
-    [...this.tabsEl.children].forEach((c, i) => c.classList.toggle('sk-active', TABS[i].id === id));
+    this.setCollapsed(false);
+    this.contentEl.setAttribute('aria-labelledby', `${this.contentEl.id}-${id}`);
+    if (alreadyRendered) return;
     this.contentEl.innerHTML = '';
+    this.contentEl.scrollTop = 0;
     ({ templates: () => this.renderTemplates(),
        elements: () => this.renderElements(),
        text: () => this.renderText(),
+       charts: () => this.charts.render(),
        uploads: () => this.renderUploads(),
        background: () => this.renderBackground(),
        layers: () => this.renderLayers() })[id]();
+  }
+
+  setCollapsed(collapsed) {
+    this.collapsed = collapsed;
+    this.editor.sidepanelEl.classList.toggle('sk-collapsed', collapsed);
+    if (collapsed && this.contentEl.contains(document.activeElement)) this.collapseBtn.focus();
+    this.contentEl.hidden = collapsed;
+    const label = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+    this.collapseBtn.title = label;
+    this.collapseBtn.setAttribute('aria-label', label);
+    this.collapseBtn.setAttribute('aria-expanded', String(!collapsed));
+    for (const btn of this.tabsEl.children) {
+      const active = btn.dataset.tab === this.activeTab;
+      btn.classList.toggle('sk-active', active);
+      btn.setAttribute('aria-selected', String(active));
+      btn.setAttribute('aria-expanded', String(active && !collapsed));
+      btn.tabIndex = active ? 0 : -1;
+    }
+    this.editor.markDirty();
   }
 
   sectionTitle(text) {
@@ -298,6 +363,7 @@ export class Sidepanel {
   renderBackground() {
     const ed = this.editor;
     const bg = ed.getPage().background || {};
+    this.contentEl.innerHTML = '';
     this.sectionTitle('Solid colors');
     const swatches = el('div', 'sk-swatch-grid', this.contentEl);
     for (const color of PALETTE) {
@@ -311,16 +377,59 @@ export class Sidepanel {
     const grads = el('div', 'sk-swatch-grid', this.contentEl);
     for (const g of GRADIENTS) {
       const sw = el('button', 'sk-swatch', grads);
-      sw.style.background = `linear-gradient(135deg, ${g.from}, ${g.to})`;
+      sw.style.background = `linear-gradient(${(g.angle ?? 135) + 90}deg, ${g.from}, ${g.to})`;
       sw.title = `${g.from} → ${g.to}`;
       sw.onclick = () => ed.setBackground({ ...g, type: 'gradient' });
     }
-    this.sectionTitle('Custom');
+    this.sectionTitle('Custom gradient');
+    const gradient = bg.type === 'gradient' ? bg : GRADIENTS[0];
+    const gradientRow = el('div', 'sk-bg-gradient-controls', this.contentEl);
+    const fields = {};
+    for (const [key, label] of [['from', 'Start color'], ['to', 'End color'], ['angle', 'Angle']]) {
+      const wrap = el('label', 'sk-bg-gradient-field', gradientRow);
+      el('span', 'sk-num-label', wrap).textContent = label;
+      const field = el('input', 'sk-input', wrap);
+      field.type = key === 'angle' ? 'number' : 'color';
+      field.setAttribute('aria-label', `Background gradient ${label.toLowerCase()}`);
+      if (key === 'angle') {
+        field.min = 0;
+        field.max = 360;
+        field.step = 1;
+        field.value = gradient.angle ?? 135;
+      } else {
+        field.value = gradient[key] || (key === 'from' ? '#ffffff' : '#eeeeee');
+      }
+      fields[key] = field;
+    }
+    const preview = el('div', 'sk-bg-gradient-preview', this.contentEl);
+    preview.setAttribute('aria-hidden', 'true');
+    const updatePreview = () => {
+      const angle = Number.isFinite(fields.angle.valueAsNumber) ? clamp(fields.angle.valueAsNumber, 0, 360) : 135;
+      preview.style.background = `linear-gradient(${angle + 90}deg, ${fields.from.value}, ${fields.to.value})`;
+    };
+    const applyGradient = (commit = true) => {
+      if (!Number.isFinite(fields.angle.valueAsNumber)) return;
+      const angle = clamp(fields.angle.valueAsNumber, 0, 360);
+      ed.setBackground({ type: 'gradient', from: fields.from.value, to: fields.to.value, angle }, commit);
+      updatePreview();
+    };
+    for (const field of Object.values(fields)) {
+      field.oninput = () => applyGradient(false);
+      field.onchange = () => ed.commit();
+    }
+    const apply = el('button', 'sk-btn sk-btn-ghost sk-bg-gradient-apply', this.contentEl);
+    apply.type = 'button';
+    apply.textContent = 'Apply gradient';
+    apply.onclick = () => applyGradient();
+
+    this.sectionTitle('Solid color & image');
     const row = el('div', 'sk-bg-custom', this.contentEl);
     const input = el('input', '', row);
     input.type = 'color';
     input.value = /^#([0-9a-f]{6})$/i.test(bg.color || '') ? bg.color : '#ffffff';
-    input.oninput = () => ed.setBackground({ type: 'solid', color: input.value });
+    input.setAttribute('aria-label', 'Background solid color');
+    input.oninput = () => ed.setBackground({ type: 'solid', color: input.value }, false);
+    input.onchange = () => ed.commit();
     const imgBtn = el('button', 'sk-btn sk-btn-ghost sk-grow', row);
     imgBtn.textContent = 'Image background';
     imgBtn.onclick = async () => {
@@ -329,18 +438,50 @@ export class Sidepanel {
       const src = await readAsDataURL(file);
       ed.setBackground({ type: 'image', src });
     };
-    if (bg.type === 'image') {
-      const rm = el('button', 'sk-btn sk-btn-ghost sk-grow', row);
-      rm.textContent = 'Remove image';
-      rm.onclick = () => ed.setBackground({ type: 'solid', color: '#ffffff' });
-    }
+    const rm = el('button', 'sk-btn sk-btn-ghost sk-grow', row);
+    rm.textContent = 'Remove image';
+    rm.onclick = () => ed.setBackground({ type: 'solid', color: '#ffffff' });
+    this.syncBackgroundControls = () => {
+      const current = ed.getPage().background || {};
+      if (current.type === 'gradient') {
+        fields.from.value = current.from || '#ffffff';
+        fields.to.value = current.to || '#eeeeee';
+        fields.angle.value = current.angle ?? 135;
+      }
+      if (/^#[0-9a-f]{6}$/i.test(current.color || '')) input.value = current.color;
+      rm.style.display = current.type === 'image' ? '' : 'none';
+      updatePreview();
+    };
+    this.syncBackgroundControls();
   }
 
   renderLayers() {
     const ed = this.editor;
+    const scrollTop = this.contentEl.scrollTop;
     this.contentEl.innerHTML = '';
     this.sectionTitle('Layers');
+    const hint = el('p', 'sk-layer-hint', this.contentEl);
+    hint.textContent = 'Drag layers to reorder. Top layers appear in front.';
     const list = el('div', 'sk-layer-list', this.contentEl);
+    let draggedId = null;
+    const clearDropMarks = () => {
+      list.querySelectorAll('.sk-drop-before, .sk-drop-after')
+        .forEach(row => row.classList.remove('sk-drop-before', 'sk-drop-after'));
+    };
+    const endDrag = () => {
+      draggedId = null;
+      clearDropMarks();
+      list.querySelectorAll('.sk-dragging').forEach(row => row.classList.remove('sk-dragging'));
+    };
+    // Accept drops in the gaps where the insertion lines are drawn, too.
+    const forwardGapEvent = (e, handler) => {
+      if (e.target !== list || draggedId === null) return;
+      const row = [...list.children].find(child => e.clientY < child.getBoundingClientRect().bottom)
+        || list.lastElementChild;
+      row?.[handler]?.(e);
+    };
+    list.ondragover = (e) => forwardGapEvent(e, 'ondragover');
+    list.ondrop = (e) => forwardGapEvent(e, 'ondrop');
     const els = ed.getElements();
     if (!els.length) {
       const empty = el('div', 'sk-empty', this.contentEl);
@@ -350,8 +491,63 @@ export class Sidepanel {
     for (let i = els.length - 1; i >= 0; i--) {
       const item = els[i];
       const row = el('div', 'sk-layer-item' + (ed.selection.has(item.id) ? ' sk-active' : ''), list);
-      const icon = item.type === 'text' ? UI_ICONS.text : item.type === 'image' ? UI_ICONS.image : UI_ICONS.shapes;
+      row.dataset.id = item.id;
+      const handle = el('button', 'sk-layer-drag-handle', row);
+      handle.type = 'button';
+      handle.textContent = '⠿';
+      handle.title = 'Drag to reorder, or use Up/Down arrow keys';
+      handle.setAttribute('aria-label', `Reorder ${elementName(item)}. Use Up or Down arrow keys.`);
+      handle.draggable = true;
+      handle.onkeydown = (e) => {
+        if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+        e.preventDefault();
+        e.stopPropagation();
+        const from = ed.getElements().findIndex(layer => layer.id === item.id);
+        ed.moveLayer(from, from + (e.key === 'ArrowUp' ? 1 : -1));
+        const movedRow = [...this.contentEl.querySelectorAll('.sk-layer-item')]
+          .find(layer => layer.dataset.id === item.id);
+        movedRow?.querySelector('.sk-layer-drag-handle').focus({ preventScroll: true });
+      };
+      row.ondragstart = (e) => {
+        draggedId = item.id;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', item.id);
+        e.dataTransfer.setDragImage(row, 16, row.offsetHeight / 2);
+        requestAnimationFrame(() => {
+          if (draggedId === item.id) row.classList.add('sk-dragging');
+        });
+      };
+      row.ondragend = endDrag;
+      row.ondragover = (e) => {
+        if (draggedId === null) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        clearDropMarks();
+        if (draggedId === item.id) return;
+        const rect = row.getBoundingClientRect();
+        row.classList.add(e.clientY < rect.top + rect.height / 2 ? 'sk-drop-before' : 'sk-drop-after');
+      };
+      row.ondragleave = (e) => {
+        if (!row.contains(e.relatedTarget)) row.classList.remove('sk-drop-before', 'sk-drop-after');
+      };
+      row.ondrop = (e) => {
+        if (draggedId === null) return;
+        e.preventDefault();
+        const layers = ed.getElements();
+        const from = layers.findIndex(layer => layer.id === draggedId);
+        const target = layers.findIndex(layer => layer.id === item.id);
+        const rect = row.getBoundingClientRect();
+        const before = e.clientY < rect.top + rect.height / 2;
+        endDrag();
+        if (from < 0 || target < 0 || from === target) return;
+        // The panel lists front to back, opposite the canvas element array.
+        const insertion = target + (before ? 1 : 0);
+        ed.moveLayer(from, insertion - (from < insertion ? 1 : 0));
+      };
+      const icon = item.type === 'chart' ? UI_ICONS.chart : item.type === 'text' ? UI_ICONS.text : item.type === 'image' ? UI_ICONS.image : UI_ICONS.shapes;
       const name = el('span', 'sk-layer-name', row);
+      name.draggable = true;
+      name.title = 'Click to select, or drag to reorder';
       name.innerHTML = `${icon}<span>${escapeHtml(elementName(item))}</span>`;
       name.onclick = () => ed.select([item.id]);
       const btns = el('span', 'sk-layer-actions', row);
@@ -380,5 +576,6 @@ export class Sidepanel {
         ed.deleteSelected();
       });
     }
+    this.contentEl.scrollTop = scrollTop;
   }
 }

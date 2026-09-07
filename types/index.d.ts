@@ -1,8 +1,42 @@
 export as namespace SenangDesign;
 
+export type ChartType = 'bar' | 'row' | 'grouped-bar' | 'line' | 'multi-line' | 'pie' | 'donut' | 'area' | 'stacked-area';
+
+export interface ChartSeries {
+  name: string;
+  values: (number | null)[];
+  color?: string;
+}
+
+export interface ChartData {
+  categories: string[];
+  series: ChartSeries[];
+}
+
+export interface ChartConfig extends ChartData {
+  type: ChartType;
+  categoryColors?: string[];
+  title?: string;
+  showLegend?: boolean;
+  showValues?: boolean;
+  showAxes?: boolean;
+  showGrid?: boolean;
+  fontSize?: number;
+  textColor?: string;
+}
+
+export interface GradientFill {
+  type: 'gradient';
+  from: string;
+  to: string;
+  /** Degrees clockwise from left-to-right (0); defaults to 135. */
+  angle?: number;
+}
+
 export interface DesignElement {
   id?: string;
-  type: 'text' | 'rect' | 'ellipse' | 'triangle' | 'star' | 'hexagon' | 'diamond' | 'heart' | 'line' | 'image' | 'icon' | 'shape';
+  type: 'text' | 'rect' | 'ellipse' | 'triangle' | 'star' | 'hexagon' | 'diamond' | 'heart' | 'line' | 'image' | 'icon' | 'shape' | 'chart';
+  chart?: ChartConfig;
   x: number;
   y: number;
   w: number;
@@ -23,7 +57,7 @@ export interface DesignElement {
   color?: string;
   lineHeight?: number;
   letterSpacing?: number;
-  fill?: string;
+  fill?: string | GradientFill;
   stroke?: string;
   strokeWidth?: number;
   radius?: number;
@@ -97,8 +131,12 @@ export class Editor {
   bringForward(): void;
   sendBackward(): void;
   sendToBack(): void;
+  /** Move a layer by element-array index (0 is the backmost layer). */
+  moveLayer(from: number, to: number): void;
   toggleLock(): void;
-  setBackground(bg: PageBackground): void;
+  /** Resize the current page; dimensions are whole pixels from 1 to 10000. */
+  resizeCanvas(width: number, height: number): void;
+  setBackground(bg: PageBackground, commit?: boolean): void;
 
   setZoom(zoom: number, anchor?: { x: number; y: number }): void;
   zoomFit(): void;

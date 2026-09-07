@@ -1,4 +1,5 @@
 import { deg2rad } from './utils.js';
+import { drawChart } from './chart-renderer.js';
 import { ICONS, ICON_OUTLINES, SHAPE_PATHS } from './assets.js';
 
 const imageCache = new Map();
@@ -44,6 +45,21 @@ function getPath(d) {
   return pathCache.get(d);
 }
 
+function resolveFill(ctx, fill, w, h, fallback = '#000000') {
+  if (!fill || fill.type !== 'gradient') return typeof fill === 'string' && fill ? fill : fallback;
+  const angle = deg2rad(fill.angle ?? 135);
+  const dx = Math.cos(angle);
+  const dy = Math.sin(angle);
+  const len = (Math.abs(dx) * w + Math.abs(dy) * h) / 2;
+  const gradient = ctx.createLinearGradient(
+    w / 2 - dx * len, h / 2 - dy * len,
+    w / 2 + dx * len, h / 2 + dy * len
+  );
+  gradient.addColorStop(0, fill.from || '#ffffff');
+  gradient.addColorStop(1, fill.to || '#eeeeee');
+  return gradient;
+}
+
 export function renderPage(ctx, page, opts = {}) {
   const pw = page.width || 1080;
   const ph = page.height || 1080;
@@ -63,19 +79,7 @@ function drawBackground(ctx, bg, pw, ph, transparent) {
   if (!bg || bg.type === 'solid' || !bg.type) {
     ctx.fillStyle = (bg && bg.color) || '#ffffff';
   } else if (bg.type === 'gradient') {
-    const angle = deg2rad(bg.angle ?? 135);
-    const cx = pw / 2;
-    const cy = ph / 2;
-    const len = (Math.abs(Math.cos(angle)) * pw + Math.abs(Math.sin(angle)) * ph) / 2;
-    const grad = ctx.createLinearGradient(
-      cx - Math.cos(angle) * len,
-      cy - Math.sin(angle) * len,
-      cx + Math.cos(angle) * len,
-      cy + Math.sin(angle) * len
-    );
-    grad.addColorStop(0, bg.from || '#ffffff');
-    grad.addColorStop(1, bg.to || '#eeeeee');
-    ctx.fillStyle = grad;
+    ctx.fillStyle = resolveFill(ctx, bg, pw, ph);
   } else if (bg.type === 'image' && bg.src) {
     ctx.fillStyle = '#ffffff';
     ctx.fill();
@@ -103,6 +107,7 @@ export function drawElement(ctx, el) {
   ctx.scale(el.flipX ? -1 : 1, el.flipY ? -1 : 1);
   ctx.translate(-el.w / 2, -el.h / 2);
   switch (el.type) {
+    case 'chart': drawChart(ctx, el); break;
     case 'text': drawText(ctx, el); break;
     case 'rect': drawRect(ctx, el); break;
     case 'ellipse': drawShapePath(ctx, el, ellipsePath); break;
@@ -121,7 +126,7 @@ export function drawElement(ctx, el) {
 
 function fillAndStroke(ctx, el, path, fillRule = 'nonzero') {
   if (el.fill !== 'none') {
-    ctx.fillStyle = el.fill || '#000000';
+    ctx.fillStyle = resolveFill(ctx, el.fill, el.w, el.h);
     ctx.fill(path, fillRule);
   }
   // An unset stroke uses the black shown in the toolbar. Width zero or an
@@ -264,17 +269,19 @@ function drawIcon(ctx, el) {
   const outline = el.iconStyle === 'outline';
   const paths = outline ? ICON_OUTLINES : ICONS;
   const d = paths[el.icon] || paths.star;
+  // Create the paint in element coordinates before scaling the icon geometry.
+  const fill = el.fill === 'none' ? null : resolveFill(ctx, el.fill, el.w, el.h, '#111827');
   ctx.save();
   ctx.scale(el.w / 24, el.h / 24);
   if (el.fill !== 'none') {
     if (outline) {
-      ctx.strokeStyle = el.fill || '#111827';
+      ctx.strokeStyle = fill;
       ctx.lineWidth = 1.75;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.stroke(getPath(d));
     } else {
-      ctx.fillStyle = el.fill || '#111827';
+      ctx.fillStyle = fill;
       ctx.fill(getPath(d), 'evenodd');
     }
   }
