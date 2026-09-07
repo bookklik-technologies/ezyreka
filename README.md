@@ -1,10 +1,10 @@
-# SenangDesign
+# Ezyreka
 
-**SenangDesign** is a standalone, full-featured, Canva-style design editor for the web. It ships as a single dependency-free JS library that you can initialize **programmatically** with JavaScript or **automatically** via `<div data-sk-editor></div>`.
+**Ezyreka** is a standalone, full-featured, Canva-style design editor for the web. It ships as a single dependency-free JS library that you can initialize **programmatically** with JavaScript or **automatically** via `<div data-ez-editor></div>`.
 
 No frameworks. No runtime dependencies. One script tag.
 
-![SenangDesign](https://img.shields.io/badge/license-MIT-blue.svg)
+![Ezyreka](https://img.shields.io/badge/license-MIT-blue.svg)
 
 ## Features
 
@@ -29,30 +29,30 @@ No frameworks. No runtime dependencies. One script tag.
 ## Installation
 
 ```bash
-npm install senangdesign
+npm install ezyreka
 ```
 
 Or use the bundle directly:
 
 ```html
-<script src="dist/senangdesign.umd.js"></script>
+<script src="dist/ezyreka.umd.js"></script>
 ```
 
 ## Quick start
 
 ### Automatic initialization
 
-Any element with `data-sk-editor` is turned into an editor on page load:
+Any element with `data-ez-editor` is turned into an editor on page load:
 
 ```html
 <div
   id="app"
-  data-sk-editor
-  data-sk-width="1080"
-  data-sk-height="1080"
-  data-sk-name="My design"
+  data-ez-editor
+  data-ez-width="1080"
+  data-ez-height="1080"
+  data-ez-name="My design"
 ></div>
-<script src="https://unpkg.com/senangdesign/dist/senangdesign.umd.js"></script>
+<script src="https://unpkg.com/ezyreka/dist/ezyreka.umd.js"></script>
 ```
 
 > Size the container with CSS (e.g. `#app { width: 100vw; height: 100vh; }`).
@@ -60,8 +60,8 @@ Any element with `data-sk-editor` is turned into an editor on page load:
 ### Programmatic initialization
 
 ```js
-const { Editor } = SenangDesign; // UMD global
-// or: import { Editor } from 'senangdesign'; // ESM
+const { Editor } = Ezyreka; // UMD global
+// or: import { Editor } from 'ezyreka'; // ESM
 
 const editor = new Editor({
   target: '#app',          // selector or HTMLElement
@@ -71,7 +71,7 @@ const editor = new Editor({
 });
 
 editor.on('ready', () => {
-  editor.addText({ text: 'Hello SenangDesign', fontSize: 96, fontWeight: 800 });
+  editor.addText({ text: 'Hello Ezyreka', fontSize: 96, fontWeight: 800 });
   editor.addElement({ type: 'rect', x: 340, y: 620, w: 400, h: 110, radius: 55 });
 });
 ```
@@ -255,8 +255,8 @@ editor.updateSelected({
 // Custom themes are named CSS-variable sets; cssVars applies on top of any theme.
 const editor = new Editor({
   target: '#app',
-  themes: { ocean: { '--sk-accent': '#0ea5e9', '--sk-bg': '#0f172a' } },
-  cssVars: { '--sk-radius': '12px' }
+  themes: { ocean: { '--ez-accent': '#0ea5e9', '--ez-bg': '#0f172a' } },
+  cssVars: { '--ez-radius': '12px' }
 });
 editor.setTheme('ocean');
 
@@ -403,7 +403,7 @@ npm test        # smoke + DOM tests (jsdom)
 
 ```
 ├── src/
-│   ├── index.js            # entry: exports + <div data-sk-editor> auto-init
+│   ├── index.js            # entry: exports + <div data-ez-editor> auto-init
 │   ├── styles.js           # injected stylesheet + Google Fonts loader
 │   ├── interactions.js     # pointer/keyboard engine: select, move, resize, rotate, snap
 │   ├── core/

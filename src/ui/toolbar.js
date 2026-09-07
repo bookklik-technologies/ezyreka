@@ -8,7 +8,7 @@ export class Toolbar {
   constructor(editor) {
     this.editor = editor;
     this.root = editor.toolbarEl;
-    this.root.classList.add('sk-floating-toolbar');
+    this.root.classList.add('ez-floating-toolbar');
     this.lastSig = null;
     this._unsubs = [editor.on('selection', () => (this.lastSig = null))];
   }
@@ -71,13 +71,13 @@ export class Toolbar {
     const common = groups.filter((group) =>
       sel.every((s) => manifestFor(s.type).toolbar?.includes(group)));
     if (common.includes('chartEdit') && sel.length === 1) {
-      const edit = el('button', 'sk-btn sk-btn-ghost', this.root);
+      const edit = el('button', 'ez-btn ez-btn-ghost', this.root);
       edit.textContent = 'Edit chart';
       edit.onclick = () => ed.ui.sidepanel?.charts?.open();
     }
 
     if (common.includes('text')) {
-      const fontSel = el('select', 'sk-input sk-font-select', this.root);
+      const fontSel = el('select', 'ez-input ez-font-select', this.root);
       for (const f of ed.registry.fonts)
         fontSel.innerHTML += `<option>${f}</option>`;
       fontSel.value = first.fontFamily;
@@ -86,7 +86,7 @@ export class Toolbar {
       this.numInput('Size', first.fontSize, 4, 800, (v) => ({ fontSize: v }));
 
       const mkToggle = (icon, prop, title) => {
-        const b = el('button', 'sk-tool-toggle', this.root);
+        const b = el('button', 'ez-tool-toggle', this.root);
         b.innerHTML = icon;
         b.title = title;
         b.dataset.prop = prop;
@@ -96,7 +96,7 @@ export class Toolbar {
       mkToggle(UI_ICONS.italic, 'italic', 'Italic');
       mkToggle(UI_ICONS.underline, 'underline', 'Underline');
 
-      const alignBtn = el('button', 'sk-tool-toggle', this.root);
+      const alignBtn = el('button', 'ez-tool-toggle', this.root);
       alignBtn.title = 'Alignment';
       alignBtn.dataset.prop = 'align';
       alignBtn.onclick = () => {
@@ -121,14 +121,14 @@ export class Toolbar {
     if (common.includes('line')) {
       this.colorInput('Color', first.stroke, 'stroke');
       this.numInput('Width', first.strokeWidth, 1, 100, (v) => ({ strokeWidth: v }));
-      const arrowBtn = el('button', 'sk-tool-toggle', this.root);
+      const arrowBtn = el('button', 'ez-tool-toggle', this.root);
       arrowBtn.textContent = '⟶';
       arrowBtn.title = 'Arrow head';
       arrowBtn.dataset.prop = 'arrow';
       arrowBtn.onclick = () => ed.updateSelected({ arrow: !first.arrow });
     }
     if (common.includes('iconStyle')) {
-      const style = el('select', 'sk-input', this.root);
+      const style = el('select', 'ez-input', this.root);
       style.setAttribute('aria-label', 'Icon style');
       style.innerHTML = '<option value="solid">Solid</option><option value="outline">Outline</option>';
       style.value = first.iconStyle || 'solid';
@@ -138,9 +138,9 @@ export class Toolbar {
       this.numInput('Opacity', Math.round((first.opacity ?? 1) * 100), 0, 100, (v) => ({ opacity: v / 100 }));
     }
 
-    const actions = el('div', 'sk-toolbar-sep-actions', this.root);
+    const actions = el('div', 'ez-toolbar-sep-actions', this.root);
     const mk = (icon, title, fn) => {
-      const b = el('button', 'sk-icon-btn sk-sm', actions);
+      const b = el('button', 'ez-icon-btn ez-sm', actions);
       b.innerHTML = icon;
       b.title = title;
       b.onclick = fn;
@@ -171,7 +171,7 @@ export class Toolbar {
               ? UI_ICONS.alignRight
               : UI_ICONS.alignLeft;
       } else active = !!first[prop];
-      btn.classList.toggle('sk-active', active);
+      btn.classList.toggle('ez-active', active);
     });
     this.root.querySelectorAll('input[data-bind], select[data-bind]').forEach((input) => {
       const prop = input.dataset.bind;
@@ -202,9 +202,9 @@ export class Toolbar {
 
   fillInput() {
     const ed = this.editor;
-    const wrap = el('label', 'sk-num-wrap', this.root);
-    el('span', 'sk-num-label', wrap).textContent = 'Fill';
-    const mode = el('select', 'sk-input', wrap);
+    const wrap = el('label', 'ez-num-wrap', this.root);
+    el('span', 'ez-num-label', wrap).textContent = 'Fill';
+    const mode = el('select', 'ez-input', wrap);
     mode.setAttribute('aria-label', 'Fill type');
     mode.innerHTML = '<option value="solid">Solid</option><option value="gradient">Gradient</option><option value="none">None</option>';
     mode.onchange = () => {
@@ -230,9 +230,9 @@ export class Toolbar {
       });
       colors[key] = { label: field.group, input: field.input, field };
     }
-    const angleWrap = el('label', 'sk-num-wrap', this.root);
-    el('span', 'sk-num-label', angleWrap).textContent = 'Angle';
-    const angle = el('input', 'sk-input sk-num-input', angleWrap);
+    const angleWrap = el('label', 'ez-num-wrap', this.root);
+    el('span', 'ez-num-label', angleWrap).textContent = 'Angle';
+    const angle = el('input', 'ez-input ez-num-input', angleWrap);
     angle.type = 'number';
     angle.min = 0;
     angle.max = 360;
@@ -278,10 +278,10 @@ export class Toolbar {
 
   numInput(label, value, min, max, mapper) {
     const ed = this.editor;
-    const wrap = el('label', 'sk-num-wrap', this.root);
-    const span = el('span', 'sk-num-label', wrap);
+    const wrap = el('label', 'ez-num-wrap', this.root);
+    const span = el('span', 'ez-num-label', wrap);
     span.textContent = label;
-    const input = el('input', 'sk-input sk-num-input', wrap);
+    const input = el('input', 'ez-input ez-num-input', wrap);
     input.type = 'number';
     input.min = min;
     input.max = max;

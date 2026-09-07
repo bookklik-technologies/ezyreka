@@ -31,8 +31,8 @@ export class Editor extends Emitter {
       typeof options.target === 'string'
         ? document.querySelector(options.target)
         : options.target;
-    if (!target) throw new Error('SenangDesign: "target" element is required');
-    if (target.__senangDesign) return target.__senangDesign;
+    if (!target) throw new Error('ezyreka: "target" element is required');
+    if (target.__ezyreka) return target.__ezyreka;
 
     this.options = {
       width: 1080,
@@ -84,7 +84,7 @@ export class Editor extends Emitter {
     this.history = options.history || new History();
     for (const method of ['push', 'undo', 'redo', 'reset']) {
       if (typeof this.history[method] !== 'function') {
-        throw new Error(`SenangDesign: custom history must implement ${method}()`);
+        throw new Error(`ezyreka: custom history must implement ${method}()`);
       }
     }
     this.history.push(deepClone(this.doc));
@@ -114,32 +114,32 @@ export class Editor extends Emitter {
     if (document.fonts?.ready) document.fonts.ready.then(() => this.markDirty());
     this._resizeObserver = new ResizeObserver(() => this.markDirty());
     this._resizeObserver.observe(this.viewport);
-    target.__senangDesign = this;
+    target.__ezyreka = this;
     this.emit('ready', this);
   }
 
   _buildDOM(target) {
-    target.classList.add('sk-editor');
+    target.classList.add('ez-editor');
     target.innerHTML = '';
     this.container = target;
-    this.topbarEl = el('div', 'sk-topbar', target);
-    const body = el('div', 'sk-body', target);
-    this.sidepanelEl = el('div', 'sk-sidepanel', body);
-    const sidepanelRail = el('div', 'sk-sidepanel-rail', this.sidepanelEl);
-    el('div', 'sk-sidepanel-tabs', sidepanelRail);
-    el('div', 'sk-sidepanel-content', this.sidepanelEl);
-    const canvasWrap = el('div', 'sk-canvas-wrap', body);
-    this.viewport = el('div', 'sk-viewport', canvasWrap);
-    const stageWrap = el('div', 'sk-stage-wrap', this.viewport);
-    this.stage = el('div', 'sk-stage', stageWrap);
+    this.topbarEl = el('div', 'ez-topbar', target);
+    const body = el('div', 'ez-body', target);
+    this.sidepanelEl = el('div', 'ez-sidepanel', body);
+    const sidepanelRail = el('div', 'ez-sidepanel-rail', this.sidepanelEl);
+    el('div', 'ez-sidepanel-tabs', sidepanelRail);
+    el('div', 'ez-sidepanel-content', this.sidepanelEl);
+    const canvasWrap = el('div', 'ez-canvas-wrap', body);
+    this.viewport = el('div', 'ez-viewport', canvasWrap);
+    const stageWrap = el('div', 'ez-stage-wrap', this.viewport);
+    this.stage = el('div', 'ez-stage', stageWrap);
     this.canvas = document.createElement('canvas');
     this.stage.appendChild(this.canvas);
     this.ctx = this.canvas.getContext('2d');
-    this.overlay = el('div', 'sk-overlay', this.stage);
-    this.pagesBarEl = el('div', 'sk-pagesbar', canvasWrap);
-    this.toolbarEl = el('div', 'sk-floating-toolbar', target);
+    this.overlay = el('div', 'ez-overlay', this.stage);
+    this.pagesBarEl = el('div', 'ez-pagesbar', canvasWrap);
+    this.toolbarEl = el('div', 'ez-floating-toolbar', target);
 
-    const fileInput = el('input', 'sk-hidden', target);
+    const fileInput = el('input', 'ez-hidden', target);
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
     fileInput.multiple = true;
@@ -196,7 +196,7 @@ export class Editor extends Emitter {
     const ov = this.overlay;
     ov.innerHTML = '';
     for (const g of this._guides) {
-      const line = el('div', 'sk-guide ' + (g.axis === 'x' ? 'sk-guide-x' : 'sk-guide-y'), ov);
+      const line = el('div', 'ez-guide ' + (g.axis === 'x' ? 'ez-guide-x' : 'ez-guide-y'), ov);
       if (g.axis === 'x') {
         line.style.left = g.v * this.zoom - 0.75 + 'px';
         line.style.top = g.from * this.zoom + 'px';
@@ -212,7 +212,7 @@ export class Editor extends Emitter {
     const z = this.zoom;
     if (sel.length === 1) {
       const elx = sel[0];
-      const box = el('div', 'sk-sel-box', ov);
+      const box = el('div', 'ez-sel-box', ov);
       Object.assign(box.style, {
         left: elx.x * z + 'px',
         top: elx.y * z + 'px',
@@ -221,19 +221,19 @@ export class Editor extends Emitter {
         transform: `rotate(${elx.rotation || 0}deg)`,
         transformOrigin: '50% 50%'
       });
-      const label = el('div', 'sk-sel-name', box);
+      const label = el('div', 'ez-sel-name', box);
       label.textContent = elementName(elx);
       for (const dir of ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']) {
-        const h = el('div', 'sk-handle', box);
+        const h = el('div', 'ez-handle', box);
         h.dataset.dir = dir;
         h.addEventListener('pointerdown', (e) => this.interactions.startResize(e, dir));
       }
-      const rot = el('div', 'sk-rotate-handle', box);
+      const rot = el('div', 'ez-rotate-handle', box);
       rot.title = 'Rotate';
       rot.addEventListener('pointerdown', (e) => this.interactions.startRotate(e));
     } else {
       const bbox = selectionBBox(sel);
-      const box = el('div', 'sk-sel-box sk-multi', ov);
+      const box = el('div', 'ez-sel-box ez-multi', ov);
       Object.assign(box.style, {
         left: bbox.x * z + 'px',
         top: bbox.y * z + 'px',
@@ -494,7 +494,7 @@ export class Editor extends Emitter {
     this._editing = true;
     this.editingId = elx.id;
     const z = this.zoom;
-    const ed = el('div', 'sk-text-editor', this.overlay);
+    const ed = el('div', 'ez-text-editor', this.overlay);
     ed.contentEditable = 'true';
     ed.innerText = elx.text || '';
     Object.assign(ed.style, {
@@ -629,7 +629,7 @@ export class Editor extends Emitter {
     if (!tpl || typeof tpl !== 'object' || !tpl.page ||
         !Number.isFinite(tpl.page.width) || !Number.isFinite(tpl.page.height) ||
         !Array.isArray(tpl.page.elements)) {
-      throw new Error('SenangDesign: templates need { name, page: { width, height, elements } }');
+      throw new Error('ezyreka: templates need { name, page: { width, height, elements } }');
     }
     if (this._editing) this.commitTextEdit();
     this.doc = {
@@ -704,7 +704,7 @@ export class Editor extends Emitter {
       if (!tpl || typeof tpl !== 'object' || !tpl.page ||
           !Number.isFinite(tpl.page.width) || !Number.isFinite(tpl.page.height) ||
           !Array.isArray(tpl.page.elements)) {
-        throw new Error('SenangDesign: templates need { name, page: { width, height, elements } }');
+        throw new Error('ezyreka: templates need { name, page: { width, height, elements } }');
       }
     }
     this.registry.templates.push(...list.map((tpl) => deepClone(tpl)));
@@ -713,7 +713,7 @@ export class Editor extends Emitter {
 
   registerFont(name, { google } = {}) {
     if (typeof name !== 'string' || !name.trim()) {
-      throw new Error('SenangDesign: registerFont needs a font family name');
+      throw new Error('ezyreka: registerFont needs a font family name');
     }
     name = name.trim();
     if (!this.registry.fonts.includes(name)) this.registry.fonts.push(name);
@@ -734,13 +734,13 @@ export class Editor extends Emitter {
 
   registerIcons(icons) {
     if (!icons || typeof icons !== 'object') {
-      throw new Error('SenangDesign: registerIcons needs { name: pathOrPathPair }');
+      throw new Error('ezyreka: registerIcons needs { name: pathOrPathPair }');
     }
     for (const [name, def] of Object.entries(icons)) {
       const solid = typeof def === 'string' ? def : def?.solid;
       const outline = typeof def === 'string' ? def : def?.outline;
       if (typeof solid !== 'string') {
-        throw new Error(`SenangDesign: icon "${name}" needs an SVG path string`);
+        throw new Error(`ezyreka: icon "${name}" needs an SVG path string`);
       }
       this.registry.icons[name] = solid;
       this.registry.iconOutlines[name] = typeof outline === 'string' ? outline : solid;
@@ -752,7 +752,7 @@ export class Editor extends Emitter {
     const list = Array.isArray(shapes) ? shapes : [shapes];
     const entries = list.map((item) => {
       if (!item || typeof item.label !== 'string') {
-        throw new Error('SenangDesign: shapes need at least { label }');
+        throw new Error('ezyreka: shapes need at least { label }');
       }
       const entry = { type: item.type || 'shape', label: item.label, props: item.props };
       if (typeof item.path === 'string') {
@@ -763,7 +763,7 @@ export class Editor extends Emitter {
         entry.props = item.props || { shape: name };
       } else {
         if (typeof item.svg !== 'string') {
-          throw new Error(`SenangDesign: shape "${item.label}" needs "path" or "svg"`);
+          throw new Error(`ezyreka: shape "${item.label}" needs "path" or "svg"`);
         }
         entry.svg = item.svg;
       }
@@ -814,7 +814,7 @@ export class Editor extends Emitter {
   /** Replaces this editor's color swatches; entries are hex strings or { label, colors } groups. */
   registerPalette(palette) {
     if (!Array.isArray(palette) || !palette.length) {
-      throw new Error('SenangDesign: registerPalette needs a non-empty array');
+      throw new Error('ezyreka: registerPalette needs a non-empty array');
     }
     this.registry.palette = palette;
     this._refreshPanels('background');
@@ -836,7 +836,7 @@ export class Editor extends Emitter {
   /** Adds a sidebar tab: { id, label, icon, render(contentEl, editor) }. */
   registerPanel(panel) {
     if (!this.ui.sidepanel) {
-      throw new Error('SenangDesign: registerPanel requires the sidepanel UI module');
+      throw new Error('ezyreka: registerPanel requires the sidepanel UI module');
     }
     this.ui.sidepanel.registerPanel(panel);
   }
@@ -846,7 +846,7 @@ export class Editor extends Emitter {
     const src = typeof image === 'string' ? image : image?.src;
     const name = (typeof image === 'object' && image?.name) || 'Image';
     if (typeof src !== 'string' || !src) {
-      throw new Error('SenangDesign: registerImage needs a src string or { src, name }');
+      throw new Error('ezyreka: registerImage needs a src string or { src, name }');
     }
     const entry = { id: uid('up'), src, name };
     this.uploads.push(entry);
@@ -857,7 +857,7 @@ export class Editor extends Emitter {
   /** Adds an image source provider: { id, label?, search(query) => [{ src, name, thumb? }] }. */
   registerImageSource(source) {
     if (!source || typeof source.id !== 'string' || typeof source.search !== 'function') {
-      throw new Error('SenangDesign: image sources need { id, search(query) }');
+      throw new Error('ezyreka: image sources need { id, search(query) }');
     }
     this.registry.imageSources.push(source);
     this._refreshPanels('uploads');
@@ -874,7 +874,7 @@ export class Editor extends Emitter {
   /** Registers a named theme from CSS custom properties, usable via setTheme(). */
   registerTheme(name, vars) {
     if (typeof name !== 'string' || !name || typeof vars !== 'object' || !vars) {
-      throw new Error('SenangDesign: registerTheme needs a name and a CSS variables object');
+      throw new Error('ezyreka: registerTheme needs a name and a CSS variables object');
     }
     this._themes[name] = vars;
     return name;
@@ -884,7 +884,7 @@ export class Editor extends Emitter {
     const custom = this._themes[theme];
     if (theme !== 'dark' && theme !== 'light' && !custom) return;
     this.theme = theme;
-    this.container.classList.toggle('sk-dark', theme === 'dark');
+    this.container.classList.toggle('ez-dark', theme === 'dark');
     // Custom themes and the cssVars option are applied as inline variables;
     // previously applied ones are removed first so switching is reversible.
     for (const name of this._appliedVars) this.container.style.removeProperty(name);
@@ -1047,8 +1047,8 @@ export class Editor extends Emitter {
     }
     this._resizeObserver?.disconnect();
     if (this._raf) cancelAnimationFrame(this._raf);
-    this.container.__senangDesign = null;
-    this.container.classList.remove('sk-editor');
+    this.container.__ezyreka = null;
+    this.container.classList.remove('ez-editor');
     this.container.innerHTML = '';
     this._listeners.clear();
   }

@@ -59,7 +59,7 @@ export class ChartPanel {
     }
   }
 
-  button(parent, label, action, className = 'sk-btn sk-btn-ghost') {
+  button(parent, label, action, className = 'ez-btn ez-btn-ghost') {
     const button = el('button', className, parent);
     button.type = 'button'; button.textContent = label; button.onclick = action;
     return button;
@@ -67,7 +67,7 @@ export class ChartPanel {
 
   error(message) {
     const root = this.dialog || this.sidepanel.contentEl;
-    const error = root.querySelector('.sk-chart-error');
+    const error = root.querySelector('.ez-chart-error');
     if (error) { error.textContent = message; error.hidden = !message; }
   }
 
@@ -116,37 +116,37 @@ export class ChartPanel {
     }
     this.key = `${target.id}:${target.locked}:${target.chart.type}:${target.chart.categories.length}:${target.chart.series.length}`;
     this.sidepanel.panelHeader('Charts', 'Edit your chart with data, labels, and colors.');
-    this.button(root, 'Back to charts', () => { this.gallery = true; this.render(); }, 'sk-btn sk-btn-ghost sk-panel-action');
-    if (target.locked) el('p', 'sk-chart-note', root).textContent = 'This chart is locked. Unlock it in Layers to edit.';
-    const error = el('p', 'sk-chart-error', root);
+    this.button(root, 'Back to charts', () => { this.gallery = true; this.render(); }, 'ez-btn ez-btn-ghost ez-panel-action');
+    if (target.locked) el('p', 'ez-chart-note', root).textContent = 'This chart is locked. Unlock it in Layers to edit.';
+    const error = el('p', 'ez-chart-error', root);
     error.setAttribute('role', 'alert'); error.hidden = true;
-    const tabs = el('div', 'sk-panel-filters sk-chart-editor-tabs', root);
+    const tabs = el('div', 'ez-panel-filters ez-chart-editor-tabs', root);
     for (const tab of ['Data', 'Style']) {
       const active = (this.section || 'Data') === tab;
-      const button = this.button(tabs, tab, () => { this.section = tab; this.render(); }, 'sk-panel-filter');
-      button.classList.toggle('sk-active', active);
+      const button = this.button(tabs, tab, () => { this.section = tab; this.render(); }, 'ez-panel-filter');
+      button.classList.toggle('ez-active', active);
       button.setAttribute('aria-pressed', String(active));
     }
     if (this.section === 'Style') this.renderStyle(root, target);
     else {
-      el('p', 'sk-chart-note', root).textContent = 'Edit cells or paste a table from a spreadsheet. Paste into the Category header to include column headers.';
+      el('p', 'ez-chart-note', root).textContent = 'Edit cells or paste a table from a spreadsheet. Paste into the Category header to include column headers.';
       this.renderTable(root, target);
-      this.button(root, 'Expand data table', () => this.expand(), 'sk-btn sk-btn-ghost sk-chart-expand');
+      this.button(root, 'Expand data table', () => this.expand(), 'ez-btn ez-btn-ghost ez-chart-expand');
     }
   }
 
   renderGallery(root) {
     this.sidepanel.panelHeader('Charts', 'Choose a chart, then make it yours with data and colors.');
-    if (this.target()) this.button(root, 'Edit selected chart', () => this.open(), 'sk-btn sk-btn-ghost sk-panel-action');
+    if (this.target()) this.button(root, 'Edit selected chart', () => this.open(), 'ez-btn ez-btn-ghost ez-panel-action');
     for (const group of [...new Set(CHART_PRESETS.map(p => p.group))]) {
       this.sidepanel.sectionTitle(group, root);
-      const grid = el('div', 'sk-chart-gallery', root);
+      const grid = el('div', 'ez-chart-gallery', root);
       for (const preset of CHART_PRESETS.filter(p => p.group === group)) {
         const button = this.button(grid, '', () => {
           const item = this.editor.addElement({ type: 'chart', chart: sampleChart(preset.type) });
           this.editor.select([item.id]);
           this.section = 'Data'; this.open();
-        }, 'sk-panel-card sk-chart-card');
+        }, 'ez-panel-card ez-chart-card');
         button.setAttribute('aria-label', `Add ${preset.label} chart`);
         const canvas = el('canvas', '', button);
         canvas.width = 240; canvas.height = 170; canvas.setAttribute('aria-hidden', 'true');
@@ -159,14 +159,14 @@ export class ChartPanel {
   }
 
   renderTable(root, target) {
-    const wrap = el('div', 'sk-chart-table-wrap', root);
-    const table = el('table', 'sk-chart-table', wrap);
+    const wrap = el('div', 'ez-chart-table-wrap', root);
+    const table = el('table', 'ez-chart-table', wrap);
     table.setAttribute('aria-label', 'Chart data');
     const head = el('thead', '', table), header = el('tr', '', head);
     const cell = (parent, row, column, read, write) => {
       const container = el(row === 0 ? 'th' : 'td', '', parent);
       if (row === 0) container.scope = 'col';
-      const input = el('input', 'sk-input', container);
+      const input = el('input', 'ez-input', container);
       input.type = 'text';
       if (row > 0 && column > 0) input.inputMode = 'decimal';
       input.dataset.row = row; input.dataset.column = column;
@@ -186,7 +186,7 @@ export class ChartPanel {
     cell(header, 0, 0, () => 'Category', () => {});
     target.chart.series.forEach((s, i) => {
       const th = cell(header, 0, i + 1, c => c.series[i]?.name, (c, input) => { c.series[i].name = input.value; });
-      const remove = this.button(th, 'Remove', () => this.apply(target.id, c => { c.series.splice(i, 1); }), 'sk-chart-remove');
+      const remove = this.button(th, 'Remove', () => this.apply(target.id, c => { c.series.splice(i, 1); }), 'ez-chart-remove');
       remove.setAttribute('aria-label', `Remove series ${i + 1}`); remove.disabled = !!target.locked;
     });
     el('th', '', header).textContent = '';
@@ -197,10 +197,10 @@ export class ChartPanel {
       target.chart.series.forEach((s, j) => cell(row, i + 1, j + 1, c => c.series[j]?.values[i], (c, input) => { c.series[j].values[i] = parseChartValue(input.value); }));
       const remove = this.button(el('td', '', row), 'Remove', () => this.apply(target.id, c => {
         c.categories.splice(i, 1); c.categoryColors.splice(i, 1); c.series.forEach(s => s.values.splice(i, 1));
-      }), 'sk-chart-remove');
+      }), 'ez-chart-remove');
       remove.setAttribute('aria-label', `Remove category ${i + 1}`); remove.disabled = !!target.locked;
     });
-    const actions = el('div', 'sk-chart-data-actions', root);
+    const actions = el('div', 'ez-chart-data-actions', root);
     this.button(actions, 'Add row', () => this.apply(target.id, c => {
       c.categoryColors.push(chartColor(c.categories.length)); c.categories.push(`Item ${c.categories.length + 1}`); c.series.forEach(s => s.values.push(null));
     })).disabled = !!target.locked;
@@ -212,9 +212,9 @@ export class ChartPanel {
   renderStyle(root, target) {
     const chart = target.chart;
     const field = (label, type, read, write) => {
-      const wrap = el('label', 'sk-chart-style-field', root);
+      const wrap = el('label', 'ez-chart-style-field', root);
       el('span', '', wrap).textContent = label;
-      const input = el(type === 'select' ? 'select' : 'input', 'sk-input', wrap);
+      const input = el(type === 'select' ? 'select' : 'input', 'ez-input', wrap);
       if (type !== 'select') input.type = type;
       input.setAttribute('aria-label', label);
       this.bind(input, target, read, write);
@@ -224,7 +224,7 @@ export class ChartPanel {
     CHART_PRESETS.forEach(p => { const option = el('option', '', type); option.value = p.type; option.textContent = p.label; });
     type.value = chart.type;
     if (!isMultiSeriesChart(chart.type) && chart.series.length > 1) {
-      el('p', 'sk-chart-note', root).textContent = 'This chart displays the first series. Additional series are kept when switching chart types.';
+      el('p', 'ez-chart-note', root).textContent = 'This chart displays the first series. Additional series are kept when switching chart types.';
     }
     field('Title', 'text', c => c.title, (c, input) => { c.title = input.value; });
     for (const [key, label] of [['showLegend', 'Legend'], ['showValues', 'Value labels'], ...(!isCircularChart(chart.type) ? [['showAxes', 'Axes'], ['showGrid', 'Gridlines']] : [])]) {
@@ -247,18 +247,18 @@ export class ChartPanel {
   expand() {
     const target = this.target();
     if (!target || this.dialog) return;
-    const dialog = el('dialog', 'sk-chart-dialog', this.editor.container);
+    const dialog = el('dialog', 'ez-chart-dialog', this.editor.container);
     this.dialog = dialog; this.dialogId = target.id;
     const title = el('h2', '', dialog); title.id = uid('chart-data'); title.textContent = 'Chart data';
     dialog.setAttribute('aria-labelledby', title.id);
-    const error = el('p', 'sk-chart-error', dialog); error.setAttribute('role', 'alert'); error.hidden = true;
+    const error = el('p', 'ez-chart-error', dialog); error.setAttribute('role', 'alert'); error.hidden = true;
     this.modalTable = el('div', '', dialog);
-    this.button(dialog, 'Done', () => dialog.close(), 'sk-btn sk-btn-primary sk-chart-done');
+    this.button(dialog, 'Done', () => dialog.close(), 'ez-btn ez-btn-primary ez-chart-done');
     dialog.addEventListener('keydown', e => e.stopPropagation());
     dialog.addEventListener('close', () => {
       dialog.remove(); this.dialog = null; this.dialogKey = null;
       this.refresh();
-      this.sidepanel.contentEl.querySelector('.sk-chart-expand')?.focus();
+      this.sidepanel.contentEl.querySelector('.ez-chart-expand')?.focus();
     });
     this.renderModalTable();
     dialog.showModal();

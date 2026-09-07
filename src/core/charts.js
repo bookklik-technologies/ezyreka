@@ -40,10 +40,10 @@ export const chartPreset = type => CHART_PRESETS.find(p => p.type === type) || n
 
 export function registerChartPreset(preset) {
   if (!preset || typeof preset.type !== 'string' || !preset.label) {
-    throw new Error('SenangDesign: chart presets need { type, label }');
+    throw new Error('ezyreka: chart presets need { type, label }');
   }
   if (chartPreset(preset.type)) {
-    throw new Error(`SenangDesign: chart type "${preset.type}" already exists`);
+    throw new Error(`ezyreka: chart type "${preset.type}" already exists`);
   }
   CHART_PRESETS.push({ group: 'Other charts', ...preset });
   return preset;

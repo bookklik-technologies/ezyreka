@@ -4,18 +4,18 @@ export function showMenu(editor, clientX, clientY, items) {
   closeMenus(editor);
   const container = editor.container;
   const rect = container.getBoundingClientRect();
-  const menu = el('div', 'sk-menu', container);
+  const menu = el('div', 'ez-menu', container);
   for (const item of items) {
     if (item === '-') {
-      el('div', 'sk-menu-sep', menu);
+      el('div', 'ez-menu-sep', menu);
       continue;
     }
-    const row = el('div', 'sk-menu-item' + (item.danger ? ' sk-danger' : ''), menu);
+    const row = el('div', 'ez-menu-item' + (item.danger ? ' ez-danger' : ''), menu);
     row.innerHTML = `${item.icon ? item.icon : ''}<span>${escapeHtml(item.label)}</span>${
-      item.shortcut ? `<span class="sk-menu-shortcut">${escapeHtml(item.shortcut)}</span>` : ''
+      item.shortcut ? `<span class="ez-menu-shortcut">${escapeHtml(item.shortcut)}</span>` : ''
     }`;
     if (item.disabled) {
-      row.classList.add('sk-disabled');
+      row.classList.add('ez-disabled');
     } else {
       row.addEventListener('click', () => {
         closeMenus(editor);

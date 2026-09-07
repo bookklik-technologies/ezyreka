@@ -33,25 +33,25 @@ export class Topbar {
   render() {
     const ed = this.editor;
     this.root.innerHTML = `
-      <div class="sk-brand"><span class="sk-logo">S</span><span class="sk-brand-name">SenangDesign</span></div>
-      <input class="sk-filename" value="${ed.fileName.replace(/"/g, '&quot;')}" spellcheck="false" />
-      <button class="sk-btn sk-btn-ghost" data-act="resize" title="Resize current canvas" aria-haspopup="dialog">Resize</button>
-      <div class="sk-topbar-group">
-        <button class="sk-icon-btn" data-act="undo" title="Undo (Ctrl+Z)">${UI_ICONS.undo}</button>
-        <button class="sk-icon-btn" data-act="redo" title="Redo (Ctrl+Shift+Z)">${UI_ICONS.redo}</button>
+      <div class="ez-brand"><span class="ez-logo">E</span><span class="ez-brand-name">Ezyreka</span></div>
+      <input class="ez-filename" value="${ed.fileName.replace(/"/g, '&quot;')}" spellcheck="false" />
+      <button class="ez-btn ez-btn-ghost" data-act="resize" title="Resize current canvas" aria-haspopup="dialog">Resize</button>
+      <div class="ez-topbar-group">
+        <button class="ez-icon-btn" data-act="undo" title="Undo (Ctrl+Z)">${UI_ICONS.undo}</button>
+        <button class="ez-icon-btn" data-act="redo" title="Redo (Ctrl+Shift+Z)">${UI_ICONS.redo}</button>
       </div>
-      <div class="sk-topbar-group">
-        <button class="sk-icon-btn" data-act="zoom-out" title="Zoom out (Ctrl+-)">${UI_ICONS['zoom-out']}</button>
-        <button class="sk-zoom-btn" data-act="zoom-menu">100%</button>
-        <button class="sk-icon-btn" data-act="zoom-in" title="Zoom in (Ctrl++)">${UI_ICONS['zoom-in']}</button>
-        <button class="sk-icon-btn" data-act="zoom-fit" title="Fit to screen (Ctrl+0)">${UI_ICONS.fit}</button>
+      <div class="ez-topbar-group">
+        <button class="ez-icon-btn" data-act="zoom-out" title="Zoom out (Ctrl+-)">${UI_ICONS['zoom-out']}</button>
+        <button class="ez-zoom-btn" data-act="zoom-menu">100%</button>
+        <button class="ez-icon-btn" data-act="zoom-in" title="Zoom in (Ctrl++)">${UI_ICONS['zoom-in']}</button>
+        <button class="ez-icon-btn" data-act="zoom-fit" title="Fit to screen (Ctrl+0)">${UI_ICONS.fit}</button>
       </div>
-      <div class="sk-topbar-spacer"></div>
-      <button class="sk-icon-btn" data-act="theme" title="Switch theme (Ctrl+Shift+L)"></button>
-      <button class="sk-btn sk-btn-ghost" data-act="open">Open</button>
-      <button class="sk-btn sk-btn-ghost" data-act="save-json">Save</button>
-      <button class="sk-btn sk-btn-primary" data-act="download">${UI_ICONS.download}<span>Download</span></button>
-      <input type="file" class="sk-hidden" accept="application/json" data-role="open-input" />
+      <div class="ez-topbar-spacer"></div>
+      <button class="ez-icon-btn" data-act="theme" title="Switch theme (Ctrl+Shift+L)"></button>
+      <button class="ez-btn ez-btn-ghost" data-act="open">Open</button>
+      <button class="ez-btn ez-btn-ghost" data-act="save-json">Save</button>
+      <button class="ez-btn ez-btn-primary" data-act="download">${UI_ICONS.download}<span>Download</span></button>
+      <input type="file" class="ez-hidden" accept="application/json" data-role="open-input" />
     `;
 
     this.root.querySelector('[data-act="undo"]').onclick = () => ed.undo();
@@ -63,7 +63,7 @@ export class Topbar {
     this.root.querySelector('[data-act="zoom-menu"]').onclick = (e) => this.zoomMenu(e);
     this.root.querySelector('[data-act="download"]').onclick = (e) => this.downloadMenu(e);
     this.root.querySelector('[data-act="save-json"]').onclick = () => ed.downloadJSON();
-    const nameInput = this.root.querySelector('.sk-filename');
+    const nameInput = this.root.querySelector('.ez-filename');
     nameInput.onchange = () => ed.setFileName(nameInput.value.trim() || 'Untitled design');
     nameInput.onkeydown = (e) => {
       if (e.key === 'Enter') nameInput.blur();
@@ -87,7 +87,7 @@ export class Topbar {
       ed.on('theme', () => this.updateThemeIcon()),
       ed.on('zoom', () => this.updateZoomLabel()),
       ed.on('rename', (name) => {
-        const input = this.root.querySelector('.sk-filename');
+        const input = this.root.querySelector('.ez-filename');
         if (input && document.activeElement !== input) input.value = name;
       })
     ];
@@ -112,38 +112,38 @@ export class Topbar {
     const titleId = uid('resize-title');
     const helpId = uid('resize-help');
     const presetHelpId = uid('resize-preset-help');
-    const dialog = el('dialog', 'sk-resize-dialog', ed.container);
+    const dialog = el('dialog', 'ez-resize-dialog', ed.container);
     dialog.setAttribute('aria-labelledby', titleId);
     dialog.setAttribute('aria-describedby', helpId);
     dialog.innerHTML = `
-      <form class="sk-resize-form">
+      <form class="ez-resize-form">
         <h2 id="${titleId}">Resize canvas</h2>
         <p id="${helpId}">Resize the current page. Elements keep their size and position.</p>
-        <fieldset class="sk-resize-presets" aria-describedby="${presetHelpId}">
+        <fieldset class="ez-resize-presets" aria-describedby="${presetHelpId}">
           <legend>Size preset</legend>
-          <div class="sk-resize-categories" aria-label="Preset categories"></div>
-          <div class="sk-resize-gallery"></div>
-          <label class="sk-resize-custom">
+          <div class="ez-resize-categories" aria-label="Preset categories"></div>
+          <div class="ez-resize-gallery"></div>
+          <label class="ez-resize-custom">
             <input type="radio" name="preset" value="custom" />
-            <span>Custom size</span><span class="sk-resize-custom-hint">Set your own dimensions</span>
+            <span>Custom size</span><span class="ez-resize-custom-hint">Set your own dimensions</span>
           </label>
         </fieldset>
-        <p class="sk-resize-preset-help" id="${presetHelpId}" aria-live="polite"></p>
-        <div class="sk-resize-fields">
-          <label>Width (px)<input class="sk-input" name="width" type="number" min="1" max="10000" step="1" required /></label>
-          <label>Height (px)<input class="sk-input" name="height" type="number" min="1" max="10000" step="1" required /></label>
+        <p class="ez-resize-preset-help" id="${presetHelpId}" aria-live="polite"></p>
+        <div class="ez-resize-fields">
+          <label>Width (px)<input class="ez-input" name="width" type="number" min="1" max="10000" step="1" required /></label>
+          <label>Height (px)<input class="ez-input" name="height" type="number" min="1" max="10000" step="1" required /></label>
         </div>
-        <p class="sk-resize-limit">Enter whole numbers from 1 to 10,000 pixels.</p>
-        <div class="sk-resize-actions">
-          <button class="sk-btn sk-btn-ghost" type="button" data-act="cancel">Cancel</button>
-          <button class="sk-btn sk-btn-primary" type="submit">Resize canvas</button>
+        <p class="ez-resize-limit">Enter whole numbers from 1 to 10,000 pixels.</p>
+        <div class="ez-resize-actions">
+          <button class="ez-btn ez-btn-ghost" type="button" data-act="cancel">Cancel</button>
+          <button class="ez-btn ez-btn-primary" type="submit">Resize canvas</button>
         </div>
       </form>
     `;
     const form = dialog.querySelector('form');
-    const gallery = dialog.querySelector('.sk-resize-gallery');
-    const categories = dialog.querySelector('.sk-resize-categories');
-    const presetHelp = dialog.querySelector('.sk-resize-preset-help');
+    const gallery = dialog.querySelector('.ez-resize-gallery');
+    const categories = dialog.querySelector('.ez-resize-categories');
+    const presetHelp = dialog.querySelector('.ez-resize-preset-help');
     const width = form.elements.namedItem('width');
     const height = form.elements.namedItem('height');
     width.value = page.width;
@@ -157,29 +157,29 @@ export class Topbar {
       gallery.scrollTop = 0;
     };
     for (const [index, group] of RESIZE_PRESETS.entries()) {
-      const category = el('button', 'sk-resize-category', categories);
+      const category = el('button', 'ez-resize-category', categories);
       category.type = 'button';
       category.textContent = group.group;
       category.onclick = () => showCategory(index);
       categoryButtons.push(category);
-      const grid = el('div', 'sk-resize-grid', gallery);
+      const grid = el('div', 'ez-resize-grid', gallery);
       grid.setAttribute('role', 'group');
       grid.setAttribute('aria-label', group.group);
       presetGroups.push(grid);
       for (const size of group.sizes) {
-        const card = el('label', 'sk-resize-card', grid);
+        const card = el('label', 'ez-resize-card', grid);
         const scale = 72 / Math.max(size.width, size.height);
         card.innerHTML = `
           <input type="radio" name="preset" value="${size.id}" />
-          <span class="sk-resize-thumbnail sk-resize-art-${index}" aria-hidden="true">
-            <span class="sk-resize-paper" style="width:${size.width * scale}px;height:${size.height * scale}px">
-              <span class="sk-resize-art-orb"></span><span class="sk-resize-art-block"></span>
-              <span class="sk-resize-art-line"></span>
+          <span class="ez-resize-thumbnail ez-resize-art-${index}" aria-hidden="true">
+            <span class="ez-resize-paper" style="width:${size.width * scale}px;height:${size.height * scale}px">
+              <span class="ez-resize-art-orb"></span><span class="ez-resize-art-block"></span>
+              <span class="ez-resize-art-line"></span>
             </span>
-            <span class="sk-resize-check">✓</span>
+            <span class="ez-resize-check">✓</span>
           </span>
-          <span class="sk-resize-card-name">${size.label}</span>
-          <span class="sk-resize-card-size">${size.width} × ${size.height} px</span>
+          <span class="ez-resize-card-name">${size.label}</span>
+          <span class="ez-resize-card-size">${size.width} × ${size.height} px</span>
         `;
       }
     }
@@ -193,7 +193,7 @@ export class Topbar {
     };
     preset.value = sizes.find(size => size.width === page.width && size.height === page.height)?.id || 'custom';
     showCategory(Math.max(0, RESIZE_PRESETS.findIndex(group => group.sizes.some(size => size.id === preset.value))));
-    dialog.querySelector('.sk-resize-presets').addEventListener('change', () => {
+    dialog.querySelector('.ez-resize-presets').addEventListener('change', () => {
       const size = sizes.find(size => size.id === preset.value);
       if (size) {
         width.value = size.width;

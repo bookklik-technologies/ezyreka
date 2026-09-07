@@ -5,8 +5,8 @@ const ctx = await esbuild.context({
   bundle: true,
   minify: false,
   format: 'iife',
-  globalName: 'SenangDesign',
-  outfile: 'dist/senangdesign.umd.js',
+  globalName: 'Ezyreka',
+  outfile: 'dist/ezyreka.umd.js',
   sourcemap: true,
   logLevel: 'info'
 });

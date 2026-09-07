@@ -31,15 +31,15 @@ const BUILTIN_TABS = [
 export class Sidepanel {
   constructor(editor) {
     this.editor = editor;
-    this.tabsEl = editor.sidepanelEl.querySelector('.sk-sidepanel-tabs');
-    this.contentEl = editor.sidepanelEl.querySelector('.sk-sidepanel-content');
+    this.tabsEl = editor.sidepanelEl.querySelector('.ez-sidepanel-tabs');
+    this.contentEl = editor.sidepanelEl.querySelector('.ez-sidepanel-content');
     this.contentEl.id = uid('panel');
     this.contentEl.setAttribute('role', 'tabpanel');
     this.tabsEl.setAttribute('role', 'tablist');
     this.tabsEl.setAttribute('aria-label', 'Design tools');
     this.tabsEl.setAttribute('aria-orientation', 'vertical');
     this.collapsed = false;
-    this.collapseBtn = el('button', 'sk-sidepanel-toggle', editor.sidepanelEl.querySelector('.sk-sidepanel-rail'));
+    this.collapseBtn = el('button', 'ez-sidepanel-toggle', editor.sidepanelEl.querySelector('.ez-sidepanel-rail'));
     this.tabsEl.before(this.collapseBtn);
     this.collapseBtn.type = 'button';
     this.collapseBtn.innerHTML = UI_ICONS.chevron;
@@ -79,7 +79,7 @@ export class Sidepanel {
   renderTabs() {
     this.tabsEl.innerHTML = '';
     for (const tab of this.tabs) {
-      const btn = el('button', 'sk-tab-btn' + (tab.id === this.activeTab ? ' sk-active' : ''), this.tabsEl);
+      const btn = el('button', 'ez-tab-btn' + (tab.id === this.activeTab ? ' ez-active' : ''), this.tabsEl);
       btn.type = 'button';
       btn.id = `${this.contentEl.id}-${tab.id}`;
       btn.dataset.tab = tab.id;
@@ -132,10 +132,10 @@ export class Sidepanel {
 
   registerPanel(panel) {
     if (!panel || typeof panel.id !== 'string' || typeof panel.render !== 'function') {
-      throw new Error('SenangDesign: panels need { id, label, icon, render(contentEl, editor) }');
+      throw new Error('ezyreka: panels need { id, label, icon, render(contentEl, editor) }');
     }
     if (this.tabs.some((t) => t.id === panel.id)) {
-      throw new Error(`SenangDesign: panel "${panel.id}" already exists`);
+      throw new Error(`ezyreka: panel "${panel.id}" already exists`);
     }
     this.tabs.push({
       id: panel.id,
@@ -155,7 +155,7 @@ export class Sidepanel {
 
   setCollapsed(collapsed) {
     this.collapsed = collapsed;
-    this.editor.sidepanelEl.classList.toggle('sk-collapsed', collapsed);
+    this.editor.sidepanelEl.classList.toggle('ez-collapsed', collapsed);
     if (collapsed && this.contentEl.contains(document.activeElement)) this.collapseBtn.focus();
     this.contentEl.hidden = collapsed;
     const label = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
@@ -164,7 +164,7 @@ export class Sidepanel {
     this.collapseBtn.setAttribute('aria-expanded', String(!collapsed));
     for (const btn of this.tabsEl.children) {
       const active = btn.dataset.tab === this.activeTab;
-      btn.classList.toggle('sk-active', active);
+      btn.classList.toggle('ez-active', active);
       btn.setAttribute('aria-selected', String(active));
       btn.setAttribute('aria-expanded', String(active && !collapsed));
       btn.tabIndex = active ? 0 : -1;
@@ -173,31 +173,31 @@ export class Sidepanel {
   }
 
   panelHeader(title, description) {
-    const header = el('header', 'sk-panel-header', this.contentEl);
-    el('h2', 'sk-panel-heading', header).textContent = title;
-    el('p', 'sk-panel-description', header).textContent = description;
+    const header = el('header', 'ez-panel-header', this.contentEl);
+    el('h2', 'ez-panel-heading', header).textContent = title;
+    el('p', 'ez-panel-description', header).textContent = description;
     return header;
   }
 
   sectionTitle(text, parent = this.contentEl) {
-    const t = el('h3', 'sk-panel-title', parent);
+    const t = el('h3', 'ez-panel-title', parent);
     t.textContent = text;
     return t;
   }
 
   renderTemplates() {
     this.panelHeader('Templates', 'Find your starting point. Make every detail yours.');
-    const search = el('input', 'sk-input sk-panel-search sk-template-search', this.contentEl);
+    const search = el('input', 'ez-input ez-panel-search ez-template-search', this.contentEl);
     search.type = 'search';
     search.placeholder = 'Search templates…';
     search.setAttribute('aria-label', 'Search templates');
     search.value = this.templateQuery || '';
-    const filters = el('div', 'sk-panel-filters sk-template-filters', this.contentEl);
+    const filters = el('div', 'ez-panel-filters ez-template-filters', this.contentEl);
     filters.setAttribute('role', 'group');
     filters.setAttribute('aria-label', 'Template categories');
     const categories = ['All', ...new Set(this.editor.registry.templates.map(tpl => tpl.category))];
     for (const category of categories) {
-      const button = el('button', 'sk-panel-filter sk-template-filter', filters);
+      const button = el('button', 'ez-panel-filter ez-template-filter', filters);
       button.type = 'button';
       button.textContent = category;
       button.onclick = () => {
@@ -205,15 +205,15 @@ export class Sidepanel {
         update();
       };
     }
-    const count = el('div', 'sk-panel-count sk-template-count', this.contentEl);
+    const count = el('div', 'ez-panel-count ez-template-count', this.contentEl);
     count.setAttribute('role', 'status');
-    const grid = el('div', 'sk-template-grid', this.contentEl);
+    const grid = el('div', 'ez-template-grid', this.contentEl);
     const update = () => {
       const category = this.templateCategory || 'All';
       const query = (this.templateQuery || '').trim().toLowerCase();
       for (const button of filters.children) {
         const active = button.textContent === category;
-        button.classList.toggle('sk-active', active);
+        button.classList.toggle('ez-active', active);
         button.setAttribute('aria-pressed', String(active));
       }
       const matches = this.editor.registry.templates.filter(tpl =>
@@ -223,14 +223,14 @@ export class Sidepanel {
       count.textContent = `${matches.length} editable ${matches.length === 1 ? 'template' : 'templates'}`;
       grid.innerHTML = '';
       if (!matches.length) {
-        const empty = el('p', 'sk-empty sk-template-empty', grid);
+        const empty = el('p', 'ez-empty ez-template-empty', grid);
         empty.textContent = 'No templates found. Try another search or category.';
       }
       for (const tpl of matches) {
-        const card = el('button', 'sk-panel-card sk-template-card', grid);
+        const card = el('button', 'ez-panel-card ez-template-card', grid);
         card.type = 'button';
         card.setAttribute('aria-label', `Use ${tpl.name}, ${tpl.format}, ${tpl.page.width} by ${tpl.page.height} pixels`);
-        const preview = el('div', 'sk-template-preview', card);
+        const preview = el('div', 'ez-template-preview', card);
         const canvas = document.createElement('canvas');
         const pw = tpl.page.width;
         const ph = tpl.page.height;
@@ -242,9 +242,9 @@ export class Sidepanel {
         ctx.scale(scale, scale);
         renderPage(ctx, { ...tpl.page, elements: tpl.page.elements.map((e) => createElement(e.type, e)) }, { registry: this.editor.registry });
         preview.appendChild(canvas);
-        const label = el('div', 'sk-template-name', card);
+        const label = el('div', 'ez-template-name', card);
         label.textContent = tpl.name;
-        const meta = el('div', 'sk-template-meta', card);
+        const meta = el('div', 'ez-template-meta', card);
         meta.textContent = `${tpl.format} · ${pw} × ${ph}`;
         card.onclick = () => this.editor.applyTemplate(tpl);
       }
@@ -258,16 +258,16 @@ export class Sidepanel {
 
   renderElements() {
     this.panelHeader('Elements', 'Add shapes and icons to make your design yours.');
-    const search = el('input', 'sk-input sk-panel-search sk-elements-search', this.contentEl);
+    const search = el('input', 'ez-input ez-panel-search ez-elements-search', this.contentEl);
     search.type = 'search';
     search.placeholder = 'Search shapes & icons';
     search.setAttribute('aria-label', 'Search shapes and icons');
     search.value = this.elementQuery || '';
-    const filters = el('div', 'sk-panel-filters sk-element-filters', this.contentEl);
+    const filters = el('div', 'ez-panel-filters ez-element-filters', this.contentEl);
     filters.setAttribute('role', 'group');
     filters.setAttribute('aria-label', 'Element types');
     for (const category of ['All', 'Shapes', 'Icons']) {
-      const button = el('button', 'sk-panel-filter sk-element-filter', filters);
+      const button = el('button', 'ez-panel-filter ez-element-filter', filters);
       button.type = 'button';
       button.textContent = category;
       button.onclick = () => {
@@ -275,16 +275,16 @@ export class Sidepanel {
         update();
       };
     }
-    const count = el('div', 'sk-panel-count sk-element-count', this.contentEl);
+    const count = el('div', 'ez-panel-count ez-element-count', this.contentEl);
     count.setAttribute('role', 'status');
-    const results = el('div', 'sk-element-results', this.contentEl);
+    const results = el('div', 'ez-element-results', this.contentEl);
     const addCard = (grid, label, svg, props) => {
-      const button = el('button', 'sk-panel-card sk-element-btn', grid);
+      const button = el('button', 'ez-panel-card ez-element-btn', grid);
       button.type = 'button';
       button.title = label;
       button.setAttribute('aria-label', `Add ${label}`);
       button.innerHTML = svg;
-      const caption = el('span', 'sk-element-label', button);
+      const caption = el('span', 'ez-element-label', button);
       caption.textContent = label;
       button.onclick = () => {
         const added = this.editor.addElement(props);
@@ -297,7 +297,7 @@ export class Sidepanel {
       const style = this.elementIconStyle || 'solid';
       for (const button of filters.children) {
         const active = button.textContent === category;
-        button.classList.toggle('sk-active', active);
+        button.classList.toggle('ez-active', active);
         button.setAttribute('aria-pressed', String(active));
       }
       const shapes = category === 'Icons' ? [] : this.editor.registry.shapes.filter(shape => shape.label.toLowerCase().includes(query));
@@ -306,12 +306,12 @@ export class Sidepanel {
       count.textContent = `${total} ${total === 1 ? 'element' : 'elements'}`;
       results.innerHTML = '';
       if (!total) {
-        const empty = el('p', 'sk-empty', results);
+        const empty = el('p', 'ez-empty', results);
         empty.textContent = 'No elements found. Try another search or filter.';
       }
       if (shapes.length) {
         this.sectionTitle('Shapes', results);
-        const grid = el('div', 'sk-element-grid', results);
+        const grid = el('div', 'ez-element-grid', results);
         for (const shape of shapes) {
           addCard(grid, shape.label,
             `<svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true" focusable="false">${shape.svg}</svg>`,
@@ -319,23 +319,23 @@ export class Sidepanel {
         }
       }
       if (icons.length) {
-        const heading = el('div', 'sk-element-heading', results);
+        const heading = el('div', 'ez-element-heading', results);
         this.sectionTitle('Icons', heading);
-        const styles = el('div', 'sk-icon-styles', heading);
+        const styles = el('div', 'ez-icon-styles', heading);
         styles.setAttribute('role', 'group');
         styles.setAttribute('aria-label', 'Icon style');
         for (const variant of ['solid', 'outline']) {
-          const button = el('button', 'sk-icon-style' + (style === variant ? ' sk-active' : ''), styles);
+          const button = el('button', 'ez-icon-style' + (style === variant ? ' ez-active' : ''), styles);
           button.type = 'button';
           button.textContent = variant === 'solid' ? 'Solid' : 'Outline';
           button.setAttribute('aria-pressed', String(style === variant));
           button.onclick = () => {
             this.elementIconStyle = variant;
             update();
-            results.querySelector(`.sk-icon-style.sk-active`).focus({ preventScroll: true });
+            results.querySelector(`.ez-icon-style.ez-active`).focus({ preventScroll: true });
           };
         }
-        const grid = el('div', 'sk-element-grid', results);
+        const grid = el('div', 'ez-element-grid', results);
         for (const name of icons) {
           const label = name.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase());
           const attrs = style === 'outline'
@@ -362,9 +362,9 @@ export class Sidepanel {
       { label: 'Add a subheading', size: 40, weight: 600, h: 60 },
       { label: 'Add body text', size: 24, weight: 400, h: 40 }
     ];
-    const styles = el('div', 'sk-text-presets', this.contentEl);
+    const styles = el('div', 'ez-text-presets', this.contentEl);
     for (const p of presets) {
-      const btn = el('button', 'sk-panel-card sk-text-preset', styles);
+      const btn = el('button', 'ez-panel-card ez-text-preset', styles);
       btn.type = 'button';
       btn.style.fontSize = Math.max(14, p.size / 3) + 'px';
       btn.style.fontWeight = p.weight;
@@ -380,9 +380,9 @@ export class Sidepanel {
       };
     }
     this.sectionTitle('Fonts (apply to selection)');
-    const fontList = el('div', 'sk-font-list', this.contentEl);
+    const fontList = el('div', 'ez-font-list', this.contentEl);
     for (const font of this.editor.registry.fonts) {
-      const btn = el('button', 'sk-panel-card sk-font-item', fontList);
+      const btn = el('button', 'ez-panel-card ez-font-item', fontList);
       btn.type = 'button';
       btn.style.fontFamily = font;
       btn.textContent = font;
@@ -398,18 +398,18 @@ export class Sidepanel {
     const scrollTop = this.contentEl.scrollTop;
     this.contentEl.innerHTML = '';
     this.panelHeader('Uploads', 'Upload images or drag and drop them onto the canvas.');
-    const btn = el('button', 'sk-upload-btn', this.contentEl);
+    const btn = el('button', 'ez-upload-btn', this.contentEl);
     btn.type = 'button';
     btn.innerHTML = `${UI_ICONS.upload}<span>Upload an image</span>`;
     btn.onclick = () => ed.openFilePicker();
     this.sectionTitle('Recent uploads');
-    const grid = el('div', 'sk-upload-grid', this.contentEl);
+    const grid = el('div', 'ez-upload-grid', this.contentEl);
     if (!ed.uploads.length) {
-      const empty = el('div', 'sk-empty', grid);
+      const empty = el('div', 'ez-empty', grid);
       empty.textContent = 'No uploads yet. Upload an image to get started.';
     }
     for (const up of ed.uploads) {
-      const thumb = el('button', 'sk-panel-card sk-upload-thumb', grid);
+      const thumb = el('button', 'ez-panel-card ez-upload-thumb', grid);
       thumb.type = 'button';
       thumb.title = up.name;
       thumb.setAttribute('aria-label', `Add ${up.name} to canvas`);
@@ -434,12 +434,12 @@ export class Sidepanel {
     const ed = this.editor;
     this.sectionTitle(source.label || source.id);
     if (typeof source.search !== 'function') return;
-    const search = el('input', 'sk-input sk-panel-search', this.contentEl);
+    const search = el('input', 'ez-input ez-panel-search', this.contentEl);
     search.type = 'search';
     search.placeholder = `Search ${source.label || source.id}…`;
     search.setAttribute('aria-label', `Search ${source.label || source.id} images`);
-    const results = el('div', 'sk-upload-grid', this.contentEl);
-    const status = el('div', 'sk-empty', this.contentEl);
+    const results = el('div', 'ez-upload-grid', this.contentEl);
+    const status = el('div', 'ez-empty', this.contentEl);
     status.hidden = true;
     const renderResults = (items) => {
       results.innerHTML = '';
@@ -452,7 +452,7 @@ export class Sidepanel {
       for (const item of items) {
         if (!item?.src) continue;
         const name = item.name || 'Image';
-        const thumb = el('button', 'sk-panel-card sk-upload-thumb', results);
+        const thumb = el('button', 'ez-panel-card ez-upload-thumb', results);
         thumb.type = 'button';
         thumb.title = name;
         thumb.setAttribute('aria-label', `Add ${name} to canvas`);
@@ -501,20 +501,20 @@ export class Sidepanel {
     // brand kits registered via options.palette / registerPalette().
     for (const group of normalizePalette(ed.registry.palette)) {
       if (group.label) this.sectionTitle(group.label);
-      const swatches = el('div', 'sk-swatch-grid', this.contentEl);
+      const swatches = el('div', 'ez-swatch-grid', this.contentEl);
       for (const color of group.colors) {
-        const sw = el('button', 'sk-swatch', swatches);
+        const sw = el('button', 'ez-swatch', swatches);
         sw.style.background = color;
-        if (color === '#ffffff') sw.classList.add('sk-swatch-border');
+        if (color === '#ffffff') sw.classList.add('ez-swatch-border');
         sw.title = color;
         sw.onclick = () => ed.setBackground({ type: 'solid', color });
       }
     }
     this.sectionTitle('Gradients');
-    const grads = el('div', 'sk-swatch-grid', this.contentEl);
+    const grads = el('div', 'ez-swatch-grid', this.contentEl);
     const gradients = this.editor.registry.gradients;
     for (const g of gradients) {
-      const sw = el('button', 'sk-swatch', grads);
+      const sw = el('button', 'ez-swatch', grads);
       sw.style.background = `linear-gradient(${(g.angle ?? 135) + 90}deg, ${g.from}, ${g.to})`;
       sw.title = `${g.from} → ${g.to}`;
       sw.onclick = () => ed.setBackground({ ...g, type: 'gradient' });
@@ -522,14 +522,14 @@ export class Sidepanel {
     this.sectionTitle('Custom gradient');
     const gradient = bg.type === 'gradient' ? bg
       : gradients[0] || { from: GRADIENT_FALLBACKS.from, to: GRADIENT_FALLBACKS.to, angle: 135 };
-    const gradientRow = el('div', 'sk-bg-gradient-controls', this.contentEl);
+    const gradientRow = el('div', 'ez-bg-gradient-controls', this.contentEl);
     const fields = {};
     for (const [key, label] of [['from', 'Start color'], ['to', 'End color'], ['angle', 'Angle']]) {
-      const wrap = el(key === 'angle' ? 'label' : 'div', 'sk-bg-gradient-field', gradientRow);
-      el('span', 'sk-num-label', wrap).textContent = label;
+      const wrap = el(key === 'angle' ? 'label' : 'div', 'ez-bg-gradient-field', gradientRow);
+      el('span', 'ez-num-label', wrap).textContent = label;
       if (key === 'angle') {
-        wrap.classList.add('sk-bg-gradient-angle');
-        const field = el('input', 'sk-input', wrap);
+        wrap.classList.add('ez-bg-gradient-angle');
+        const field = el('input', 'ez-input', wrap);
         field.type = 'number';
         field.setAttribute('aria-label', 'Background gradient angle');
         field.min = 0;
@@ -548,7 +548,7 @@ export class Sidepanel {
         });
       }
     }
-    const preview = el('div', 'sk-bg-gradient-preview', this.contentEl);
+    const preview = el('div', 'ez-bg-gradient-preview', this.contentEl);
     preview.setAttribute('aria-hidden', 'true');
     const updatePreview = () => {
       const angle = Number.isFinite(fields.angle.valueAsNumber) ? clamp(fields.angle.valueAsNumber, 0, 360) : 135;
@@ -560,13 +560,13 @@ export class Sidepanel {
       ed.setBackground({ type: 'gradient', from: fields.from.value, to: fields.to.value, angle }, commit);
       updatePreview();
     }
-    const apply = el('button', 'sk-btn sk-btn-ghost sk-bg-gradient-apply', this.contentEl);
+    const apply = el('button', 'ez-btn ez-btn-ghost ez-bg-gradient-apply', this.contentEl);
     apply.type = 'button';
     apply.textContent = 'Apply gradient';
     apply.onclick = () => applyGradient();
 
     this.sectionTitle('Solid color & image');
-    const row = el('div', 'sk-bg-custom', this.contentEl);
+    const row = el('div', 'ez-bg-custom', this.contentEl);
     const solidField = colorField(row, {
       title: 'Background solid color',
       value: hexOr(bg.color, '#ffffff'),
@@ -574,7 +574,7 @@ export class Sidepanel {
       onCommit: () => ed.commit()
     });
     const input = solidField.input;
-    const imgBtn = el('button', 'sk-btn sk-btn-ghost sk-grow', row);
+    const imgBtn = el('button', 'ez-btn ez-btn-ghost ez-grow', row);
     imgBtn.textContent = 'Image background';
     imgBtn.onclick = async () => {
       const file = await ed.pickImageFile();
@@ -582,7 +582,7 @@ export class Sidepanel {
       const src = await readAsDataURL(file);
       ed.setBackground({ type: 'image', src });
     };
-    const rm = el('button', 'sk-btn sk-btn-ghost sk-grow sk-bg-remove', row);
+    const rm = el('button', 'ez-btn ez-btn-ghost ez-grow ez-bg-remove', row);
     rm.textContent = 'Remove image';
     rm.onclick = () => ed.setBackground({ type: 'solid', color: '#ffffff' });
     this.syncBackgroundControls = () => {
@@ -605,16 +605,16 @@ export class Sidepanel {
     this.contentEl.innerHTML = '';
     this.panelHeader('Layers', 'Drag layers to reorder. Top layers appear in front.');
     this.sectionTitle('Page layers');
-    const list = el('div', 'sk-layer-list', this.contentEl);
+    const list = el('div', 'ez-layer-list', this.contentEl);
     let draggedId = null;
     const clearDropMarks = () => {
-      list.querySelectorAll('.sk-drop-before, .sk-drop-after')
-        .forEach(row => row.classList.remove('sk-drop-before', 'sk-drop-after'));
+      list.querySelectorAll('.ez-drop-before, .ez-drop-after')
+        .forEach(row => row.classList.remove('ez-drop-before', 'ez-drop-after'));
     };
     const endDrag = () => {
       draggedId = null;
       clearDropMarks();
-      list.querySelectorAll('.sk-dragging').forEach(row => row.classList.remove('sk-dragging'));
+      list.querySelectorAll('.ez-dragging').forEach(row => row.classList.remove('ez-dragging'));
     };
     // Accept drops in the gaps where the insertion lines are drawn, too.
     const forwardGapEvent = (e, handler) => {
@@ -627,15 +627,15 @@ export class Sidepanel {
     list.ondrop = (e) => forwardGapEvent(e, 'ondrop');
     const els = ed.getElements();
     if (!els.length) {
-      const empty = el('div', 'sk-empty', this.contentEl);
+      const empty = el('div', 'ez-empty', this.contentEl);
       empty.textContent = 'This page is empty. Add elements from the panels.';
       return;
     }
     for (let i = els.length - 1; i >= 0; i--) {
       const item = els[i];
-      const row = el('div', 'sk-layer-item' + (ed.selection.has(item.id) ? ' sk-active' : ''), list);
+      const row = el('div', 'ez-layer-item' + (ed.selection.has(item.id) ? ' ez-active' : ''), list);
       row.dataset.id = item.id;
-      const handle = el('button', 'sk-layer-drag-handle', row);
+      const handle = el('button', 'ez-layer-drag-handle', row);
       handle.type = 'button';
       handle.textContent = '⠿';
       handle.title = 'Drag to reorder, or use Up/Down arrow keys';
@@ -647,9 +647,9 @@ export class Sidepanel {
         e.stopPropagation();
         const from = ed.getElements().findIndex(layer => layer.id === item.id);
         ed.moveLayer(from, from + (e.key === 'ArrowUp' ? 1 : -1));
-        const movedRow = [...this.contentEl.querySelectorAll('.sk-layer-item')]
+        const movedRow = [...this.contentEl.querySelectorAll('.ez-layer-item')]
           .find(layer => layer.dataset.id === item.id);
-        movedRow?.querySelector('.sk-layer-drag-handle').focus({ preventScroll: true });
+        movedRow?.querySelector('.ez-layer-drag-handle').focus({ preventScroll: true });
       };
       row.ondragstart = (e) => {
         draggedId = item.id;
@@ -657,7 +657,7 @@ export class Sidepanel {
         e.dataTransfer.setData('text/plain', item.id);
         e.dataTransfer.setDragImage(row, 16, row.offsetHeight / 2);
         requestAnimationFrame(() => {
-          if (draggedId === item.id) row.classList.add('sk-dragging');
+          if (draggedId === item.id) row.classList.add('ez-dragging');
         });
       };
       row.ondragend = endDrag;
@@ -668,10 +668,10 @@ export class Sidepanel {
         clearDropMarks();
         if (draggedId === item.id) return;
         const rect = row.getBoundingClientRect();
-        row.classList.add(e.clientY < rect.top + rect.height / 2 ? 'sk-drop-before' : 'sk-drop-after');
+        row.classList.add(e.clientY < rect.top + rect.height / 2 ? 'ez-drop-before' : 'ez-drop-after');
       };
       row.ondragleave = (e) => {
-        if (!row.contains(e.relatedTarget)) row.classList.remove('sk-drop-before', 'sk-drop-after');
+        if (!row.contains(e.relatedTarget)) row.classList.remove('ez-drop-before', 'ez-drop-after');
       };
       row.ondrop = (e) => {
         if (draggedId === null) return;
@@ -688,14 +688,14 @@ export class Sidepanel {
         ed.moveLayer(from, insertion - (from < insertion ? 1 : 0));
       };
       const icon = UI_ICONS[manifestFor(item.type).layerIcon || 'shapes'];
-      const name = el('span', 'sk-layer-name', row);
+      const name = el('span', 'ez-layer-name', row);
       name.draggable = true;
       name.title = 'Click to select, or drag to reorder';
       name.innerHTML = `${icon}<span>${escapeHtml(elementName(item))}</span>`;
       name.onclick = () => ed.select([item.id]);
-      const btns = el('span', 'sk-layer-actions', row);
+      const btns = el('span', 'ez-layer-actions', row);
       const mkBtn = (html, title, fn, cls = '') => {
-        const b = el('button', 'sk-icon-btn sk-sm ' + cls, btns);
+        const b = el('button', 'ez-icon-btn ez-sm ' + cls, btns);
         b.innerHTML = html;
         b.title = title;
         b.onclick = (e) => {

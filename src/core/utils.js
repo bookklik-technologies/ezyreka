@@ -100,7 +100,7 @@ export class Emitter {
       try {
         fn(payload);
       } catch (err) {
-        console.error('SenangDesign listener error:', err);
+        console.error('ezyreka listener error:', err);
       }
     });
     // Wildcard listeners receive every event as (event, payload).
@@ -108,7 +108,7 @@ export class Emitter {
       try {
         fn(event, payload);
       } catch (err) {
-        console.error('SenangDesign listener error:', err);
+        console.error('ezyreka listener error:', err);
       }
     });
   }

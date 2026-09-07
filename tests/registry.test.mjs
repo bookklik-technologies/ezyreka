@@ -124,7 +124,7 @@ assert.equal(editor.getElements()[0].fill, '#477cf5', 'registered template eleme
 editor.registerFont('Brand Sans', { google: 'Brand+Sans:wght@400;700' });
 assert.ok(editor.registry.fonts.includes('Brand Sans'), 'font registered');
 assert.ok(editor.registry.googleFonts.includes('Brand+Sans:wght@400;700'), 'google spec registered');
-const link = document.getElementById('sk-fonts');
+const link = document.getElementById('ez-fonts');
 assert.ok(link.href.includes('Brand+Sans:wght@400;700'), 'webfont link rebuilt');
 assert.equal(editor.registerFont('Poppins'), 'Poppins', 'registerFont returns the family');
 assert.equal(editor.registry.fonts.filter((f) => f === 'Poppins').length, 1, 'font registration deduped');
@@ -151,11 +151,11 @@ assert.throws(() => editor.registerShapes({ label: 'No art' }), /"path" or "svg"
 const text = editor.addText({ text: 'Brand', fontFamily: 'Brand Sans', x: 10, y: 10, w: 200 });
 editor.select([text.id]);
 editor.render();
-const fontSelect = document.querySelector('.sk-font-select');
+const fontSelect = document.querySelector('.ez-font-select');
 assert.ok(fontSelect, 'toolbar shows font select for text');
 assert.ok([...fontSelect.options].some((o) => o.value === 'Brand Sans'), 'registered font in toolbar picker');
 
-const iconCard = [...document.querySelectorAll('.sk-element-btn')].find((b) => b.title === 'Bolt2');
+const iconCard = [...document.querySelectorAll('.ez-element-btn')].find((b) => b.title === 'Bolt2');
 assert.ok(iconCard, 'registered icon appears in the Elements panel');
 
 // ---- initialDoc option ----

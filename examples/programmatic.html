@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SenangDesign - Programmatic init</title>
+  <title>Ezyreka - Programmatic init</title>
   <style>
     html, body { margin: 0; height: 100%; }
     #app { width: 100vw; height: 100vh; }
@@ -12,9 +12,9 @@
 <body>
   <div id="app"></div>
 
-  <script src="../dist/senangdesign.umd.js"></script>
+  <script src="../dist/ezyreka.umd.js"></script>
   <script>
-    const { Editor } = SenangDesign;
+    const { Editor } = Ezyreka;
 
     const editor = new Editor({
       target: '#app',
@@ -25,7 +25,7 @@
 
     editor.on('ready', () => {
       editor.addText({
-        text: 'Hello SenangDesign',
+        text: 'Hello Ezyreka',
         fontSize: 96,
         fontWeight: 800,
         align: 'center',

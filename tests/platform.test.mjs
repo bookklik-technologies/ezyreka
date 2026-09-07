@@ -162,7 +162,7 @@ assert.ok(editor.ui.sidepanel.contentEl.textContent.includes('Radar'), 'new type
 const rect = editor.addElement({ type: 'rect', x: 0, y: 0, w: 40, h: 40 });
 editor.select([rect.id]);
 editor.render();
-const fillHex = [...editor.ui.toolbar.root.querySelectorAll('.sk-hex-input')]
+const fillHex = [...editor.ui.toolbar.root.querySelectorAll('.ez-hex-input')]
   .find((input) => input.getAttribute('aria-label') === 'Fill color hex value');
 assert.ok(fillHex, 'fill hex input rendered');
 fillHex.value = '#112233';
@@ -187,7 +187,7 @@ const panelText = editor.ui.sidepanel.contentEl.textContent;
 assert.ok(panelText.includes('Brand') && panelText.includes('Neons'), 'palette groups rendered');
 const panel = editor.ui.sidepanel.contentEl;
 assert.ok(panelText.includes('Brand') && panelText.includes('Neons'), 'palette groups rendered');
-assert.equal([...panel.querySelectorAll('.sk-swatch')].filter(s => s.title === '#00ff00').length, 1, 'group swatches rendered');
+assert.equal([...panel.querySelectorAll('.ez-swatch')].filter(s => s.title === '#00ff00').length, 1, 'group swatches rendered');
 
 // ---- Injectable history ----
 const pushes = [];
@@ -209,24 +209,24 @@ editor.applyTemplate({ name: 'ok', page: { width: 400, height: 300, background: 
 assert.equal(editor.getPage().width, 400, 'valid template still applies');
 
 // ---- Themes: registration, custom names, cssVars ----
-editor.registerTheme('ocean', { '--sk-accent': '#123456', '--sk-bg': '#223344' });
+editor.registerTheme('ocean', { '--ez-accent': '#123456', '--ez-bg': '#223344' });
 editor.setTheme('ocean');
 assert.equal(editor.theme, 'ocean', 'custom theme accepted');
-assert.equal(editor.container.style.getPropertyValue('--sk-accent'), '#123456', 'theme vars applied');
-assert.ok(!editor.container.classList.contains('sk-dark'), 'custom theme is not dark');
+assert.equal(editor.container.style.getPropertyValue('--ez-accent'), '#123456', 'theme vars applied');
+assert.ok(!editor.container.classList.contains('ez-dark'), 'custom theme is not dark');
 editor.setTheme('light');
-assert.equal(editor.container.style.getPropertyValue('--sk-accent'), '', 'custom vars removed on built-in switch');
+assert.equal(editor.container.style.getPropertyValue('--ez-accent'), '', 'custom vars removed on built-in switch');
 assert.throws(() => editor.registerTheme('', null), /name and a CSS variables/, 'invalid theme rejected');
 editor.setTheme('does-not-exist');
 assert.equal(editor.theme, 'light', 'unknown theme names ignored');
 const themed = new Editor({
   target: container('p2-themed'),
   theme: 'ocean',
-  themes: { ocean: { '--sk-bg': '#010203' } },
-  cssVars: { '--sk-accent': '#999999' }
+  themes: { ocean: { '--ez-bg': '#010203' } },
+  cssVars: { '--ez-accent': '#999999' }
 });
-assert.equal(themed.container.style.getPropertyValue('--sk-bg'), '#010203', 'initial custom theme applied');
-assert.equal(themed.container.style.getPropertyValue('--sk-accent'), '#999999', 'cssVars option applied');
+assert.equal(themed.container.style.getPropertyValue('--ez-bg'), '#010203', 'initial custom theme applied');
+assert.equal(themed.container.style.getPropertyValue('--ez-accent'), '#999999', 'cssVars option applied');
 
 // ---- UI destroy hooks ----
 let destroyed = 0;

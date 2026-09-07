@@ -1,11 +1,11 @@
 {
-  "name": "senangdesign",
+  "name": "ezyreka",
   "version": "1.0.0",
-  "description": "SenangDesign - a standalone, full-featured Canva-style design editor web library. Init programmatically via JS or automatically with <div data-sk-editor></div>.",
-  "main": "dist/senangdesign.umd.js",
-  "module": "dist/senangdesign.esm.js",
-  "unpkg": "dist/senangdesign.umd.js",
-  "jsdelivr": "dist/senangdesign.umd.js",
+  "description": "Ezyreka - a standalone, full-featured Canva-style design editor web library. Init programmatically via JS or automatically with <div data-ez-editor></div>.",
+  "main": "dist/ezyreka.umd.js",
+  "module": "dist/ezyreka.esm.js",
+  "unpkg": "dist/ezyreka.umd.js",
+  "jsdelivr": "dist/ezyreka.umd.js",
   "types": "types/index.d.ts",
   "type": "module",
   "scripts": {

@@ -103,8 +103,8 @@ const backgroundPainters = {
 };
 
 export function registerBackgroundPainter(type, painter) {
-  if (typeof type !== 'string' || !type) throw new Error('SenangDesign: background painter needs a type name');
-  if (typeof painter !== 'function') throw new Error('SenangDesign: background painter must be a function');
+  if (typeof type !== 'string' || !type) throw new Error('ezyreka: background painter needs a type name');
+  if (typeof painter !== 'function') throw new Error('ezyreka: background painter must be a function');
   backgroundPainters[type] = painter;
 }
 
@@ -141,8 +141,8 @@ const elementRenderers = {
 };
 
 export function registerElementRenderer(type, renderer) {
-  if (typeof type !== 'string' || !type) throw new Error('SenangDesign: element renderer needs a type name');
-  if (typeof renderer !== 'function') throw new Error('SenangDesign: element renderer must be a function');
+  if (typeof type !== 'string' || !type) throw new Error('ezyreka: element renderer needs a type name');
+  if (typeof renderer !== 'function') throw new Error('ezyreka: element renderer must be a function');
   elementRenderers[type] = renderer;
 }
 
@@ -166,7 +166,7 @@ const warnedTypes = new Set();
 function warnUnknownType(type) {
   if (warnedTypes.has(type)) return;
   warnedTypes.add(type);
-  console.warn(`SenangDesign: no renderer for element type "${type}" — the element is skipped. Register a renderer or use a supported type.`);
+  console.warn(`ezyreka: no renderer for element type "${type}" — the element is skipped. Register a renderer or use a supported type.`);
 }
 
 function fillAndStroke(ctx, el, path, fillRule = 'nonzero') {

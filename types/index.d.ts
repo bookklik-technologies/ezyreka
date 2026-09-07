@@ -1,4 +1,4 @@
-export as namespace SenangDesign;
+export as namespace Ezyreka;
 
 export type ChartType = 'bar' | 'row' | 'grouped-bar' | 'line' | 'multi-line' | 'pie' | 'donut' | 'area' | 'stacked-area';
 

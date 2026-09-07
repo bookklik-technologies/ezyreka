@@ -28,7 +28,7 @@ export class Interactions {
     this._onKeyUp = (e) => {
       if (e.code === 'Space') {
         this.spaceDown = false;
-        ed.viewport.classList.remove('sk-panning');
+        ed.viewport.classList.remove('ez-panning');
       }
     };
     ed.canvas.addEventListener('pointerdown', (e) => this.onPointerDown(e));
@@ -53,7 +53,7 @@ export class Interactions {
     window.removeEventListener('keydown', this._onKeyDown);
     window.removeEventListener('keyup', this._onKeyUp);
     document.removeEventListener('pointerdown', this._onDocPointerDown, true);
-    ed.viewport.classList.remove('sk-panning');
+    ed.viewport.classList.remove('ez-panning');
     this.drag = null;
   }
 
@@ -145,7 +145,7 @@ export class Interactions {
       scrollLeft: ed.viewport.scrollLeft,
       scrollTop: ed.viewport.scrollTop
     };
-    ed.viewport.classList.add('sk-panning');
+    ed.viewport.classList.add('ez-panning');
   }
 
   startMove(e) {
@@ -168,7 +168,7 @@ export class Interactions {
     ed.updateOverlay();
     this.drag = { mode: 'band', start: p };
     const band = document.createElement('div');
-    band.className = 'sk-band';
+    band.className = 'ez-band';
     ed.overlay.appendChild(band);
     this.drag.band = band;
   }
@@ -294,7 +294,7 @@ export class Interactions {
     const ed = this.editor;
     this.drag = null;
     if (drag.mode === 'pan') {
-      ed.viewport.classList.remove('sk-panning');
+      ed.viewport.classList.remove('ez-panning');
       return;
     }
     if (drag.mode === 'band') {
@@ -345,7 +345,7 @@ export class Interactions {
     if (e.code === 'Space' && !this.spaceDown) {
       e.preventDefault();
       this.spaceDown = true;
-      ed.viewport.classList.add('sk-panning');
+      ed.viewport.classList.add('ez-panning');
       return;
     }
     const mod = e.ctrlKey || e.metaKey;

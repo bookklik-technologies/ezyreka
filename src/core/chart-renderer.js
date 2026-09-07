@@ -32,8 +32,8 @@ const chartRenderers = {
 };
 
 export function registerChartRenderer(type, renderer) {
-  if (typeof type !== 'string' || !type) throw new Error('SenangDesign: chart renderer needs a type name');
-  if (typeof renderer !== 'function') throw new Error('SenangDesign: chart renderer must be a function');
+  if (typeof type !== 'string' || !type) throw new Error('ezyreka: chart renderer needs a type name');
+  if (typeof renderer !== 'function') throw new Error('ezyreka: chart renderer must be a function');
   chartRenderers[type] = renderer;
 }
 

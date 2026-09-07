@@ -56,10 +56,10 @@ const assert = (await import('node:assert')).default;
 const { Editor } = await import('../src/index.js');
 
 const editor = new Editor({ target: '#app', width: 800, height: 600, name: 'Test' });
-assert.ok(document.getElementById('app').classList.contains('sk-editor'), 'editor mounted');
-assert.ok(document.querySelector('.sk-topbar'), 'topbar built');
-assert.ok(document.querySelector('.sk-sidepanel'), 'sidepanel built');
-assert.ok(document.querySelector('.sk-pagesbar'), 'pages bar built');
+assert.ok(document.getElementById('app').classList.contains('ez-editor'), 'editor mounted');
+assert.ok(document.querySelector('.ez-topbar'), 'topbar built');
+assert.ok(document.querySelector('.ez-sidepanel'), 'sidepanel built');
+assert.ok(document.querySelector('.ez-pagesbar'), 'pages bar built');
 
 const rect = editor.addElement({ type: 'rect', x: 10, y: 10, w: 100, h: 100 });
 assert.strictEqual(editor.getElements().length, 1, 'element added');
@@ -71,13 +71,13 @@ assert.ok(text.id.startsWith('text_'), 'text id');
 
 editor.select([rect.id]);
 assert.strictEqual(editor.getSelected().length, 1, 'selected');
-assert.ok(document.querySelector('.sk-sel-box'), 'selection box rendered');
-assert.ok(document.querySelectorAll('.sk-handle').length === 8, '8 resize handles');
-assert.ok(document.querySelector('.sk-rotate-handle'), 'rotate handle rendered');
+assert.ok(document.querySelector('.ez-sel-box'), 'selection box rendered');
+assert.ok(document.querySelectorAll('.ez-handle').length === 8, '8 resize handles');
+assert.ok(document.querySelector('.ez-rotate-handle'), 'rotate handle rendered');
 
 // Button icons must be SVG elements, not invisible HTML path elements.
-const iconButtons = document.querySelectorAll('.sk-icon-btn');
-assert.ok(editor.toolbarEl.querySelectorAll('.sk-icon-btn').length === 5, 'toolbar has five icon actions');
+const iconButtons = document.querySelectorAll('.ez-icon-btn');
+assert.ok(editor.toolbarEl.querySelectorAll('.ez-icon-btn').length === 5, 'toolbar has five icon actions');
 for (const button of iconButtons) {
   const svg = button.querySelector('svg');
   assert.ok(svg, `${button.title}: SVG root exists`);
@@ -238,10 +238,10 @@ const themeBtn = document.querySelector('[data-act="theme"]');
 assert.ok(themeBtn.querySelector('svg'), 'theme button has icon');
 editor.toggleTheme();
 assert.strictEqual(editor.theme, 'dark', 'toggleTheme switches to dark');
-assert.ok(document.getElementById('app').classList.contains('sk-dark'), 'sk-dark class applied');
+assert.ok(document.getElementById('app').classList.contains('ez-dark'), 'ez-dark class applied');
 editor.setTheme('light');
 assert.strictEqual(editor.theme, 'light', 'setTheme light');
-assert.ok(!document.getElementById('app').classList.contains('sk-dark'), 'sk-dark class removed');
+assert.ok(!document.getElementById('app').classList.contains('ez-dark'), 'ez-dark class removed');
 editor.setTheme('bogus');
 assert.strictEqual(editor.theme, 'light', 'invalid theme ignored');
 
@@ -250,7 +250,7 @@ const { sampleChart, CHART_PRESETS } = await import('../src/core/charts.js');
 editor.loadJSON({ pages: [{ width: 900, height: 700, elements: [] }] });
 const sidepanel = editor.ui.sidepanel;
 sidepanel.setTab('charts');
-assert.equal(document.querySelectorAll('.sk-chart-card').length, 9, 'nine usable chart presets');
+assert.equal(document.querySelectorAll('.ez-chart-card').length, 9, 'nine usable chart presets');
 for (const preset of CHART_PRESETS) {
   sidepanel.charts.gallery = true;
   sidepanel.charts.render();
@@ -258,7 +258,7 @@ for (const preset of CHART_PRESETS) {
   assert.equal(editor.getSelected()[0].chart.type, preset.type, `${preset.label} inserts and selects`);
   assert.equal(editor.getSelected()[0].w, 600);
   assert.equal(editor.getSelected()[0].h, 400);
-  assert.ok(document.querySelector('.sk-chart-table'), 'insertion opens data editor');
+  assert.ok(document.querySelector('.ez-chart-table'), 'insertion opens data editor');
 }
 const chartItem = editor.getSelected()[0];
 const chartId = chartItem.id;
@@ -269,7 +269,7 @@ const changeCell = (selector, value, root = document) => {
   input.dispatchEvent(new window.Event('change', { bubbles: true }));
   return input;
 };
-const dataCellSelector = '.sk-chart-table input[data-row="1"][data-column="1"]';
+const dataCellSelector = '.ez-chart-table input[data-row="1"][data-column="1"]';
 const focusedCell = document.querySelector(dataCellSelector);
 focusedCell.focus();
 changeCell(dataCellSelector, '125');
@@ -288,7 +288,7 @@ focusedCell.blur();
 const beforePaste = JSON.stringify(chartItem.chart);
 const pasteEvent = new window.Event('paste', { bubbles: true, cancelable: true });
 Object.defineProperty(pasteEvent, 'clipboardData', { value: { getData: () => 'A\t50\t60\nB\t70\t80' } });
-document.querySelector('.sk-chart-table input[data-row="1"][data-column="0"]').dispatchEvent(pasteEvent);
+document.querySelector('.ez-chart-table input[data-row="1"][data-column="0"]').dispatchEvent(pasteEvent);
 assert.equal(chartItem.chart.categories[0], 'A');
 assert.equal(chartItem.chart.series[1].values[1], 80);
 editor.undo();
@@ -298,31 +298,31 @@ editor.select([chartId]);
 sidepanel.charts.open();
 assert.equal(editor.getSelected()[0].chart.series[0].values[0], 50, 'redo restores pasted values');
 const initialRows = editor.getSelected()[0].chart.categories.length;
-document.querySelector('.sk-chart-data-actions button:first-child').click();
+document.querySelector('.ez-chart-data-actions button:first-child').click();
 assert.equal(editor.getSelected()[0].chart.categories.length, initialRows + 1);
 document.querySelector(`[aria-label="Remove category ${initialRows + 1}"]`).click();
 assert.equal(editor.getSelected()[0].chart.categories.length, initialRows);
 const initialSeries = editor.getSelected()[0].chart.series.length;
-document.querySelector('.sk-chart-data-actions button:last-child').click();
+document.querySelector('.ez-chart-data-actions button:last-child').click();
 assert.equal(editor.getSelected()[0].chart.series.length, initialSeries + 1);
 document.querySelector(`[aria-label="Remove series ${initialSeries + 1}"]`).click();
 assert.equal(editor.getSelected()[0].chart.series.length, initialSeries);
-document.querySelector('.sk-chart-editor-tabs button:last-child').click();
+document.querySelector('.ez-chart-editor-tabs button:last-child').click();
 const seriesBeforeSwitch = JSON.stringify(editor.getSelected()[0].chart.series);
 changeCell('[aria-label="Chart type"]', 'pie');
 assert.equal(editor.getSelected()[0].chart.type, 'pie');
 assert.equal(JSON.stringify(editor.getSelected()[0].chart.series), seriesBeforeSwitch, 'switch retains unused series');
-assert.ok(document.querySelector('.sk-chart-note').textContent.includes('first series'));
+assert.ok(document.querySelector('.ez-chart-note').textContent.includes('first series'));
 changeCell('[aria-label="Chart type"]', 'bar');
-document.querySelector('.sk-chart-editor-tabs button:first-child').click();
+document.querySelector('.ez-chart-editor-tabs button:first-child').click();
 changeCell(dataCellSelector, '-10');
-document.querySelector('.sk-chart-editor-tabs button:last-child').click();
+document.querySelector('.ez-chart-editor-tabs button:last-child').click();
 changeCell('[aria-label="Chart type"]', 'donut');
 assert.equal(editor.getSelected()[0].chart.type, 'bar', 'negative data blocks circular type change');
 assert.equal(document.querySelector('[aria-label="Chart type"]').value, 'bar');
-assert.ok(document.querySelector('.sk-chart-error').textContent.includes('non-negative'));
+assert.ok(document.querySelector('.ez-chart-error').textContent.includes('non-negative'));
 editor.toggleLock();
-assert.ok([...document.querySelectorAll('.sk-chart-style-field input, .sk-chart-style-field select')].every(input => input.disabled));
+assert.ok([...document.querySelectorAll('.ez-chart-style-field input, .ez-chart-style-field select')].every(input => input.disabled));
 const lockedData = JSON.stringify(editor.getSelected()[0].chart);
 editor.updateSelected({ chart: sampleChart('pie') });
 assert.equal(JSON.stringify(editor.getSelected()[0].chart), lockedData, 'locked chart data cannot change');
@@ -355,7 +355,7 @@ assert.notEqual(editor.getSelected()[0].chart.series, chartJSON.pages[0].element
 sidepanel.setTab('elements');
 editor.select([pastedId]);
 assert.equal(sidepanel.activeTab, 'elements', 'ordinary selection does not change sidebar tab');
-editor.toolbarEl.querySelector('.sk-btn').click();
+editor.toolbarEl.querySelector('.ez-btn').click();
 assert.equal(sidepanel.activeTab, 'charts', 'toolbar opens chart editor');
 sidepanel.setCollapsed(true);
 sidepanel.charts.open();
@@ -363,16 +363,16 @@ assert.equal(sidepanel.collapsed, false, 'edit chart expands collapsed sidebar')
 sidepanel.charts.section = 'Data'; sidepanel.charts.render();
 dom.window.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
 dom.window.HTMLDialogElement.prototype.close = function () { this.open = false; this.dispatchEvent(new window.Event('close')); };
-document.querySelector('.sk-chart-expand').click();
-const chartDialog = document.querySelector('.sk-chart-dialog');
+document.querySelector('.ez-chart-expand').click();
+const chartDialog = document.querySelector('.ez-chart-dialog');
 assert.ok(chartDialog.open, 'expanded data dialog opens');
 changeCell(dataCellSelector, '321', chartDialog);
 assert.equal(editor.getSelected()[0].chart.series[0].values[0], 321, 'modal shares live data');
 const beforeKeyboard = editor.getSelected()[0].x;
-chartDialog.querySelector('.sk-chart-done').dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+chartDialog.querySelector('.ez-chart-done').dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
 assert.equal(editor.getSelected()[0].x, beforeKeyboard, 'dialog keys do not move canvas elements');
-chartDialog.querySelector('.sk-chart-done').click();
-assert.ok(!document.querySelector('.sk-chart-dialog'));
+chartDialog.querySelector('.ez-chart-done').click();
+assert.ok(!document.querySelector('.ez-chart-dialog'));
 assert.equal(editor.getSelected()[0].chart.series[0].values[0], 321, 'closing keeps edits');
 const exportCanvas = await editor._renderPageToCanvas(editor.page, 2, false);
 assert.equal(exportCanvas.width, 1800); assert.equal(exportCanvas.height, 1400);
@@ -384,10 +384,10 @@ await editor.exportImage('png'); await editor.exportImage('jpeg');
 assert.deepEqual(formats, ['image/png', 'image/jpeg'], 'chart exports use both formats');
 dom.window.HTMLCanvasElement.prototype.toDataURL = originalToDataURL;
 editor.addPage();
-assert.ok(!document.querySelector('.sk-chart-table'), 'page switch clears stale chart editor');
+assert.ok(!document.querySelector('.ez-chart-table'), 'page switch clears stale chart editor');
 editor.goToPage(0); editor.select([pastedId]);
 editor.setTheme('dark'); sidepanel.charts.open();
-assert.ok(document.querySelector('.sk-chart-table'), 'chart editor remains usable in dark theme');
+assert.ok(document.querySelector('.ez-chart-table'), 'chart editor remains usable in dark theme');
 editor.setTheme('light');
 
 // Double-click edits the topmost chart and survives resizing and page changes.
@@ -404,9 +404,9 @@ editor.interactions.onPointerMove(pointerAt({ x: resizePoint.x + resizeDelta.x, 
 editor.interactions.onPointerUp({});
 assert.ok(selectedChart.w > startWidth && selectedChart.h > startHeight, 'chart resizes using standard handles');
 sidepanel.charts.section = 'Data'; sidepanel.charts.render();
-document.querySelector('.sk-chart-expand').click();
+document.querySelector('.ez-chart-expand').click();
 editor.goToPage(1);
-assert.ok(!document.querySelector('.sk-chart-dialog'), 'changing page closes the stale data dialog');
+assert.ok(!document.querySelector('.ez-chart-dialog'), 'changing page closes the stale data dialog');
 
 editor.destroy();
 assert.strictEqual(document.getElementById('app').innerHTML, '', 'destroyed');

@@ -22,8 +22,8 @@ export class PagesBar {
     const ed = this.editor;
     this.root.innerHTML = '';
     ed.doc.pages.forEach((page, i) => {
-      const chip = el('button', 'sk-page-chip' + (i === ed.pageIndex ? ' sk-active' : ''), this.root);
-      chip.innerHTML = `<span class="sk-page-num">${i + 1}</span><span class="sk-page-dim">${page.width}×${page.height}</span>`;
+      const chip = el('button', 'ez-page-chip' + (i === ed.pageIndex ? ' ez-active' : ''), this.root);
+      chip.innerHTML = `<span class="ez-page-num">${i + 1}</span><span class="ez-page-dim">${page.width}×${page.height}</span>`;
       chip.title = 'Page ' + (i + 1) + ' — drag to reorder';
       chip.draggable = true;
       chip.dataset.index = i;
@@ -32,7 +32,7 @@ export class PagesBar {
         this.dragIndex = i;
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', String(i));
-        requestAnimationFrame(() => chip.classList.add('sk-dragging'));
+        requestAnimationFrame(() => chip.classList.add('ez-dragging'));
       };
       chip.ondragend = () => {
         this.dragIndex = null;
@@ -43,10 +43,10 @@ export class PagesBar {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
         const before = this._dropBefore(e, chip);
-        chip.classList.toggle('sk-drop-before', before);
-        chip.classList.toggle('sk-drop-after', !before);
+        chip.classList.toggle('ez-drop-before', before);
+        chip.classList.toggle('ez-drop-after', !before);
       };
-      chip.ondragleave = () => chip.classList.remove('sk-drop-before', 'sk-drop-after');
+      chip.ondragleave = () => chip.classList.remove('ez-drop-before', 'ez-drop-after');
       chip.ondrop = (e) => {
         e.preventDefault();
         const raw = this.dragIndex !== null ? String(this.dragIndex) : e.dataTransfer.getData('text/plain');
@@ -56,9 +56,9 @@ export class PagesBar {
         ed.movePage(from, from < i ? (before ? i - 1 : i) : (before ? i : i + 1));
       };
     });
-    const actions = el('div', 'sk-page-actions', this.root);
+    const actions = el('div', 'ez-page-actions', this.root);
     const mk = (icon, title, fn) => {
-      const b = el('button', 'sk-icon-btn sk-sm', actions);
+      const b = el('button', 'ez-icon-btn ez-sm', actions);
       b.innerHTML = icon;
       b.title = title;
       b.onclick = fn;
@@ -74,7 +74,7 @@ export class PagesBar {
   }
 
   _clearDropMarks() {
-    this.root.querySelectorAll('.sk-drop-before, .sk-drop-after, .sk-dragging')
-      .forEach((c) => c.classList.remove('sk-drop-before', 'sk-drop-after', 'sk-dragging'));
+    this.root.querySelectorAll('.ez-drop-before, .ez-drop-after, .ez-dragging')
+      .forEach((c) => c.classList.remove('ez-drop-before', 'ez-drop-after', 'ez-dragging'));
   }
 }

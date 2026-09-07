@@ -5,13 +5,13 @@ import { el, normalizeHexColor } from '../core/utils.js';
 // layouts that already provide one) and uses a span swatch so labels
 // are never nested.
 export function colorField(parent, { title = 'Color', value = '#000000', onInput, onCommit, bare = false } = {}) {
-  const group = bare ? parent : el('span', 'sk-color-field', parent);
-  const wrap = el(bare ? 'span' : 'label', 'sk-color-wrap', group);
+  const group = bare ? parent : el('span', 'ez-color-field', parent);
+  const wrap = el(bare ? 'span' : 'label', 'ez-color-wrap', group);
   wrap.title = title;
-  const input = el('input', 'sk-color-input', wrap);
+  const input = el('input', 'ez-color-input', wrap);
   input.type = 'color';
   input.setAttribute('aria-label', title);
-  const hex = el('input', 'sk-input sk-hex-input', group);
+  const hex = el('input', 'ez-input ez-hex-input', group);
   hex.type = 'text';
   hex.spellcheck = false;
   hex.maxLength = 7;

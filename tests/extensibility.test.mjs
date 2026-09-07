@@ -180,7 +180,7 @@ const searchBox = [...document.querySelectorAll('input[type="search"]')]
   .find((i) => i.getAttribute('aria-label')?.includes('Stock photos'));
 assert.ok(searchBox, 'image source search box rendered');
 await new Promise((r) => setTimeout(r, 20));
-const thumbs = [...document.querySelectorAll('.sk-upload-thumb')];
+const thumbs = [...document.querySelectorAll('.ez-upload-thumb')];
 assert.ok(thumbs.some((t) => t.title === 'Sunset'), 'provider results rendered');
 assert.ok(searched.includes(''), 'initial search ran');
 const sunsetThumb = thumbs.find((t) => t.title === 'Sunset');
@@ -216,7 +216,7 @@ headless.addText({ text: 'Headless', x: 10, y: 10, w: 200 });
 headless.undo();
 assert.equal(headless.getElements().length, 0, 'headless history works');
 headless.destroy();
-assert.ok(!headless.container.classList.contains('sk-editor'), 'headless destroy works');
+assert.ok(!headless.container.classList.contains('ez-editor'), 'headless destroy works');
 
 // ---- registerPanel without sidepanel ----
 assert.throws(() => headless.registerPanel({ id: 'x', render: () => {} }), /sidepanel/, 'panels need the sidepanel');

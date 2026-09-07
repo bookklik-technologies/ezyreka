@@ -6,7 +6,7 @@ await Promise.all([
     bundle: true,
     minify: true,
     format: 'esm',
-    outfile: 'dist/senangdesign.esm.js',
+    outfile: 'dist/ezyreka.esm.js',
     sourcemap: false,
     logLevel: 'info'
   }),
@@ -15,8 +15,8 @@ await Promise.all([
     bundle: true,
     minify: true,
     format: 'iife',
-    globalName: 'SenangDesign',
-    outfile: 'dist/senangdesign.umd.js',
+    globalName: 'Ezyreka',
+    outfile: 'dist/ezyreka.umd.js',
     sourcemap: false,
     logLevel: 'info'
   })

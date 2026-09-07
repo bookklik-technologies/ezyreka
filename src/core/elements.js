@@ -116,10 +116,10 @@ export function manifestFor(type) {
 // manifests are behavior contracts, not per-instance assets.
 export function registerElementManifest(type, partial = {}) {
   if (typeof type !== 'string' || !type) {
-    throw new Error('SenangDesign: registerElementManifest needs a type name');
+    throw new Error('ezyreka: registerElementManifest needs a type name');
   }
   if (typeof partial !== 'object' || !partial) {
-    throw new Error('SenangDesign: manifest must be an object');
+    throw new Error('ezyreka: manifest must be an object');
   }
   ELEMENT_MANIFESTS[type] = { ...ELEMENT_MANIFESTS[type], ...partial };
 }
@@ -128,11 +128,11 @@ export function registerElementManifest(type, partial = {}) {
 // optional manifest. Pair with registerElementRenderer for canvas output.
 export function registerElementType(type, { defaults = {}, manifest = {} } = {}) {
   if (typeof type !== 'string' || !/^[a-z][a-z0-9-]*$/i.test(type)) {
-    throw new Error('SenangDesign: element type names must be simple identifiers');
+    throw new Error('ezyreka: element type names must be simple identifiers');
   }
-  if (TYPE_DEFAULTS[type]) throw new Error(`SenangDesign: element type "${type}" already exists`);
+  if (TYPE_DEFAULTS[type]) throw new Error(`ezyreka: element type "${type}" already exists`);
   if (typeof defaults !== 'object' || !defaults) {
-    throw new Error('SenangDesign: element type defaults must be an object');
+    throw new Error('ezyreka: element type defaults must be an object');
   }
   TYPE_DEFAULTS[type] = defaults;
   registerElementManifest(type, { name: type, ...manifest });
@@ -140,7 +140,7 @@ export function registerElementType(type, { defaults = {}, manifest = {} } = {})
 
 export function createElement(type, props = {}) {
   const defaults = TYPE_DEFAULTS[type];
-  if (!defaults) throw new Error(`SenangDesign: unknown element type "${type}"`);
+  if (!defaults) throw new Error(`ezyreka: unknown element type "${type}"`);
   const el = {
     ...BASE,
     ...JSON.parse(JSON.stringify(defaults)),
