@@ -37,8 +37,8 @@ export function injectFonts(families = GOOGLE_FONT_FAMILIES) {
 
 const CSS = `
 .ez-editor {
-  --ez-accent: #d97706;
-  --ez-accent-soft: #fdf0dd;
+  --ez-accent: #ff6600;
+  --ez-accent-soft: #fff0e3;
   --ez-bg: #f5f5f7;
   --ez-panel: #ffffff;
   --ez-border: #e4e4ea;
@@ -88,7 +88,7 @@ const CSS = `
 .ez-brand { display: flex; align-items: center; gap: 8px; }
 .ez-logo {
   width: 28px; height: 28px; border-radius: 8px;
-  background: linear-gradient(135deg, #b45309, #f59e0b);
+  background: linear-gradient(135deg, #FACC15, #FF6600);
   color: #fff; font-weight: 800; font-size: 15px;
   display: flex; align-items: center; justify-content: center;
 }
@@ -178,8 +178,8 @@ const CSS = `
 .ez-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; }
 .ez-btn-ghost { background: var(--ez-surface); border-color: var(--ez-border); color: var(--ez-text); }
 .ez-btn-ghost:hover { border-color: var(--ez-border-strong); background: var(--ez-surface-2); }
-.ez-btn-primary { background: var(--ez-accent); color: #fff; }
-.ez-btn-primary:hover { background: #b45309; }
+.ez-btn-primary { background: #FACC15; color: #1e2130; }
+.ez-btn-primary:hover { background: #EAB308; }
 .ez-hidden { display: none !important; }
 .ez-grow { flex: 1; justify-content: center; }
 
@@ -462,12 +462,12 @@ const CSS = `
 .ez-rotate-handle::after {
   content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--ez-accent);
 }
-.ez-guide { position: absolute; background: #f43f8e; pointer-events: none; z-index: 8; }
+.ez-guide { position: absolute; background: #FF6600; pointer-events: none; z-index: 8; }
 .ez-guide.ez-guide-x { width: 1.5px; }
 .ez-guide.ez-guide-y { height: 1.5px; }
 .ez-band {
   position: absolute; display: none; border: 1px solid var(--ez-accent);
-  background: rgba(217, 119, 6, 0.1); pointer-events: none; z-index: 4;
+  background: rgba(255, 102, 0, 0.12); pointer-events: none; z-index: 4;
 }
 .ez-text-editor {
   position: absolute; outline: 1.6px solid var(--ez-accent);
@@ -557,7 +557,8 @@ const CSS = `
 .ez-menu-sep { height: 1px; background: var(--ez-border); margin: 5px 8px; }
 
 .ez-editor.ez-dark {
-  --ez-accent-soft: #3f2d12;
+  --ez-accent: #ff8533;
+  --ez-accent-soft: #3d2110;
   --ez-bg: #17181d;
   --ez-panel: #23252b;
   --ez-border: #383a41;

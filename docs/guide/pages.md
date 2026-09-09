@@ -23,7 +23,7 @@ The Background panel supports three background types plus a Custom gradient sect
 
 ```ts
 { type: 'solid', color: '#1e293b' }
-{ type: 'gradient', from: '#d97706', to: '#ffffff', angle: 135 }
+{ type: 'gradient', from: '#FACC15', to: '#ffffff', angle: 135 }
 { type: 'image', src: 'https://example.com/bg.jpg' }
 ```
 
@@ -33,7 +33,7 @@ From code:
 editor.setBackground({ type: 'solid', color: '#0f172a' })
 
 // Live preview: pass commit = false, then commit once to push a single undo step
-editor.setBackground({ type: 'gradient', from: '#111827', to: '#f59e0b', angle: 135 }, false)
+editor.setBackground({ type: 'gradient', from: '#111827', to: '#FACC15', angle: 135 }, false)
 editor.commit()
 ```
 

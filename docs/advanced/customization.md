@@ -47,7 +47,7 @@ Brand-kit palettes are flat hex lists or labeled groups, at init or later:
 ```js
 new Editor({
   target: '#app',
-  palette: [{ label: 'Brand', colors: ['#1e293b', '#d97706'] }]
+  palette: [{ label: 'Brand', colors: ['#1e293b', '#FACC15'] }]
 })
 
 editor.registerPalette(['#101010', '#202020'])
@@ -58,7 +58,7 @@ editor.registerPalette(['#101010', '#202020'])
 ```js
 new Editor({
   target: '#app',
-  gradients: [{ from: '#d97706', to: '#ffffff', angle: 135 }]
+  gradients: [{ from: '#FACC15', to: '#ffffff', angle: 135 }]
 })
 ```
 

@@ -30,18 +30,18 @@ export const FONTS = [
 ];
 
 export const PALETTE = [
+  '#FACC15', '#EAB308', '#CA8A04', '#FFF3C4', '#FF6600', '#E65100',
   '#ffffff', '#f1f5f9', '#cbd5e1', '#64748b', '#1e293b', '#000000',
   '#fecaca', '#ef4444', '#b91c1c', '#fed7aa', '#f97316', '#c2410c',
-  '#fde68a', '#f59e0b', '#b45309', '#fef08a', '#eab308', '#84cc16',
-  '#a7f3d0', '#10b981', '#047857', '#99f6e4', '#14b8a6', '#0f766e',
+  '#fde68a', '#a7f3d0', '#10b981', '#047857', '#99f6e4', '#14b8a6',
   '#bae6fd', '#0ea5e9', '#0369a1', '#c7d2fe', '#6366f1', '#4338ca',
   '#e9d5ff', '#a855f7', '#7d2ae8', '#fbcfe8', '#ec4899', '#be185d'
 ];
 
 export const GRADIENTS = [
-  { from: '#b45309', to: '#f59e0b', angle: 135 },
+  { from: '#FACC15', to: '#FF6600', angle: 135 },
   { from: '#0ea5e9', to: '#22d3ee', angle: 135 },
-  { from: '#f59e0b', to: '#ef4444', angle: 135 },
+  { from: '#FF6600', to: '#ef4444', angle: 135 },
   { from: '#10b981', to: '#84cc16', angle: 135 },
   { from: '#6366f1', to: '#ec4899', angle: 160 },
   { from: '#0f172a', to: '#475569', angle: 135 },

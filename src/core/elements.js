@@ -33,7 +33,7 @@ const TYPE_DEFAULTS = {
   rect: { fill: ACCENT, stroke: '', strokeWidth: 0, radius: 0 },
   ellipse: { fill: ACCENT, stroke: '', strokeWidth: 0 },
   triangle: { fill: ACCENT, stroke: '', strokeWidth: 0 },
-  star: { fill: '#f59e0b', stroke: '', strokeWidth: 0 },
+  star: { fill: '#FACC15', stroke: '', strokeWidth: 0 },
   hexagon: { fill: ACCENT, stroke: '', strokeWidth: 0 },
   diamond: { fill: ACCENT, stroke: '', strokeWidth: 0 },
   heart: { fill: '#ef4444', stroke: '', strokeWidth: 0 },

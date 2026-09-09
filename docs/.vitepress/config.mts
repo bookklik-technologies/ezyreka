@@ -9,7 +9,7 @@ export default defineConfig({
   description,
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
-    ['meta', { name: 'theme-color', content: '#d97706' }]
+    ['meta', { name: 'theme-color', content: '#FACC15' }]
   ],
   // GitHub Pages project site: docs are served from /ezyreka/.
   base: '/ezyreka/',

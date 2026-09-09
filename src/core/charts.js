@@ -1,6 +1,6 @@
 import { hexOr, normalizeHexColor } from './utils.js';
 
-export const CHART_COLORS = ['#477cf5', '#aa87ef', '#f6b966', '#ffdf58', '#41bda7', '#ed759b'];
+export const CHART_COLORS = ['#FACC15', '#FF6600', '#477cf5', '#aa87ef', '#41bda7', '#ed759b'];
 let activeChartColors = CHART_COLORS;
 // Replaces the default series palette. Applies to every editor in the page
 // (chart colors are baked into normalized chart data, not the registry).

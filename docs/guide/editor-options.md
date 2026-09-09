@@ -46,8 +46,8 @@ const editor = new Editor({
 ```js
 new Editor({
   target: '#app',
-  palette: [{ label: 'Brand', colors: ['#1e293b', '#d97706', '#f1f5f9'] }],
-  gradients: [{ from: '#d97706', to: '#ffffff', angle: 135 }],
+  palette: [{ label: 'Brand', colors: ['#1e293b', '#FACC15', '#f1f5f9'] }],
+  gradients: [{ from: '#FACC15', to: '#ffffff', angle: 135 }],
   fonts: ['Brand Sans'],
   googleFonts: ['Poppins:wght@400;600;800']
 })

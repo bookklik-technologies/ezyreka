@@ -51,7 +51,7 @@ export function Toolbar() {
   return (
     <div>
       <button disabled={!selected.length} onClick={setBold}>Bold</button>
-      <button disabled={!selected.length} onClick={() => setColor('#d97706')}>Amber</button>
+      <button disabled={!selected.length} onClick={() => setColor('#FACC15')}>Brand</button>
     </div>
   )
 }

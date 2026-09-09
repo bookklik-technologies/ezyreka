@@ -32,7 +32,7 @@ const rect = editor.addElement({
   w: 400,
   h: 110,
   radius: 55,
-  fill: '#d97706'
+  fill: '#FACC15'
 })
 ```
 
@@ -56,7 +56,7 @@ editor.select([rect.id])
 
 Shape and icon fills support:
 
-- solid colors — `fill: '#d97706'`
+- solid colors — `fill: '#FACC15'`
 - no fill — `fill: 'none'`
 - two-color linear gradients — `fill: { type: 'gradient', from, to, angle }`
 - multi-stop gradients — `fill: { type: 'gradient', stops: [{ color, offset }…], angle }`
@@ -64,7 +64,7 @@ Shape and icon fills support:
 ```js
 // Two-color gradient
 editor.updateSelected({
-  fill: { type: 'gradient', from: '#d97706', to: '#ffffff', angle: 135 }
+  fill: { type: 'gradient', from: '#FACC15', to: '#ffffff', angle: 135 }
 })
 
 // Multi-stop gradient
@@ -73,7 +73,7 @@ editor.updateSelected({
     type: 'gradient',
     stops: [
       { color: '#111827', offset: 0 },
-      { color: '#f59e0b', offset: 0.5 },
+      { color: '#FACC15', offset: 0.5 },
       { color: '#f97316', offset: 1 }
     ],
     angle: 135
@@ -101,7 +101,7 @@ A minimal reference — see [Document & element schema](/api/document) for the f
   opacity: 1,
   locked: false, hidden: false,
   flipX: false, flipY: false,
-  fill: '#d97706',
+  fill: '#FACC15',
   stroke: '', strokeWidth: 0,
   radius: 0 // rect only
 }
@@ -144,7 +144,7 @@ editor.addElement({
   type: 'icon',
   icon: 'star',
   iconStyle: 'outline', // solid | outline
-  fill: '#d97706',
+  fill: '#FACC15',
   x: 200, y: 200, w: 64, h: 64
 })
 ```
@@ -193,7 +193,7 @@ const editor = new Ezyreka.Editor({ target: '#app', plugins: [diamondPlugin] });
 editor.on('ready', () => {
   const item = editor.addElement({ type: 'brand-diamond', x: 80, y: 80 });
   editor.select([item.id]);
-  editor.updateSelected({ badgeColor: '#d97706', rotation: 15 });
+  editor.updateSelected({ badgeColor: '#FACC15', rotation: 15 });
 });
 ```
 

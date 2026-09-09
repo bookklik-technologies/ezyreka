@@ -174,7 +174,7 @@ This script-tag example uses the same plugin in two editors with different color
   });
   const orangeEditor = new Ezyreka.Editor({
     target: '#orange-editor',
-    plugins: [{ plugin: badgePlugin, options: { color: '#d97706' } }]
+    plugins: [{ plugin: badgePlugin, options: { color: '#FACC15' } }]
   });
   // On host unmount, call blueEditor.destroy() and orangeEditor.destroy().
 </script>

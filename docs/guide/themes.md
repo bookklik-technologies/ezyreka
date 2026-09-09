@@ -50,7 +50,7 @@ Every color picker shows a swatch palette. Replace it at init or at runtime, wit
 ```js
 new Editor({
   target: '#app',
-  palette: [{ label: 'Brand', colors: ['#1e293b', '#d97706', '#f1f5f9'] }]
+  palette: [{ label: 'Brand', colors: ['#1e293b', '#FACC15', '#f1f5f9'] }]
 })
 ```
 
@@ -65,7 +65,7 @@ Replace the default gradient presets:
 ```js
 new Editor({
   target: '#app',
-  gradients: [{ from: '#d97706', to: '#ffffff', angle: 135 }]
+  gradients: [{ from: '#FACC15', to: '#ffffff', angle: 135 }]
 })
 ```
 
@@ -77,7 +77,7 @@ editor.updateSelected({
     type: 'gradient',
     stops: [
       { color: '#111827', offset: 0 },
-      { color: '#f59e0b', offset: 0.5 },
+      { color: '#FACC15', offset: 0.5 },
       { color: '#f97316', offset: 1 }
     ],
     angle: 135
@@ -90,7 +90,7 @@ editor.updateSelected({
 ```js
 new Editor({
   target: '#app',
-  chartColors: ['#d97706', '#477cf5', '#1e293b']
+  chartColors: ['#FACC15', '#477cf5', '#1e293b']
 })
 ```
 

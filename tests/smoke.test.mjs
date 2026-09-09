@@ -34,7 +34,7 @@ assert.deepStrictEqual(redone, s2, 'redo restores');
 
 const rect = createElement('rect', { x: 10, y: 20, w: 100, h: 50 });
 assert.strictEqual(rect.type, 'rect');
-assert.strictEqual(rect.fill, '#d97706', 'shape default fill');
+assert.strictEqual(rect.fill, '#FACC15', 'shape default fill');
 assert.ok(rect.id.startsWith('rect_'), 'id prefix by type');
 
 const text = createElement('text', {});
