@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ezyreka - Programmatic embed</title>
+  <title>Ezyreka - Events</title>
   <style>
     html, body { margin: 0; height: 100%; }
     #app { width: 100vw; height: 100vh; }
@@ -14,16 +14,20 @@
 
   <script src="../dist/ezyreka.umd.js"></script>
   <script>
+    // The editor emits ready, change and selection events.
     const { Editor } = Ezyreka;
 
     const editor = new Editor({
       target: '#app',
       width: 1080,
       height: 1080,
-      name: 'Programmatic demo'
+      name: 'Events demo'
     });
 
+    const log = (name, detail) => console.log(`ezyreka:${name}`, detail ?? '');
+
     editor.on('ready', () => {
+      log('ready');
       editor.addText({
         text: 'Hello Ezyreka',
         fontSize: 96,
@@ -35,21 +39,9 @@
         h: 140,
         color: '#FACC15'
       });
-      editor.addElement({ type: 'rect', x: 340, y: 620, w: 400, h: 110, radius: 55, fill: '#FACC15' });
-      editor.addText({
-        text: 'Made with JS',
-        fontSize: 36,
-        fontWeight: 600,
-        align: 'center',
-        color: '#ffffff',
-        x: 340,
-        y: 655,
-        w: 400,
-        h: 50
-      });
     });
-
-    editor.on('change', ({ doc }) => console.log('Design changed:', doc.pages[0].elements.length, 'elements'));
+    editor.on('change', ({ doc }) => log('change', `${doc.pages[0].elements.length} elements`));
+    editor.on('selection', (selected) => log('selection', selected.map((e) => e.type)));
 
     window.editor = editor;
   </script>

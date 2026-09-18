@@ -45,7 +45,7 @@ The UMD bundle exposes `Ezyreka` globally. Auto-initialization (`<div data-ez-ed
 </script>
 ```
 
-See the runnable [`examples/plugin.html`](https://github.com/bookklik-technologies/ezyreka/blob/main/examples/plugin.html) demo.
+See the runnable [`examples/advanced.html`](https://github.com/bookklik-technologies/ezyreka/blob/main/examples/advanced.html) demo.
 
 ## Authoring a plugin
 
