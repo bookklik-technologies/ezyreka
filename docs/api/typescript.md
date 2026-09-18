@@ -35,7 +35,7 @@ editor.on('ready', () => {
 | `ImageSource` | Image provider contract |
 | `PanelDefinition` | Sidebar panel contract |
 | `HistoryLike` | Custom history strategy contract |
-| `autoInit` | Programmatic auto-init of `data-ez-editor` elements |
+| `autoInit` | Programmatic auto-init of `data-ezr-editor` elements |
 | `version` | Library version |
 
 ## Typing a custom history

@@ -98,6 +98,17 @@ new Editor({
 `chartColors` normalizes into chart data and therefore applies **globally** to all editors on the page.
 :::
 
+## Suite UI standard
+
+The editor chrome follows the same visual standard as the other Ezy libraries:
+
+- Font: Outfit, weights 400–800, fallback stack `-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, "Helvetica Neue", sans-serif`
+- Icons: Lucide, 1.8 stroke with round caps/joins; 18px in icon buttons, 14px in menus and buttons with labels
+- Radius scale: 6px controls, 10px menus, 14px dialogs
+- Icon buttons 32px, focus ring 2px accent with 1px offset
+
+Brand accent colors (orange/yellow) remain Ezyreka-specific.
+
 ## Themed events
 
 The `theme` event fires whenever the theme changes, so host apps can stay in sync:

@@ -24,7 +24,7 @@ features:
     details: Move, resize, rotate, flip, multi-select, group and snap elements with smart alignment guides — all on HTML5 canvas.
   - icon: ⚡
     title: Zero dependencies
-    details: A single dependency-free JS bundle. Initialize programmatically with JS or automatically with <div data-ez-editor>.
+    details: A single dependency-free JS bundle. Initialize programmatically with JS or automatically with <div data-ezr-editor>.
   - icon: 📊
     title: Editable charts
     details: Bar, line, pie, donut, area and more — real canvas elements with editable data, styles, spreadsheet paste and undo support.

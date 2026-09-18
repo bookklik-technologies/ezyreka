@@ -10,7 +10,7 @@ Ezyreka supports **developer-installed, trusted JavaScript plugins** that extend
 npm install @bookklik/ezyreka my-ezyreka-plugin
 ```
 
-Declare package compatibility through **npm peer dependencies**: a plugin package lists `@bookklik/ezyreka` under `peerDependencies` with the package version range it supports, for example `"@bookklik/ezyreka": "^1.0.0"`. The plugin's separate integer `apiVersion` is checked at runtime.
+Declare package compatibility through **npm peer dependencies**: a plugin package lists `@bookklik/ezyreka` under `peerDependencies` with the package version range it supports, for example `"@bookklik/ezyreka": "^0.1.1"`. The plugin's separate integer `apiVersion` is checked at runtime.
 
 ### ESM
 
@@ -32,7 +32,7 @@ const editor = new Editor({ target: '#app', plugins: [badgePlugin] });
 
 ### Script tag + programmatic initialization
 
-The UMD bundle exposes `Ezyreka` globally. Auto-initialization (`<div data-ez-editor>`) does not support plugins; when you need plugins with a script tag, initialize programmatically:
+The UMD bundle exposes `Ezyreka` globally. Auto-initialization (`<div data-ezr-editor>`) does not support plugins; when you need plugins with a script tag, initialize programmatically:
 
 ```html
 <script src="https://unpkg.com/@bookklik/ezyreka/dist/ezyreka.umd.js"></script>
@@ -135,7 +135,7 @@ This script-tag example uses the same plugin in two editors with different color
 ```html
 <div id="blue-editor" style="height: 600px"></div>
 <div id="orange-editor" style="height: 600px"></div>
-<script src="https://unpkg.com/@bookklik/ezyreka@1.0.0/dist/ezyreka.umd.js"></script>
+<script src="https://unpkg.com/@bookklik/ezyreka@0.1.1/dist/ezyreka.umd.js"></script>
 <script>
   const badgePlugin = {
     id: 'brand-badges',

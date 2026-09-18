@@ -1,6 +1,12 @@
 import { EXTRA_SHAPES, EXTRA_ICONS, GEAR_PATH, SHAPE_PATHS, ICON_OUTLINES } from './element-artwork.js';
 export { SHAPE_PATHS, ICON_OUTLINES } from './element-artwork.js';
 
+// Official Ezyreka brand mark — keep in sync with the repository's icon.svg
+// (viewBox normalized and gradient id namespaced so multiple editors on one
+// page never share an id).
+export const BRAND_LOGO =
+  '<svg viewBox="0 0 455 455" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><radialGradient cx="4324350" cy="0" r="6108823" gradientUnits="userSpaceOnUse" spreadMethod="pad" id="ezr-logo-fill" gradientTransform="matrix(0.000104987 0 0 0.000104987 1285 2268)"><stop offset="0" stop-color="#FACC15"/><stop offset="0.2" stop-color="#FACC15"/><stop offset="1" stop-color="#FF6600"/></radialGradient></defs><g transform="translate(-1284 -2267)"><rect x="1285" y="2268" width="454" height="453" fill="url(#ezr-logo-fill)"/><path d="M1451 2343 1663 2343 1663 2555 1572.14 2555 1572.14 2433.86 1451 2433.86 1451 2343Z" fill="#FFFFFF" fill-rule="evenodd"/><path d="M1361 2434 1451.43 2434 1451.43 2555.14 1572 2555.14 1572 2646 1361 2646 1361 2434Z" fill="#FFFFFF" fill-rule="evenodd"/></g></svg>';
+
 // Single source of truth for the built-in Google Fonts. styles.js builds the
 // webfont <link> from this array; registry.js extends it with user fonts.
 export const GOOGLE_FONT_FAMILIES = [
@@ -120,6 +126,7 @@ const UI_ICON_PATHS = {"undo": '<path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5
   "plus": '<path d="M5 12h14" /><path d="M12 5v14" />',
   "close": '<path d="M18 6 6 18" /><path d="m6 6 12 12" />',
   "chevron": '<path d="m6 9 6 6 6-6" />',
+  "arrow": '<path d="M5 12h14" /><path d="m12 5 7 7-7 7" />',
   "chart": '<path d="M3 3v18h18" /><path d="M7 17v-5M12 17V7M17 17V4" />',
   "image": '<rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />',
   "layers": '<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" /><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" /><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" />',
@@ -144,7 +151,7 @@ const UI_ICON_PATHS = {"undo": '<path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5
 export const UI_ICONS = Object.fromEntries(
   Object.entries(UI_ICON_PATHS).map(([name, markup]) => [
     name,
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${markup}</svg>`
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${markup}</svg>`
   ])
 );
 

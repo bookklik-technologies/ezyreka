@@ -122,7 +122,7 @@ export class Toolbar {
       this.colorInput('Color', first.stroke, 'stroke');
       this.numInput('Width', first.strokeWidth, 1, 100, (v) => ({ strokeWidth: v }));
       const arrowBtn = el('button', 'ez-tool-toggle', this.root);
-      arrowBtn.textContent = '⟶';
+      arrowBtn.innerHTML = UI_ICONS.arrow;
       arrowBtn.title = 'Arrow head';
       arrowBtn.dataset.prop = 'arrow';
       arrowBtn.onclick = () => ed.updateSelected({ arrow: !first.arrow });
@@ -140,7 +140,7 @@ export class Toolbar {
 
     const actions = el('div', 'ez-toolbar-sep-actions', this.root);
     const mk = (icon, title, fn) => {
-      const b = el('button', 'ez-icon-btn ez-sm', actions);
+      const b = el('button', 'ez-icon-btn', actions);
       b.innerHTML = icon;
       b.title = title;
       b.onclick = fn;

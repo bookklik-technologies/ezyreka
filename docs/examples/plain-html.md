@@ -15,17 +15,17 @@ The fastest way to use Ezyreka: one container, one script tag.
 <body>
   <div
     id="app"
-    data-ez-editor
-    data-ez-width="1080"
-    data-ez-height="1080"
-    data-ez-name="My design"
+    data-ezr-editor
+    data-ezr-width="1080"
+    data-ezr-height="1080"
+    data-ezr-name="My design"
   ></div>
   <script src="https://unpkg.com/@bookklik/ezyreka/dist/ezyreka.umd.js"></script>
 </body>
 </html>
 ```
 
-Any element with `data-ez-editor` is turned into an editor on page load.
+Any element with `data-ezr-editor` is turned into an editor on page load.
 
 ## Programmatic initialization
 

@@ -12,7 +12,7 @@ from `dist/`.
 
 | Example | File | Shows |
 | --- | --- | --- |
-| Declarative embed | [declarative.html](declarative.html) | Zero-JS startup via `data-ez-editor` |
+| Declarative embed | [declarative.html](declarative.html) | Zero-JS startup via `data-ezr-editor` |
 | Programmatic embed | [programmatic.html](programmatic.html) | `new Editor({ target })` plus ready/change events |
 | Events | [events.html](events.html) | `ready`, `change` and `selection` events |
 | Plugins | [advanced.html](advanced.html) | Community plugin with custom element type and sidebar panel |

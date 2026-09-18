@@ -1,5 +1,5 @@
 import { el, uid } from '../core/utils.js';
-import { UI_ICONS } from '../core/assets.js';
+import { UI_ICONS, BRAND_LOGO } from '../core/assets.js';
 import { showMenu, closeMenus } from './contextmenu.js';
 
 const RESIZE_PRESETS = [
@@ -33,7 +33,7 @@ export class Topbar {
   render() {
     const ed = this.editor;
     this.root.innerHTML = `
-      <div class="ez-brand"><span class="ez-logo">E</span><span class="ez-brand-name">Ezyreka</span></div>
+      <div class="ez-brand"><span class="ez-logo">${BRAND_LOGO}</span><span class="ez-brand-name">Ezyreka</span></div>
       <input class="ez-filename" value="${ed.fileName.replace(/"/g, '&quot;')}" spellcheck="false" />
       <button class="ez-btn ez-btn-ghost" data-act="resize" title="Resize current canvas" aria-haspopup="dialog">Resize</button>
       <div class="ez-topbar-group">

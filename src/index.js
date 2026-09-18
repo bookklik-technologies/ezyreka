@@ -1,16 +1,16 @@
 import { Editor } from './core/editor.js';
 
 export { Editor };
-export const version = '1.0.0';
+export const version = '0.1.1';
 
 function autoInit() {
-  document.querySelectorAll('[data-ez-editor]').forEach((node) => {
+  document.querySelectorAll('[data-ezr-editor]').forEach((node) => {
     if (node.__ezyreka) return;
     const editor = new Editor({
       target: node,
-      width: parseInt(node.dataset.ezWidth, 10) || 1080,
-      height: parseInt(node.dataset.ezHeight, 10) || 1080,
-      name: node.dataset.ezName || 'Untitled design'
+      width: parseInt(node.dataset.ezrWidth, 10) || 1080,
+      height: parseInt(node.dataset.ezrHeight, 10) || 1080,
+      name: node.dataset.ezrName || 'Untitled design'
     });
     node.__ezyreka = editor;
   });

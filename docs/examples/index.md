@@ -2,7 +2,7 @@
 
 Runnable examples live in the repo under [`examples/`](https://github.com/bookklik-technologies/ezyreka/tree/main/examples):
 
-- **declarative.html** — declarative `<div data-ez-editor>` setup
+- **declarative.html** — declarative `<div data-ezr-editor>` setup
 - **programmatic.html** — JS-driven setup with the `Editor` class
 - **events.html** — `ready`, `change` and `selection` events
 - **advanced.html** — community plugin with a custom element type and sidebar panel

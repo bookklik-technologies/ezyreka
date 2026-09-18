@@ -86,13 +86,13 @@ A few option values normalize into page-global state rather than per-editor stat
 
 ## The auto-init attributes
 
-With the UMD bundle, any element carrying `data-ez-editor` becomes an editor on page load:
+With the UMD bundle, any element carrying `data-ezr-editor` becomes an editor on page load:
 
 | Attribute | Description |
 | --- | --- |
-| `data-ez-editor` | Marks the element as an editor container |
-| `data-ez-width` | Initial page width |
-| `data-ez-height` | Initial page height |
-| `data-ez-name` | File name |
+| `data-ezr-editor` | Marks the element as an editor container |
+| `data-ezr-width` | Initial page width |
+| `data-ezr-height` | Initial page height |
+| `data-ezr-name` | File name |
 
 Size the container with CSS — the editor UI fills it.
