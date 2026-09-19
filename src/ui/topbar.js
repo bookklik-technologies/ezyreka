@@ -50,7 +50,7 @@ export class Topbar {
       <button class="ez-icon-btn" data-act="theme" title="Switch theme (Ctrl+Shift+L)"></button>
       <button class="ez-btn ez-btn-ghost" data-act="open">Open</button>
       <button class="ez-btn ez-btn-ghost" data-act="save-json">Save</button>
-      <button class="ez-btn ez-btn-primary" data-act="download">${UI_ICONS.download}<span>Download</span></button>
+      <button class="ez-btn ez-btn-primary" data-act="download">${UI_ICONS.download}<span>Export</span>${UI_ICONS.chevron}</button>
       <input type="file" class="ez-hidden" accept="application/json" data-role="open-input" />
     `;
 
