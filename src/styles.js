@@ -1,4 +1,5 @@
 import { GOOGLE_FONT_FAMILIES } from './core/assets.js';
+import { suiteTopbarStyles } from './ui/suite-topbar-styles.js';
 
 let injected = false;
 
@@ -7,7 +8,7 @@ export function injectStyles() {
   injected = true;
   const style = document.createElement('style');
   style.id = 'ez-styles';
-  style.textContent = CSS;
+  style.textContent = CSS + suiteTopbarStyles + "\n.ez-editor > .ezy-suite-topbar { --suite-export-bg:#facc15; --suite-export-text:#1e2130; }";
   document.head.appendChild(style);
 }
 

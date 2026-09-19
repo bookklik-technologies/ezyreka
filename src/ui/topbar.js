@@ -1,6 +1,7 @@
 import { el, uid } from '../core/utils.js';
 import { UI_ICONS, BRAND_LOGO } from '../core/assets.js';
-import { showMenu, closeMenus } from './contextmenu.js';
+import { closeMenus } from './contextmenu.js';
+import { installSuiteTopbar, openSuiteMenu, bindSuiteMenu } from './suite-topbar.js';
 
 const RESIZE_PRESETS = [
   { group: 'Social media', sizes: [
@@ -34,23 +35,31 @@ export class Topbar {
     const ed = this.editor;
     this.root.innerHTML = `
       <div class="ez-brand"><span class="ez-logo">${BRAND_LOGO}</span><span class="ez-brand-name">Ezyreka</span></div>
-      <input class="ez-filename" value="${ed.fileName.replace(/"/g, '&quot;')}" spellcheck="false" />
+      <input aria-label="Design filename" class="ez-filename" value="${ed.fileName.replace(/"/g, '&quot;')}" spellcheck="false" />
       <button class="ez-btn ez-btn-ghost" data-act="resize" title="Resize current canvas" aria-haspopup="dialog">Resize</button>
       <div class="ez-topbar-group">
-        <button class="ez-icon-btn" data-act="undo" title="Undo (Ctrl+Z)">${UI_ICONS.undo}</button>
-        <button class="ez-icon-btn" data-act="redo" title="Redo (Ctrl+Shift+Z)">${UI_ICONS.redo}</button>
+        <button class="ez-icon-btn" data-act="undo" aria-label="Undo" title="Undo (Ctrl+Z)">${UI_ICONS.undo}</button>
+        <button class="ez-icon-btn" data-act="redo" aria-label="Redo" title="Redo (Ctrl+Shift+Z)">${UI_ICONS.redo}</button>
       </div>
       <div class="ez-topbar-group">
         <button class="ez-icon-btn" data-act="zoom-out" title="Zoom out (Ctrl+-)">${UI_ICONS['zoom-out']}</button>
-        <button class="ez-zoom-btn" data-act="zoom-menu">100%</button>
+        <button class="ez-zoom-btn" data-act="zoom-menu" aria-label="Zoom level" aria-haspopup="menu" aria-expanded="false">100%</button>
         <button class="ez-icon-btn" data-act="zoom-in" title="Zoom in (Ctrl++)">${UI_ICONS['zoom-in']}</button>
         <button class="ez-icon-btn" data-act="zoom-fit" title="Fit to screen (Ctrl+0)">${UI_ICONS.fit}</button>
       </div>
       <div class="ez-topbar-spacer"></div>
-      <button class="ez-icon-btn" data-act="theme" title="Switch theme (Ctrl+Shift+L)"></button>
-      <button class="ez-btn ez-btn-ghost" data-act="open">Open</button>
-      <button class="ez-btn ez-btn-ghost" data-act="save-json">Save</button>
-      <button class="ez-btn ez-btn-primary" data-act="download">${UI_ICONS.download}<span>Export</span>${UI_ICONS.chevron}</button>
+      <details class="ez-theme-menu" data-act="theme">
+        <summary class="ez-icon-btn" aria-label="Theme" title="Theme (Ctrl+Shift+L)"></summary>
+        <div class="ez-theme-panel" aria-label="Color scheme">
+          <button type="button" class="ez-theme-item" data-ez-theme-choice="light" aria-pressed="false">Light</button>
+          <button type="button" class="ez-theme-item" data-ez-theme-choice="dark" aria-pressed="false">Dark</button>
+          <button type="button" class="ez-theme-item" data-ez-theme-choice="system" aria-pressed="false">System</button>
+        </div>
+      </details>
+      <button class="ez-icon-btn" data-act="fullscreen" title="Enter fullscreen"></button>
+      <button class="ez-icon-btn" data-act="open" aria-label="Open design" title="Open design">${UI_ICONS.open}</button>
+      <button class="ez-icon-btn" data-act="save-json" aria-label="Save design JSON" title="Save design JSON">${UI_ICONS.save}</button>
+      <button class="ez-btn ez-btn-primary" data-act="download" aria-label="Export design" aria-haspopup="menu" aria-expanded="false">${UI_ICONS.download}<span>Export</span>${UI_ICONS.chevron}</button>
       <input type="file" class="ez-hidden" accept="application/json" data-role="open-input" />
     `;
 
@@ -82,9 +91,21 @@ export class Topbar {
       }
       openInput.value = '';
     };
-    this.root.querySelector('[data-act="theme"]').onclick = () => ed.toggleTheme();
+    const themeMenu = this.root.querySelector('[data-act="theme"]');
+    for (const item of themeMenu.querySelectorAll('.ez-theme-item')) {
+      item.onclick = () => {
+        if (themeMenu.contains(document.activeElement)) themeMenu.querySelector('summary').focus();
+        ed.setTheme(item.getAttribute('data-ez-theme-choice'));
+        themeMenu.open = false;
+      };
+    }
+    this._themeMenuCleanup = bindSuiteMenu(themeMenu, themeMenu.querySelector('.ez-theme-panel'));
+    this.root.querySelector('[data-act="fullscreen"]').onclick = () => this.toggleFullscreen();
+    this._onFullscreenChange = () => this.updateFullscreenIcon();
+    document.addEventListener('fullscreenchange', this._onFullscreenChange);
     this._unsubs = [
       ed.on('theme', () => this.updateThemeIcon()),
+      ed.on('change', () => this.updateHistory()),
       ed.on('zoom', () => this.updateZoomLabel()),
       ed.on('rename', (name) => {
         const input = this.root.querySelector('.ez-filename');
@@ -92,10 +113,40 @@ export class Topbar {
       })
     ];
     this.updateThemeIcon();
+    this.updateFullscreenIcon();
     this.updateZoomLabel();
+    this.updateHistory();
+    const group = (label, ...controls) => {
+      const node = document.createElement('div');
+      node.setAttribute('aria-label', label);
+      node.append(...controls);
+      return node;
+    };
+    const action = name => this.root.querySelector('[data-act="' + name + '"]');
+    const history = group('Edit history', action('undo'), action('redo'));
+    const specialist = group('Canvas tools', action('resize'), action('zoom-out'), action('zoom-menu'), action('zoom-in'), action('zoom-fit'));
+    const view = group('View', action('theme'), action('fullscreen'));
+    const files = group('Files', action('open'), action('save-json'));
+    this._topbarCleanup = installSuiteTopbar(ed.container, this.root, {
+      brand: this.root.querySelector('.ez-brand'), title: nameInput,
+      history, specialist, view, files, exportControl: action('download'),
+    });
+    this.root.append(openInput);
+  }
+
+  updateHistory() {
+    for (const [action, method] of [['undo', 'canUndo'], ['redo', 'canRedo']]) {
+      const button = this.root.querySelector('[data-act="' + action + '"]');
+      // Custom history implementations are not required to expose capability queries.
+      if (button) button.disabled = typeof this.editor.history[method] === 'function' && !this.editor.history[method]();
+    }
   }
 
   destroy() {
+    this._menuCleanup?.();
+    this._themeMenuCleanup?.();
+    this._topbarCleanup?.();
+    document.removeEventListener('fullscreenchange', this._onFullscreenChange);
     this._unsubs?.forEach((off) => off());
     this._unsubs = [];
   }
@@ -232,20 +283,39 @@ export class Topbar {
   }
 
   updateThemeIcon() {
-    const btn = this.root.querySelector('[data-act="theme"]');
+    const menu = this.root.querySelector('[data-act="theme"]');
+    if (!menu) return;
+    const choice = this.editor.themeChoice;
+    const summary = menu.querySelector('summary');
+    summary.innerHTML = choice === 'dark' ? UI_ICONS.moon : choice === 'light' ? UI_ICONS.sun : UI_ICONS.monitor;
+    for (const item of menu.querySelectorAll('.ez-theme-item')) {
+      item.setAttribute('aria-pressed', String(item.getAttribute('data-ez-theme-choice') === choice));
+    }
+  }
+
+  toggleFullscreen() {
+    const root = this.editor.container;
+    const promise = document.fullscreenElement === root
+      ? document.exitFullscreen()
+      : root.requestFullscreen?.();
+    if (promise) promise.catch(() => {});
+  }
+
+  updateFullscreenIcon() {
+    const btn = this.root.querySelector('[data-act="fullscreen"]');
     if (!btn) return;
-    const dark = this.editor.theme === 'dark';
-    btn.innerHTML = dark ? UI_ICONS.sun : UI_ICONS.moon;
-    btn.title = dark ? 'Switch to light mode' : 'Switch to dark mode';
+    const on = document.fullscreenElement === this.editor.container;
+    btn.innerHTML = on ? UI_ICONS.minimize : UI_ICONS.maximize;
+    btn.title = on ? 'Exit fullscreen' : 'Enter fullscreen';
+    btn.setAttribute('aria-label', btn.title);
   }
 
   zoomMenu(e) {
     const btn = e.currentTarget;
-    const r = btn.getBoundingClientRect();
-    showMenu(this.editor, r.left, r.bottom + 4, [
+    this._menuCleanup?.();
+    this._menuCleanup = openSuiteMenu(btn, [
       { label: 'Fit to screen', action: () => this.editor.zoomFit() },
       { label: '100%', action: () => this.editor.setZoom(1) },
-      '-',
       { label: '50%', action: () => this.editor.setZoom(0.5) },
       { label: '75%', action: () => this.editor.setZoom(0.75) },
       { label: '150%', action: () => this.editor.setZoom(1.5) },
@@ -255,13 +325,14 @@ export class Topbar {
 
   downloadMenu(e) {
     const btn = e.currentTarget;
-    const r = btn.getBoundingClientRect();
-    showMenu(this.editor, r.right - 190, r.bottom + 4, [
+    const wasOpen = btn.getAttribute('aria-expanded') === 'true';
+    this._menuCleanup?.();
+    if (wasOpen) return;
+    this._menuCleanup = openSuiteMenu(btn, [
       { label: 'PNG image', action: () => this.editor.exportImage('png', { scale: 2 }) },
       { label: 'JPG image', action: () => this.editor.exportImage('jpeg', { scale: 2 }) },
       { label: 'PNG (transparent)', action: () => this.editor.exportImage('png', { scale: 2, transparent: true }) },
       { label: 'PNG at 4x', action: () => this.editor.exportImage('png', { scale: 4 }) },
-      '-',
       { label: 'Design file (.json)', action: () => this.editor.downloadJSON() }
     ]);
   }

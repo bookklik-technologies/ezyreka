@@ -49,9 +49,12 @@ export class Editor extends Emitter {
     this._themes = { ...(options.themes || {}) };
     this._appliedVars = [];
     const themeOption = typeof options.theme === 'string' ? options.theme : 'light';
-    this.theme = themeOption === 'dark' || themeOption === 'light' || this._themes[themeOption]
+    this._themeChoice = themeOption === 'dark' || themeOption === 'light' || themeOption === 'system' || this._themes[themeOption]
       ? themeOption
       : 'light';
+    // `theme` stays the resolved value ('light'/'dark'/custom name); the raw
+    // user selection (including 'system') is tracked in `_themeChoice`.
+    this.theme = this._themeChoice === 'system' ? 'light' : this._themeChoice;
     this.pageIndex = 0;
     this.selection = new Set();
     this.clipboard = [];
@@ -87,7 +90,7 @@ export class Editor extends Emitter {
     injectStyles();
     this._fontStylesheet = injectFonts(this.registry.googleFonts);
     this._buildDOM(target);
-    this.setTheme(this.theme);
+    this.setTheme(this._themeChoice);
     // Custom history strategies (e.g. server-backed or memory-pruned) can be
     // injected as long as they implement the same snapshot interface.
     this.history = options.history || new History();
@@ -914,9 +917,11 @@ export class Editor extends Emitter {
 
   setTheme(theme) {
     const custom = this._themes[theme];
-    if (theme !== 'dark' && theme !== 'light' && !custom) return;
-    this.theme = theme;
-    this.container.classList.toggle('ez-dark', theme === 'dark');
+    if (theme !== 'dark' && theme !== 'light' && theme !== 'system' && !custom) return;
+    this._themeChoice = theme;
+    const resolved = theme === 'system' ? this._resolveSystemTheme() : theme;
+    this.theme = resolved;
+    this.container.classList.toggle('ez-dark', resolved === 'dark');
     // Custom themes and the cssVars option are applied as inline variables;
     // previously applied ones are removed first so switching is reversible.
     for (const name of this._appliedVars) this.container.style.removeProperty(name);
@@ -926,7 +931,40 @@ export class Editor extends Emitter {
       this.container.style.setProperty(name, String(value));
       this._appliedVars.push(name);
     }
+    this._syncSystemMedia();
     this.emit('theme', theme);
+  }
+
+  /** The raw theme selection ('light', 'dark', 'system' or a custom name). */
+  get themeChoice() {
+    return this._themeChoice ?? this.theme;
+  }
+
+  _resolveSystemTheme() {
+    try {
+      return typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
+    } catch {
+      return 'light';
+    }
+  }
+
+  // Attaches or releases the prefers-color-scheme listener so 'system' mode
+  // keeps following the OS setting after the initial resolution.
+  _syncSystemMedia() {
+    if (this._themeChoice === 'system') {
+      if (this._themeMedia || typeof matchMedia !== 'function') return;
+      this._themeMedia = matchMedia('(prefers-color-scheme: dark)');
+      this._onSystemThemeChange = () => {
+        if (this._themeChoice === 'system') this.setTheme('system');
+      };
+      this._themeMedia.addEventListener?.('change', this._onSystemThemeChange);
+    } else if (this._themeMedia) {
+      this._themeMedia.removeEventListener?.('change', this._onSystemThemeChange);
+      this._themeMedia = null;
+      this._onSystemThemeChange = null;
+    }
   }
 
   toggleTheme() {
@@ -1118,6 +1156,11 @@ export class Editor extends Emitter {
   }
 
   destroy() {
+    if (this._themeMedia) {
+      this._themeMedia.removeEventListener?.('change', this._onSystemThemeChange);
+      this._themeMedia = null;
+      this._onSystemThemeChange = null;
+    }
     this._fontStylesheet?.removeEventListener('load', this._onFontsChanged);
     this._fontSet?.removeEventListener('loadingdone', this._onFontsChanged);
     this._fontSet?.removeEventListener('loadingerror', this._onFontsChanged);
