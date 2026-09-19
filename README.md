@@ -8,6 +8,8 @@ No frameworks. No runtime dependencies. One script tag.
 
 **Documentation:** https://bookklik-technologies.github.io/ezyreka/
 
+![Ezyreka preview](ezyreka-preview.png)
+
 ## Features
 
 - Canvas engine with a DOM overlay for handles and guides

@@ -6,7 +6,7 @@ hero:
   name: Ezyreka
   text: Embeddable Canva-style design editor library
   tagline: Add a full canvas design editor to web apps with a dependency-free JS bundle, built-in UI, headless mode, and one-script-tag setup.
-  image: /ezyreka/logo.svg
+  image: /ezyreka/ezyreka-preview.png
   actions:
     - theme: brand
       text: Get started
