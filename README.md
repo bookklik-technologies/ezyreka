@@ -1,12 +1,15 @@
 # Ezyreka
 
-**Ezyreka** is an embeddable, dependency-free JavaScript library for adding a Canva-style design editor to web apps. It ships as a single JS bundle and can run with the built-in UI or as a headless canvas engine, initialized **programmatically** with JavaScript or **declaratively** via `<div data-ezr-editor></div>`.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![GitHub](https://img.shields.io/badge/GitHub-bookklik--technologies%2Fezyreka-blue.svg)](https://github.com/bookklik-technologies/ezyreka)
+
+Embeddable, dependency-free JavaScript library for adding a Canva-style design
+editor to web apps by [Bookklik Technologies](https://github.com/bookklik-technologies).
+Ships as a single JS bundle and runs with the built-in UI or as a headless
+canvas engine, initialized **programmatically** with JavaScript or
+**declaratively** via `<div data-ezr-editor></div>`.
 
 No frameworks. No runtime dependencies. One script tag.
-
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-
-**Documentation:** https://bookklik-technologies.github.io/ezyreka/
 
 ![Ezyreka preview](ezyreka-preview.png)
 
@@ -16,28 +19,16 @@ No frameworks. No runtime dependencies. One script tag.
 - Elements: text, images, shapes, lines and icons with full transform, snapping and inline text editing
 - Editable charts (data + style), multi-page documents, 32 editable templates
 - Layers panel, undo/redo, copy/paste, zoom & pan, context menu, keyboard shortcuts
-- PNG/JPEG/JSON export, themes, headless mode, and a customizable UI
-- Extensible: custom element types, renderers, chart types, backgrounds, sidebar panels, image sources and **community plugins**
+- PNG/JPEG/JSON export, themes, headless mode, customizable UI
+- Extensible: custom element types, renderers, chart types, sidebar panels and **community plugins**
 
-See the [documentation](https://bookklik-technologies.github.io/ezyreka/) for the full feature guides and API reference.
+## Documentation
 
-## Installation
-
-```bash
-npm install @bookklik/ezyreka
-```
-
-Or use the bundle directly:
-
-```html
-<script src="https://unpkg.com/@bookklik/ezyreka/dist/ezyreka.umd.js"></script>
-```
+Full guides and API reference: <https://bookklik-technologies.github.io/ezyreka/>
 
 ## Quick start
 
-### Automatic initialization
-
-Any element with `data-ezr-editor` is turned into an editor on page load:
+### Declarative (browser bundle)
 
 ```html
 <div
@@ -50,13 +41,22 @@ Any element with `data-ezr-editor` is turned into an editor on page load:
 <script src="https://unpkg.com/@bookklik/ezyreka/dist/ezyreka.umd.js"></script>
 ```
 
-> Size the container with CSS (e.g. `#app { width: 100vw; height: 100vh; }`).
+Size the container with CSS (e.g. `#app { width: 100vw; height: 100vh; }`).
 
-### Programmatic initialization
+### npm / ESM
+
+```bash
+npm install @bookklik/ezyreka
+```
+
+```js
+import { Editor } from '@bookklik/ezyreka';
+```
+
+### Programmatic
 
 ```js
 const { Editor } = Ezyreka; // UMD global
-// or: import { Editor } from '@bookklik/ezyreka'; // ESM
 
 const editor = new Editor({
   target: '#app',          // selector or HTMLElement
@@ -71,14 +71,10 @@ editor.on('ready', () => {
 });
 ```
 
-## Learn more
+## Examples
 
-- [Getting started](https://bookklik-technologies.github.io/ezyreka/guide/getting-started) — setup, editor options, themes
-- [Guides](https://bookklik-technologies.github.io/ezyreka/guide/elements) — elements, text, charts, templates, layers, pages, export
-- [API reference](https://bookklik-technologies.github.io/ezyreka/api/editor) — the full `Editor` API, events and document schema
-- [Customization & plugins](https://bookklik-technologies.github.io/ezyreka/advanced/plugins) — registries, custom panels, community plugins
-- [Development skills](docs/advanced/development-skills.md) — seven repository skills for AI-assisted plugin, element, template, chart, text, asset and UI development
-- [Examples](https://bookklik-technologies.github.io/ezyreka/examples/) — plain HTML, React and Vue integrations
+Plain HTML, React and Vue integrations in the [examples folder](examples/README.md)
+— or run the dev server (`npm run dev` → `http://localhost:8080/examples/`).
 
 ## Development
 
@@ -90,9 +86,10 @@ npm test        # unit + DOM tests (node + jsdom)
 npm run docs:dev  # documentation dev server
 ```
 
-## Browser support
+## Status
 
-Modern evergreen browsers (Chrome, Edge, Firefox, Safari). Uses HTML5 canvas 2D, `Path2D`, `ResizeObserver`, `contenteditable` and pointer events.
+Runs in modern evergreen browsers (Chrome, Edge, Firefox, Safari) using HTML5
+canvas 2D, `Path2D`, `ResizeObserver`, `contenteditable` and pointer events.
 
 ## License
 
