@@ -70,11 +70,11 @@ editor.on('upload', (item) => {
 
 ## `export`
 
-Fires on image exports.
+Fires on image exports. `exportImage()` emits `{ format, scale }`; `exportAllPages()` emits `{ format, scale, pages, blobs }` after every page has been downloaded.
 
 ```js
-editor.on('export', (dataUrl) => {
-  analytics.track('exported')
+editor.on('export', (detail) => {
+  analytics.track('exported', detail.format)
 })
 ```
 

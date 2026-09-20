@@ -1,4 +1,4 @@
-import { Emitter, uid, deepClone, clamp, el, readAsDataURL, downloadDataURL, downloadBlob } from './utils.js';
+import { Emitter, uid, deepClone, clamp, el, readAsDataURL, downloadDataURL, downloadBlob, fileBase } from './utils.js';
 import { History } from './history.js';
 import { setChartColors, chartPreset, registerChartPreset } from './charts.js';
 import { createRegistry } from './registry.js';
@@ -25,7 +25,7 @@ import { Sidepanel } from '../ui/sidepanel.js';
 import { Toolbar } from '../ui/toolbar.js';
 import { ContextMenu, closeMenus } from '../ui/contextmenu.js';
 import { PagesBar } from '../ui/pagesbar.js';
-import { injectStyles, injectFonts } from '../styles.js';
+import { injectStyles, injectFonts, releaseChrome } from '../styles.js';
 
 export class Editor extends Emitter {
   constructor(options = {}) {
@@ -35,7 +35,10 @@ export class Editor extends Emitter {
         ? document.querySelector(options.target)
         : options.target;
     if (!target) throw new Error('ezyreka: "target" element is required');
+    // Claim the target immediately so a second synchronous construction
+    // returns this instance instead of rebuilding over it.
     if (target.__ezyreka) return target.__ezyreka;
+    target.__ezyreka = this;
 
     this.options = {
       width: 1080,
@@ -87,13 +90,14 @@ export class Editor extends Emitter {
       ]
     };
 
-    injectStyles();
+    this._ownsChrome = true;
+    this._chrome = injectStyles();
     this._fontStylesheet = injectFonts(this.registry.googleFonts);
     this._buildDOM(target);
     this.setTheme(this._themeChoice);
     // Custom history strategies (e.g. server-backed or memory-pruned) can be
     // injected as long as they implement the same snapshot interface.
-    this.history = options.history || new History();
+    this.history = options.history || new History(options.historyLimit ?? 100);
     for (const method of ['push', 'undo', 'redo', 'reset']) {
       if (typeof this.history[method] !== 'function') {
         throw new Error(`ezyreka: custom history must implement ${method}()`);
@@ -138,7 +142,10 @@ export class Editor extends Emitter {
 
     this.zoomFit();
     if (options.initialDoc) this.loadJSON(options.initialDoc);
-    this._resizeObserver = new ResizeObserver(() => this.markDirty());
+    this._resizeObserver = new ResizeObserver(() => {
+      if (this._needsFit) this.zoomFit();
+      else this.markDirty();
+    });
     this._resizeObserver.observe(this.viewport);
     target.__ezyreka = this;
     // The initial fonts.ready promise can settle before the stylesheet arrives.
@@ -353,6 +360,8 @@ export class Editor extends Emitter {
 
   updateSelected(props, commit = true) {
     const selected = this.getSelected();
+    // Nothing selected: no-op without pushing a duplicate history snapshot.
+    if (!selected.length) return;
     // Props listed in a type manifest's exclusiveProps target only the types
     // that declare them (and run their normalizer), instead of hitting all.
     const manifests = allManifests(this.registry);
@@ -512,11 +521,15 @@ export class Editor extends Emitter {
     const ph = this.page.height;
     const vRect = this.viewport.getBoundingClientRect();
     if (!vRect.width || !vRect.height) {
+      // Hidden container (e.g. mounted in an inactive tab): retry the fit once
+      // the viewport gains real dimensions (see the ResizeObserver).
+      this._needsFit = true;
       this.zoom = 1;
       this.render();
       this.emit('zoom', this.zoom);
       return;
     }
+    this._needsFit = false;
     const z = clamp(Math.min((vRect.width - 96) / pw, (vRect.height - 96) / ph), 0.05, 2);
     this.zoom = z;
     this.render();
@@ -536,28 +549,26 @@ export class Editor extends Emitter {
     if (this._editing) this.commitTextEdit();
     this._editing = true;
     this.editingId = elx.id;
-    const z = this.zoom;
     const ed = el('div', 'ez-text-editor', this.overlay);
     ed.contentEditable = 'true';
     ed.innerText = elx.text || '';
     Object.assign(ed.style, {
-      left: elx.x * z + 'px',
-      top: elx.y * z + 'px',
-      width: elx.w * z + 'px',
-      minHeight: elx.h * z + 'px',
       fontFamily: elx.fontFamily,
-      fontSize: elx.fontSize * z + 'px',
       fontWeight: elx.fontWeight,
       fontStyle: elx.italic ? 'italic' : 'normal',
       textDecoration: elx.underline ? 'underline' : 'none',
       lineHeight: String(elx.lineHeight),
-      letterSpacing: (elx.letterSpacing || 0) * z + 'px',
       color: elx.color,
       textAlign: elx.align,
-      transform: `rotate(${elx.rotation || 0}deg)`,
       transformOrigin: '50% 50%'
     });
     this._textEditorEl = ed;
+    // Track the pre-edit state so an unchanged edit session doesn't push a
+    // duplicate history snapshot (see commitTextEdit).
+    this._textEditState = { text: elx.text || '', h: elx.h };
+    // Keep the overlay glued to the element when the zoom changes mid-edit.
+    this._layoutTextEditor();
+    this._textEditorZoomOff = this.on('zoom', () => this._layoutTextEditor());
     ed.addEventListener('input', () => {
       elx.text = ed.innerText.replace(/\n$/, '');
       this.markDirty();
@@ -589,25 +600,51 @@ export class Editor extends Emitter {
     }
   }
 
+  // Re-positions and re-scales the contenteditable overlay to the element's
+  // current geometry at the current zoom; called on construction and zoom.
+  _layoutTextEditor() {
+    if (!this._editing) return;
+    const ed = this._textEditorEl;
+    const elx = this.getElements().find((e2) => e2.id === this.editingId);
+    if (!ed || !elx) return;
+    const z = this.zoom;
+    Object.assign(ed.style, {
+      left: elx.x * z + 'px',
+      top: elx.y * z + 'px',
+      width: elx.w * z + 'px',
+      minHeight: elx.h * z + 'px',
+      fontSize: elx.fontSize * z + 'px',
+      letterSpacing: (elx.letterSpacing || 0) * z + 'px',
+      transform: `rotate(${elx.rotation || 0}deg)`
+    });
+  }
+
   commitTextEdit() {
     if (!this._editing) return;
     const ed = this._textEditorEl;
     const elx = this.getElements().find((e2) => e2.id === this.editingId);
+    const before = this._textEditState;
     this._editing = false;
     this._textEditorEl = null;
     this.editingId = null;
+    this._textEditState = null;
+    this._textEditorZoomOff?.();
+    this._textEditorZoomOff = null;
     if (ed) ed.remove();
+    let changed = false;
     if (elx) {
       elx.text = (elx.text || '').replace(/\n+$/, '');
       if (!elx.text.trim()) {
         this.page.elements = this.page.elements.filter((e2) => e2.id !== elx.id);
         this.select([]);
+        changed = true;
       } else {
         this.fitTextHeight(elx);
+        changed = !!before && (elx.text !== before.text || elx.h !== before.h);
       }
     }
     this.markDirty();
-    this.commit();
+    if (changed) this.commit();
   }
 
   undo() {
@@ -633,7 +670,13 @@ export class Editor extends Emitter {
   }
 
   getJSON() {
-    return deepClone(this.doc);
+    const doc = deepClone(this.doc);
+    // Transient UI flags (e.g. "__fresh" on newly added text) never belong in
+    // saved documents.
+    for (const page of doc.pages) {
+      for (const elx of page.elements) delete elx.__fresh;
+    }
+    return doc;
   }
 
   loadJSON(doc) {
@@ -1126,32 +1169,44 @@ export class Editor extends Emitter {
     const canvas = await this._renderPageToCanvas(page, scale, transparent && format === 'png');
     const dataURL = canvas.toDataURL(format === 'jpeg' ? 'image/jpeg' : 'image/png', 0.92);
     const ext = format === 'jpeg' ? 'jpg' : 'png';
-    downloadDataURL(dataURL, `${this.fileName.replace(/[^\w\- ]+/g, '').trim() || 'design'}.${ext}`);
+    downloadDataURL(dataURL, `${fileBase(this.fileName)}.${ext}`);
     this.emit('export', { format, scale });
     return dataURL;
   }
 
+  /**
+   * Renders and downloads every page. The returned promise settles only after
+   * every download has been handed to the browser (and it emits 'export');
+   * throws if any page cannot be encoded.
+   */
   async exportAllPages(format = 'png', { scale = 2 } = {}) {
-    // Preflight every requested page before any download starts, so a blocked
-    // export never leaves a partial set of files behind.
     this._assertExportable(this.doc.pages);
+    const type = format === 'jpeg' ? 'image/jpeg' : 'image/png';
+    const ext = format === 'jpeg' ? 'jpg' : 'png';
+    const blobs = [];
     for (let i = 0; i < this.doc.pages.length; i++) {
-      const page = this.doc.pages[i];
-      const canvas = await this._renderPageToCanvas(page, scale, false);
-      canvas.toBlob((blob) => {
-        const name = `${this.fileName.replace(/[^\w\- ]+/g, '').trim() || 'design'}-page-${i + 1}.${
-          format === 'jpeg' ? 'jpg' : 'png'
-        }`;
-        downloadBlob(blob, name);
-      }, format === 'jpeg' ? 'image/jpeg' : 'image/png');
+      const canvas = await this._renderPageToCanvas(this.doc.pages[i], scale, false);
+      const blob = await new Promise((resolve, reject) => {
+        canvas.toBlob((b) => {
+          if (!b) {
+            reject(new Error(`ezyreka: export failed — the encoder returned no data for page ${i + 1}`));
+            return;
+          }
+          resolve(b);
+        }, type);
+      });
+      downloadBlob(blob, `${fileBase(this.fileName)}-page-${i + 1}.${ext}`);
+      blobs.push(blob);
     }
+    this.emit('export', { format, scale, pages: blobs.length, blobs });
+    return blobs;
   }
 
   downloadJSON() {
     const blob = new Blob([JSON.stringify({ name: this.fileName, ...this.getJSON() }, null, 2)], {
       type: 'application/json'
     });
-    downloadBlob(blob, `${this.fileName.replace(/[^\w\- ]+/g, '').trim() || 'design'}.json`);
+    downloadBlob(blob, `${fileBase(this.fileName)}.json`);
     this.emit('save', this.fileName);
   }
 
@@ -1176,8 +1231,17 @@ export class Editor extends Emitter {
       this._textEditorEl?.remove();
       this._textEditorEl = null;
     }
+    this._textEditorZoomOff?.();
+    this._textEditorZoomOff = null;
     this._resizeObserver?.disconnect();
     if (this._raf) cancelAnimationFrame(this._raf);
+    this._textEditorZoomOff?.();
+    this._textEditorZoomOff = null;
+    // Shared chrome styles/fonts go away with the last destroyed editor.
+    if (this._ownsChrome) {
+      this._ownsChrome = false;
+      releaseChrome();
+    }
     this.container.__ezyreka = null;
     this.container.classList.remove('ez-editor');
     this.container.innerHTML = '';

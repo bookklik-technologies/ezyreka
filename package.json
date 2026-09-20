@@ -1,6 +1,6 @@
 {
   "name": "@bookklik/ezyreka",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Embeddable, dependency-free JavaScript library for adding a Canva-style design editor to web apps, with JS API and data-ezr-editor auto-init.",
   "main": "dist/ezyreka.umd.js",
   "module": "dist/ezyreka.esm.js",
@@ -8,13 +8,25 @@
   "jsdelivr": "dist/ezyreka.umd.js",
   "types": "types/index.d.ts",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./dist/ezyreka.esm.js",
+      "require": "./dist/ezyreka.cjs"
+    },
+    "./package.json": "./package.json"
+  },
   "scripts": {
     "build": "node scripts/build.js",
     "dev": "node scripts/dev.js",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
-    "test": "node tests/smoke.test.mjs && node tests/charts.test.mjs && node tests/registry.test.mjs && node tests/extensibility.test.mjs && node tests/plugins.test.mjs && node tests/platform.test.mjs && node tests/dom.test.mjs"
+    "prepublishOnly": "npm test && npm run build",
+    "test": "node tests/smoke.test.mjs && node tests/charts.test.mjs && node tests/registry.test.mjs && node tests/extensibility.test.mjs && node tests/plugins.test.mjs && node tests/platform.test.mjs && node tests/dom.test.mjs && node tests/audit.test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "keywords": [
     "canva",
@@ -27,7 +39,6 @@
   ],
   "files": [
     "dist",
-    "src",
     "types",
     "README.md",
     "LICENSE"
@@ -38,5 +49,12 @@
     "vitepress": "^1.6.4"
   },
   "license": "MIT",
-  "homepage": "https://bookklik-technologies.github.io/ezyreka/"
+  "homepage": "https://bookklik-technologies.github.io/ezyreka/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bookklik-technologies/ezyreka.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bookklik-technologies/ezyreka/issues"
+  }
 }

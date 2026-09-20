@@ -41,14 +41,19 @@ export class Toolbar {
 
   position(sel) {
     const ed = this.editor;
+    // All layout reads happen before any style writes, and the toolbar's own
+    // size is cached per control set, so per-frame renders don't force layout.
     const containerRect = ed.container.getBoundingClientRect();
     const canvasRect = ed.canvas.getBoundingClientRect();
     const bounds = selectionBBox(sel);
     const x = canvasRect.left - containerRect.left + bounds.x * ed.zoom;
     const y = canvasRect.top - containerRect.top + bounds.y * ed.zoom;
     this.root.style.display = 'flex';
-    const tw = this.root.offsetWidth;
-    const th = this.root.offsetHeight;
+    if (!this._size) {
+      this._size = { w: this.root.offsetWidth, h: this.root.offsetHeight };
+    }
+    const tw = this._size.w;
+    const th = this._size.h;
     const left = clamp(x, 8, containerRect.width - tw - 8);
     // The rotate handle extends 34 CSS pixels beyond the selection.
     const gap = 48;
@@ -63,6 +68,7 @@ export class Toolbar {
   buildControls(sel) {
     const ed = this.editor;
     this.root.innerHTML = '';
+    this._size = null;
     this.fillControls = null;
     const first = sel[0];
     // Control groups come from each type's capability manifest; a group shows
@@ -78,8 +84,14 @@ export class Toolbar {
 
     if (common.includes('text')) {
       const fontSel = el('select', 'ez-input ez-font-select', this.root);
-      for (const f of ed.registry.fonts)
-        fontSel.innerHTML += `<option>${f}</option>`;
+      for (const f of ed.registry.fonts) {
+        // Font names come from registerFont(); build options with textContent
+        // so they can't inject markup.
+        const opt = document.createElement('option');
+        opt.value = f;
+        opt.textContent = f;
+        fontSel.add(opt);
+      }
       fontSel.value = first.fontFamily;
       this.bind(fontSel, 'fontFamily', (n) => n.value);
 

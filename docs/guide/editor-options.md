@@ -14,7 +14,7 @@ const editor = new Editor(options)
 | `width` | `number` | `1080` | Initial page width |
 | `height` | `number` | `1080` | Initial page height |
 | `name` | `string` | `'Untitled design'` | File name |
-| `theme` | `'light' \| 'dark'` | `'light'` | UI color scheme |
+| `theme` | `'light' \| 'dark' \| 'system' \| string` | `'light'` | UI color scheme; `'system'` follows the OS preference, a custom name resolves via `themes` |
 | `templates` | `EditorTemplate[]` | — | Extra templates shown in the Templates panel (appended after the built-ins) |
 | `fonts` | `string[]` | — | Extra font family names offered in the font pickers |
 | `googleFonts` | `string[]` | — | Extra Google Fonts css2 family specs, e.g. `'Familia:wght@400;700'` |
@@ -24,6 +24,7 @@ const editor = new Editor(options)
 | `initialDoc` | `DesignDocument` | — | Design document loaded during initialization |
 | `imageSources` | `ImageSource[]` | — | Image search providers shown in the Uploads panel |
 | `history` | `HistoryLike` | built-in | Injects a custom history strategy implementing the snapshot interface |
+| `historyLimit` | `number` | `100` | Maximum number of undo snapshots kept in memory |
 | `themes` | `Record<string, Record<string, string>>` | — | Named custom themes (CSS variable sets) usable via `theme` and `setTheme()` |
 | `cssVars` | `Record<string, string>` | — | CSS custom properties applied to the editor container on top of the theme |
 | `ui` | `boolean \| object` | all enabled | `false` for headless; per-module `false` to disable or a constructor to replace (`topbar`, `sidepanel`, `toolbar`, `contextMenu`, `pagesBar`) |

@@ -1,4 +1,7 @@
 import esbuild from 'esbuild';
+import { readFileSync } from 'node:fs';
+
+const { version } = JSON.parse(readFileSync('package.json', 'utf8'));
 
 const ctx = await esbuild.context({
   entryPoints: ['src/index.js'],
@@ -8,6 +11,7 @@ const ctx = await esbuild.context({
   globalName: 'Ezyreka',
   outfile: 'dist/ezyreka.umd.js',
   sourcemap: true,
+  define: { __EZREKA_VERSION__: JSON.stringify(version) },
   logLevel: 'info'
 });
 

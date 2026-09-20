@@ -7,7 +7,7 @@ Ezyreka exports raster images and portable design files.
 | Method | Description |
 | --- | --- |
 | `exportImage(format?, opts?)` | Download PNG/JPEG. `opts: { scale, transparent, pageIndex }` |
-| `exportAllPages(format?, opts?)` | Export every page |
+| `exportAllPages(format?, opts?)` | Export and download every page; resolves after all downloads, returns the `Blob[]` |
 | `downloadJSON()` | Save the design as `.json` |
 | `getJSON()` | Deep clone of the design document |
 | `loadJSON(doc)` | Replace the design (normalizes & assigns fresh ids) |
@@ -24,8 +24,11 @@ await editor.exportImage('png', { scale: 4, transparent: true })
 // JPEG of a specific page at 2x
 await editor.exportImage('jpeg', { scale: 2, pageIndex: 0 })
 
-// Export every page
+// Export every page and wait for all downloads to finish
 await editor.exportAllPages('png')
+
+// Or collect the rendered images without relying on downloads
+const blobs = await editor.exportAllPages('png', { scale: 2 })
 ```
 
 Options:
@@ -41,6 +44,14 @@ Options:
 ```js
 const dataUrl = await editor.exportImage('png', { scale: 2 })
 document.querySelector('#preview').src = dataUrl
+```
+
+`exportAllPages()` awaits every page encoder before resolving, throws if a page cannot be encoded, and emits `export` once all pages are downloaded. It also resolves with the per-page `Blob`s, which you can send to a server instead of downloading:
+
+```js
+const blobs = await editor.exportAllPages('png')
+const form = new FormData()
+blobs.forEach((blob, i) => form.append('pages', blob, `page-${i + 1}.png`))
 ```
 
 Gradients, charts and custom renderers are included in exports because they all draw through the same canvas renderer.

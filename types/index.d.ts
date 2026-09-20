@@ -136,7 +136,8 @@ export interface EditorOptions {
   width?: number;
   height?: number;
   name?: string;
-  theme?: 'light' | 'dark';
+  /** Built-in ('light' | 'dark' | 'system') or a name registered via `themes`/registerTheme(). */
+  theme?: 'light' | 'dark' | 'system' | (string & {});
   /** Additional templates shown in the Templates panel after the built-ins. */
   templates?: EditorTemplate[];
   /** Extra font family names offered in the font pickers. */
@@ -155,6 +156,8 @@ export interface EditorOptions {
   imageSources?: ImageSource[];
   /** Injects a custom history strategy implementing the snapshot interface. */
   history?: HistoryLike;
+  /** Maximum number of undo snapshots kept (default 100). */
+  historyLimit?: number;
   /** Named custom themes (CSS variable sets) usable via `theme` and setTheme(). */
   themes?: Record<string, Record<string, string>>;
   /** CSS custom properties applied to the editor container on top of the theme. */
@@ -286,7 +289,12 @@ export class Editor {
   constructor(options: EditorOptions);
   fileName: string;
   zoom: number;
-  theme: 'light' | 'dark';
+  /** The raw theme selection, including 'system' and custom names. */
+  themeChoice: 'light' | 'dark' | 'system' | (string & {});
+  /** The resolved theme currently applied ('light'/'dark'/custom name). */
+  theme: 'light' | 'dark' | (string & {});
+  /** IDs of the selected elements. */
+  selection: Set<string>;
   pageIndex: number;
   uploads: { id: string; src: string; name: string }[];
   doc: DesignDocument;
@@ -337,11 +345,12 @@ export class Editor {
   commit(): void;
 
   exportImage(format?: 'png' | 'jpeg', opts?: { scale?: number; transparent?: boolean; pageIndex?: number }): Promise<string>;
-  exportAllPages(format?: 'png' | 'jpeg', opts?: { scale?: number }): Promise<void>;
+  /** Renders and downloads every page. Resolves after all downloads finish; throws if a page cannot be exported. */
+  exportAllPages(format?: 'png' | 'jpeg', opts?: { scale?: number }): Promise<Blob[]>;
   downloadJSON(): void;
 
   setFileName(name: string): void;
-  setTheme(theme: 'light' | 'dark'): void;
+  setTheme(theme: 'light' | 'dark' | 'system' | (string & {})): void;
   toggleTheme(): void;
   addUpload(file: File): Promise<string>;
   openFilePicker(): void;

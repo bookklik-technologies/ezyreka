@@ -1,15 +1,30 @@
 import { GOOGLE_FONT_FAMILIES } from './core/assets.js';
 import { suiteTopbarStyles } from './ui/suite-topbar-styles.js';
 
-let injected = false;
+// Shared chrome (`#ez-styles`, `#ez-fonts`) is reference-counted across editor
+// instances and removed when the last editor is destroyed or released. The
+// nodes are always looked up by id, so a host that deletes them gets fresh
+// injection on the next editor.
+let chromeRefs = 0;
 
 export function injectStyles() {
-  if (injected || document.getElementById('ez-styles')) return;
-  injected = true;
-  const style = document.createElement('style');
-  style.id = 'ez-styles';
-  style.textContent = CSS + suiteTopbarStyles + "\n.ez-editor > .ezy-suite-topbar { --suite-export-bg:#facc15; --suite-export-text:#1e2130; }";
-  document.head.appendChild(style);
+  chromeRefs++;
+  let style = document.getElementById('ez-styles');
+  if (!style) {
+    style = document.createElement('style');
+    style.id = 'ez-styles';
+    style.textContent = CSS + suiteTopbarStyles + "\n.ez-editor > .ezy-suite-topbar { --suite-export-bg:#facc15; --suite-export-text:#1e2130; }";
+    document.head.appendChild(style);
+  }
+  return style;
+}
+
+/** Drops one chrome reference; removes shared style/font nodes at zero. */
+export function releaseChrome() {
+  if (chromeRefs > 0) chromeRefs--;
+  if (chromeRefs > 0) return;
+  document.getElementById('ez-styles')?.remove();
+  document.getElementById('ez-fonts')?.remove();
 }
 
 // Outfit is the editor chrome font and is always loaded alongside the

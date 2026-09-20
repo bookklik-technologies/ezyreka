@@ -22,6 +22,8 @@ No frameworks. No runtime dependencies. One script tag.
 npm install @bookklik/ezyreka
 ```
 
+The package ships an ESM bundle (`dist/ezyreka.esm.js`), a CommonJS bundle (`dist/ezyreka.cjs`) and a UMD/IIFE bundle (`dist/ezyreka.umd.js`). Bundlers and Node pick the right format automatically through the package `exports` map.
+
 ### CDN
 
 Or use the bundle directly:
@@ -29,6 +31,10 @@ Or use the bundle directly:
 ```html
 <script src="https://unpkg.com/@bookklik/ezyreka/dist/ezyreka.umd.js"></script>
 ```
+
+## Touch devices
+
+The canvas supports touch out of the box: one finger selects and drags elements, two fingers pinch to zoom and pan the canvas.
 
 ## Quick start
 

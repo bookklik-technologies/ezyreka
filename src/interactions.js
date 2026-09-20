@@ -13,7 +13,15 @@ export class Interactions {
     this.editor = editor;
     this.drag = null;
     this.spaceDown = false;
-    editor._isActive = true;
+    // Touch tracking: active touch pointers on the stage, current two-finger
+    // pinch/pan gesture, and a cooldown that stops a finger left over from a
+    // finished pinch from immediately dragging elements.
+    this._pointers = new Map();
+    this._pinch = null;
+    this._pinchCooldown = false;
+    // Inactive until the user interacts with this editor, so multiple editors
+    // on one page never race for global shortcuts (Ctrl+Z, Ctrl+S, Delete…).
+    editor._isActive = false;
     this._bind();
   }
 
@@ -41,6 +49,17 @@ export class Interactions {
     window.addEventListener('keydown', this._onKeyDown);
     window.addEventListener('keyup', this._onKeyUp);
     document.addEventListener('pointerdown', this._onDocPointerDown, true);
+    this._onPointerCancel = (e) => {
+      this._pointers.delete(e.pointerId);
+      if (this._pointers.size === 0) {
+        this._pinch = null;
+        this._pinchCooldown = false;
+      } else {
+        this._pinch = null;
+      }
+      this._cancelDrag();
+    };
+    window.addEventListener('pointercancel', this._onPointerCancel);
     ed.canvas.addEventListener('dblclick', (e) => this.onDblClick(e));
     ed.viewport.addEventListener('dragover', (e) => e.preventDefault());
     ed.viewport.addEventListener('drop', (e) => this.onDrop(e));
@@ -50,12 +69,85 @@ export class Interactions {
     const ed = this.editor;
     window.removeEventListener('pointermove', this._onPointerMove);
     window.removeEventListener('pointerup', this._onPointerUp);
+    window.removeEventListener('pointercancel', this._onPointerCancel);
     window.removeEventListener('keydown', this._onKeyDown);
     window.removeEventListener('keyup', this._onKeyUp);
     document.removeEventListener('pointerdown', this._onDocPointerDown, true);
     ed.viewport.classList.remove('ez-panning');
     this.drag = null;
+    this._pointers.clear();
+    this._pinch = null;
   }
+
+  // ---- Touch gestures ------------------------------------------------------
+  // One finger behaves like a mouse (select/move/rubber-band). Two fingers
+  // form a pinch/pan gesture: zoom anchors at the finger midpoint and pans
+  // with the midpoint. A finger left over from an ended pinch never starts a
+  // new drag until every finger has been lifted.
+
+  _trackPointer(e) {
+    if (e.pointerType !== 'touch') return;
+    this._pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (this._pointers.size === 2) {
+      this._cancelDrag();
+      this._startPinch();
+    }
+  }
+
+  _releasePointer(e) {
+    if (!this._pointers.delete(e.pointerId)) return;
+    this._pinch = null;
+    if (this._pointers.size === 0) this._pinchCooldown = false;
+    else this._pinchCooldown = true;
+  }
+
+  _startPinch() {
+    const [a, b] = [...this._pointers.values()];
+    this._pinch = {
+      dist: Math.hypot(a.x - b.x, a.y - b.y),
+      midX: (a.x + b.x) / 2,
+      midY: (a.y + b.y) / 2
+    };
+  }
+
+  _cancelDrag() {
+    const drag = this.drag;
+    if (!drag) return;
+    const ed = this.editor;
+    if (drag.mode === 'move') {
+      for (const o of drag.originals) {
+        o.el.x = o.x;
+        o.el.y = o.y;
+      }
+      ed.setGuides([]);
+    }
+    if (drag.mode === 'band' && drag.band) drag.band.remove();
+    this.drag = null;
+  }
+
+  /** Updates tracked touch pointers and runs the pinch/pan gesture. Returns true when the event was consumed. */
+  _handleTouchMove(e) {
+    const t = this._pointers.get(e.pointerId);
+    if (!t) return false;
+    t.x = e.clientX;
+    t.y = e.clientY;
+    if (this._pointers.size < 2 || !this._pinch) return true;
+    const [a, b] = [...this._pointers.values()];
+    const dist = Math.hypot(a.x - b.x, a.y - b.y);
+    const midX = (a.x + b.x) / 2;
+    const midY = (a.y + b.y) / 2;
+    const ed = this.editor;
+    if (dist > 0 && this._pinch.dist > 0) {
+      // Zoom anchored at the midpoint, then pan by the midpoint delta.
+      ed.setZoom(clamp(ed.zoom * (dist / this._pinch.dist), 0.05, 5), { x: midX, y: midY });
+      ed.viewport.scrollLeft -= midX - this._pinch.midX;
+      ed.viewport.scrollTop -= midY - this._pinch.midY;
+    }
+    this._pinch = { dist, midX, midY };
+    return true;
+  }
+
+  // ---- Pointer handling -----------------------------------------------------
 
   clientToWorld(e) {
     const rect = this.editor.canvas.getBoundingClientRect();
@@ -109,6 +201,12 @@ export class Interactions {
 
   onPointerDown(e) {
     const ed = this.editor;
+    if (e.pointerType === 'touch') {
+      this._trackPointer(e);
+      // A second finger (or a leftover finger from a finished pinch) takes
+      // over as a gesture, never as an element drag.
+      if (this._pointers.size > 1 || this._pinchCooldown) return;
+    }
     if (e.button === 1 || this.spaceDown) {
       this.startPan(e);
       return;
@@ -227,6 +325,12 @@ export class Interactions {
   }
 
   onPointerMove(e) {
+    // Two-finger gestures take priority; single-finger moves fall through to
+    // the normal drag pipeline.
+    if (this._pointers.size >= 2) {
+      this._handleTouchMove(e);
+      return;
+    }
     const drag = this.drag;
     if (!drag) return;
     const ed = this.editor;
@@ -289,6 +393,7 @@ export class Interactions {
   }
 
   onPointerUp(e) {
+    if (this._pointers.size) this._releasePointer(e);
     const drag = this.drag;
     if (!drag) return;
     const ed = this.editor;
@@ -342,7 +447,10 @@ export class Interactions {
         ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
     if (typing || ed._editing) return;
 
+    // Don't hijack Space from a focused button (spacebar activation).
+    const onButton = target && typeof target.closest === 'function' && target.closest('button');
     if (e.code === 'Space' && !this.spaceDown) {
+      if (onButton) return;
       e.preventDefault();
       this.spaceDown = true;
       ed.viewport.classList.add('ez-panning');

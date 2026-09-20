@@ -56,7 +56,20 @@ export function downloadDataURL(dataURL, filename) {
 export function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   downloadDataURL(url, filename);
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  // The revoke must wait long enough for slow download dialogs (and the
+  // browser's actual write) to finish; the URL leaks briefly, which is fine.
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+/**
+ * Filename-safe base for downloads: keeps letters (any script) and digits,
+ * plus '-' and spaces. Returns 'design' when nothing survives.
+ */
+export function fileBase(name) {
+  const base = String(name || '')
+    .replace(/[^\p{L}\p{N}\- ]+/gu, '')
+    .trim();
+  return base || 'design';
 }
 
 export function el(tag, className, parent) {
@@ -74,6 +87,36 @@ export function escapeHtml(s) {
     '"': '&quot;',
     "'": '&#39;'
   })[c]);
+}
+
+/**
+ * Safely inserts developer-supplied markup (plugin/registration SVG icons)
+ * into `node`: parses via an inert <template> element (scripts never run
+ * from template content), strips script-capable elements and inline event
+ * handlers, then adopts the sanitized nodes.
+ */
+export function setSvg(node, html) {
+  const tpl = document.createElement('template');
+  tpl.innerHTML = String(html ?? '');
+  const frag = tpl.content;
+  frag.querySelectorAll('script, iframe, object, embed, link, meta').forEach((n) => n.remove());
+  frag.querySelectorAll('*').forEach((n) => {
+    for (const attr of [...n.attributes]) {
+      if (/^on/i.test(attr.name)) {
+        n.removeAttribute(attr.name);
+        continue;
+      }
+      const value = attr.value.trim().toLowerCase();
+      if (
+        (attr.name === 'href' || attr.name === 'xlink:href') &&
+        (value.startsWith('javascript:') || value.startsWith('data:text/html'))
+      ) {
+        n.removeAttribute(attr.name);
+      }
+    }
+  });
+  node.textContent = '';
+  node.append(...frag.childNodes);
 }
 
 export class Emitter {

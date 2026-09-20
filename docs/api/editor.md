@@ -95,7 +95,7 @@ A custom history strategy can be injected via the `history` option — anything 
 | Method | Description |
 | --- | --- |
 | `exportImage(format?, opts?)` | Download PNG/JPEG. `opts: { scale, transparent, pageIndex }` — resolves with a data URL |
-| `exportAllPages(format?, opts?)` | Export every page |
+| `exportAllPages(format?, opts?)` | Export and download every page; resolves after all downloads with the `Blob[]` |
 | `downloadJSON()` | Save the design as `.json` |
 
 ## Other
@@ -103,7 +103,7 @@ A custom history strategy can be injected via the `history` option — anything 
 | Method | Description |
 | --- | --- |
 | `setFileName(name)` | Rename the design |
-| `setTheme(theme)` | Switch UI color scheme (`'light'` / `'dark'`, or a registered custom theme) |
+| `setTheme(theme)` | Switch UI color scheme (`'light'`, `'dark'`, `'system'`, or a registered custom theme) |
 | `toggleTheme()` | Toggle light/dark |
 | `addUpload(file)` | Register an image file; returns a data URL promise |
 | `openFilePicker()` | Open the image upload dialog |

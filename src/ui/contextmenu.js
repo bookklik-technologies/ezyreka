@@ -1,4 +1,4 @@
-import { el, escapeHtml } from '../core/utils.js';
+import { el, setSvg } from '../core/utils.js';
 
 export function showMenu(editor, clientX, clientY, items) {
   closeMenus(editor);
@@ -11,9 +11,13 @@ export function showMenu(editor, clientX, clientY, items) {
       continue;
     }
     const row = el('div', 'ez-menu-item' + (item.danger ? ' ez-danger' : ''), menu);
-    row.innerHTML = `${item.icon ? item.icon : ''}<span>${escapeHtml(item.label)}</span>${
-      item.shortcut ? `<span class="ez-menu-shortcut">${escapeHtml(item.shortcut)}</span>` : ''
-    }`;
+    if (item.icon) setSvg(row, item.icon);
+    const labelSpan = el('span', '', row);
+    labelSpan.textContent = item.label;
+    if (item.shortcut) {
+      const sc = el('span', 'ez-menu-shortcut', row);
+      sc.textContent = item.shortcut;
+    }
     if (item.disabled) {
       row.classList.add('ez-disabled');
     } else {
@@ -30,19 +34,25 @@ export function showMenu(editor, clientX, clientY, items) {
   menu.style.left = clampNum(clientX - rect.left, 4, rect.width - mw - 4) + 'px';
   menu.style.top = clampNum(clientY - rect.top, 4, rect.height - mh - 4) + 'px';
   editor._openMenu = menu;
+  const closer = (ev) => {
+    if (!menu.contains(ev.target)) {
+      closeMenus(editor);
+    }
+  };
   setTimeout(() => {
-    const closer = (ev) => {
-      if (!menu.contains(ev.target)) {
-        closeMenus(editor);
-        window.removeEventListener('pointerdown', closer, true);
-      }
-    };
-    window.addEventListener('pointerdown', closer, true);
+    if (editor._openMenu === menu) {
+      editor._menuCloser = closer;
+      window.addEventListener('pointerdown', closer, true);
+    }
   }, 0);
   return menu;
 }
 
 export function closeMenus(editor) {
+  if (editor._menuCloser) {
+    window.removeEventListener('pointerdown', editor._menuCloser, true);
+    editor._menuCloser = null;
+  }
   if (editor._openMenu) {
     editor._openMenu.remove();
     editor._openMenu = null;

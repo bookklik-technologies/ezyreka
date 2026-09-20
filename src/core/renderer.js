@@ -3,28 +3,61 @@ import { drawChart } from './chart-renderer.js';
 import { ICONS, ICON_OUTLINES, SHAPE_PATHS } from './assets.js';
 import { DEFAULT_FONT, GRADIENT_FALLBACKS } from './constants.js';
 
+// Module-level caches are shared across editors (same src renders once) but
+// bounded: images are capped by the total size of their src strings (data URLs
+// dominate this) and paths by entry count, evicting least-recently-used. This
+// keeps memory bounded even for editors that are never destroyed.
+const IMAGE_CACHE_MAX_BYTES = 64 * 1024 * 1024;
+const IMAGE_CACHE_MAX_ENTRIES = 512;
+const PATH_CACHE_MAX_ENTRIES = 512;
+
 const imageCache = new Map();
 const pathCache = new Map();
+let imageCacheBytes = 0;
+
+function touchImageEntry(src, entry, isNew) {
+  if (imageCache.get(src) !== entry) return;
+  imageCache.delete(src);
+  imageCache.set(src, entry); // most-recent position
+  if (!isNew) return;
+  imageCacheBytes += src.length;
+  while (
+    (imageCacheBytes > IMAGE_CACHE_MAX_BYTES || imageCache.size > IMAGE_CACHE_MAX_ENTRIES) &&
+    imageCache.size > 1
+  ) {
+    const oldestSrc = imageCache.keys().next().value;
+    imageCache.delete(oldestSrc);
+    imageCacheBytes -= oldestSrc.length;
+  }
+}
 
 export function getImage(src) {
   if (!src) return null;
   let entry = imageCache.get(src);
   if (!entry) {
     const img = new Image();
-    entry = { img, loaded: false };
+    entry = { img, loaded: false, resolvers: [] };
     img.onload = () => {
       entry.loaded = true;
-      entry.resolve?.();
+      flushImageResolvers(entry);
     };
     img.onerror = () => {
       entry.error = true;
-      entry.resolve?.();
+      flushImageResolvers(entry);
     };
     img.crossOrigin = 'anonymous';
     img.src = src;
     imageCache.set(src, entry);
+    touchImageEntry(src, entry, true);
+  } else {
+    touchImageEntry(src, entry, false);
   }
   return entry;
+}
+
+function flushImageResolvers(entry) {
+  const waiters = entry.resolvers.splice(0);
+  for (const resolve of waiters) resolve();
 }
 
 export function whenImagesReady(srcs) {
@@ -34,16 +67,36 @@ export function whenImagesReady(srcs) {
       (e) =>
         new Promise((res) => {
           if (e.loaded || e.error) return res();
-          e.resolve = res;
+          e.resolvers.push(res);
           setTimeout(res, 8000);
         })
     )
   );
 }
 
+export function clearImageCache() {
+  imageCache.clear();
+  imageCacheBytes = 0;
+}
+
+export function clearPathCache() {
+  pathCache.clear();
+}
+
 function getPath(d) {
-  if (!pathCache.has(d)) pathCache.set(d, new Path2D(d));
-  return pathCache.get(d);
+  let path = pathCache.get(d);
+  if (!path) {
+    path = new Path2D(d);
+    pathCache.set(d, path);
+    if (pathCache.size > PATH_CACHE_MAX_ENTRIES) {
+      const oldest = pathCache.keys().next().value;
+      pathCache.delete(oldest);
+    }
+  } else {
+    pathCache.delete(d);
+    pathCache.set(d, path);
+  }
+  return path;
 }
 
 function resolveFill(ctx, fill, w, h, fallback = '#000000') {

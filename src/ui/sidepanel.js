@@ -1,4 +1,4 @@
-import { el, escapeHtml, readAsDataURL, clamp, uid, hexOr, isHexColor } from '../core/utils.js';
+import { el, escapeHtml, readAsDataURL, clamp, uid, hexOr, isHexColor, setSvg } from '../core/utils.js';
 import { UI_ICONS } from '../core/assets.js';
 import { elementName, manifestFor } from '../core/elements.js';
 import { renderPage } from '../core/renderer.js';
@@ -109,7 +109,9 @@ export class Sidepanel {
       btn.setAttribute('role', 'tab');
       btn.setAttribute('aria-label', tab.label);
       btn.setAttribute('aria-controls', this.contentEl.id);
-      btn.innerHTML = `${tab.icon}<span>${tab.label}</span>`;
+      setSvg(btn, tab.icon);
+      const labelSpan = el('span', '', btn);
+      labelSpan.textContent = tab.label;
       btn.onclick = () => {
         if (tab.id === this.activeTab && !this.collapsed) this.setCollapsed(true);
         else this.setTab(tab.id);
@@ -308,7 +310,7 @@ export class Sidepanel {
       button.type = 'button';
       button.title = label;
       button.setAttribute('aria-label', `Add ${label}`);
-      button.innerHTML = svg;
+      setSvg(button, svg);
       const caption = el('span', 'ez-element-label', button);
       caption.textContent = label;
       button.onclick = () => {

@@ -1,7 +1,10 @@
 import { Editor } from './core/editor.js';
 
 export { Editor };
-export const version = '0.1.1';
+// Injected at build time from package.json (scripts/build.js); the fallback
+// only applies when importing src/ directly without the build pipeline.
+export const version =
+  typeof __EZREKA_VERSION__ === 'string' ? __EZREKA_VERSION__ : '0.1.2';
 
 function autoInit() {
   document.querySelectorAll('[data-ezr-editor]').forEach((node) => {
