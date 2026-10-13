@@ -17,12 +17,14 @@ export class History {
     if (this._undoStack.length < 2) return null;
     this._redoStack.push(deepClone(current));
     this._undoStack.pop();
-    return this._undoStack.pop();
+    return deepClone(this._undoStack[this._undoStack.length - 1]);
   }
   redo(current) {
     if (!this._redoStack.length) return null;
-    this._undoStack.push(deepClone(current));
-    return this._redoStack.pop();
+    const next = this._redoStack.pop();
+    this._undoStack.push(deepClone(next));
+    if (this._undoStack.length > this.limit) this._undoStack.shift();
+    return deepClone(next);
   }
   canUndo() {
     return this._undoStack.length >= 2;

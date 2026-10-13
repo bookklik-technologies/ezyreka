@@ -8,7 +8,7 @@ const dom = new JSDOM('<!DOCTYPE html><html><body><div id="app"></div><div id="a
 
 global.window = dom.window;
 global.document = dom.window.document;
-global.navigator = dom.window.navigator;
+Object.defineProperty(globalThis, "navigator", { value: dom.window.navigator, configurable: true });
 global.HTMLElement = dom.window.HTMLElement;
 global.Image = dom.window.Image;
 global.FileReader = dom.window.FileReader;
@@ -80,8 +80,8 @@ assert.strictEqual(edA._isActive, true, 'container pointerdown activates');
 window.dispatchEvent(new dom.window.KeyboardEvent('keydown', {
   key: 'z', ctrlKey: true, bubbles: true, cancelable: true
 }));
-// undo() discards the current-state top entry and pops the previous one.
-assert.strictEqual(edA.history._undoStack.length, stackBefore - 2, 'active editor handles Ctrl+Z');
+// Undo removes only the current state, retaining the restored baseline.
+assert.strictEqual(edA.history._undoStack.length, stackBefore - 1, 'active editor handles Ctrl+Z');
 
 // Pointerdown outside deactivates.
 document.body.dispatchEvent(new dom.window.MouseEvent('pointerdown', { bubbles: true, cancelable: true }));
@@ -101,7 +101,7 @@ const aElems = edA.getElements().length;
 window.dispatchEvent(new dom.window.KeyboardEvent('keydown', {
   key: 'z', ctrlKey: true, bubbles: true, cancelable: true
 }));
-assert.strictEqual(edB.history._undoStack.length, bStack - 2, 'active editor B undoes');
+assert.strictEqual(edB.history._undoStack.length, bStack - 1, 'active editor B undoes');
 assert.strictEqual(edA.history._undoStack.length, aStack, 'inactive editor A untouched');
 assert.strictEqual(edA.getElements().length, aElems, 'inactive editor A content untouched');
 
@@ -158,6 +158,35 @@ edT.startTextEdit(txt);
 edT.commitTextEdit();
 assert.strictEqual(edT.history._undoStack.length, tStack, 'unchanged text edit commits nothing');
 assert.ok(!document.querySelector('.ez-text-editor'), 'text overlay removed');
+edT.startTextEdit(txt);
+edT._textEditorEl.innerText = 'Changed';
+edT._textEditorEl.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+edT.undo();
+assert.strictEqual(edT.getElements()[0].text, 'Hello', 'undo commits and restores pending text');
+assert.ok(!document.querySelector('.ez-text-editor'), 'undo removes the text overlay');
+edT.redo();
+assert.strictEqual(edT.getElements()[0].text, 'Changed', 'redo restores the pending text edit');
 edT.destroy();
+
+const imported = new Editor({ target: '#app2', width: 800, height: 600, ui: false });
+const beforeImport = imported.getJSON();
+for (const width of ['<img src=x onerror="window.audit=1">', -1, 0, Infinity, 10001]) {
+  assert.throws(() => imported.loadJSON({ pages: [{ width, height: 600, elements: [] }] }));
+  assert.deepStrictEqual(imported.getJSON(), beforeImport, 'invalid imports preserve the design');
+}
+const source = { version: 1, pages: [{ width: 800, height: 600, background: { type: 'solid', color: '#fff' }, elements: [{ type: 'rect', fill: { type: 'gradient', from: '#ff0000', to: '#000000' } }] }] };
+imported.loadJSON(source);
+source.pages[0].elements[0].fill.from = '#00ff00';
+source.pages[0].background.color = '#000';
+assert.strictEqual(imported.getElements()[0].fill.from, '#ff0000', 'import owns nested element data');
+assert.strictEqual(imported.page.background.color, '#fff', 'import owns background data');
+imported.destroy();
+assert.throws(() => new Editor({ target: '#app2', plugins: [{ id: 'invalid' }] }));
+assert.strictEqual(document.querySelector('#app2').__ezyreka, null, 'failed initialization releases the target');
+assert.throws(() => new Editor({ target: '#app2', history: {} }));
+const recovered = new Editor({ target: '#app2', ui: false });
+assert.ok(recovered.doc && recovered.history, 'initialization can be retried');
+recovered.destroy();
+assert.strictEqual(typeof (await import('../src/index.js')).autoInit, 'function', 'named autoInit exists');
 
 console.log('All production-readiness audit tests passed.');

@@ -1,4 +1,4 @@
-import { uid, rotatePoint, deg2rad } from './utils.js';
+import { uid, rotatePoint, deg2rad, deepClone } from './utils.js';
 import { normalizeChart, validateChart, sampleChart, chartPreset } from './charts.js';
 import { ACCENT } from './constants.js';
 
@@ -155,6 +155,7 @@ export function registerElementType(type, { defaults = {}, manifest = {} } = {})
 }
 
 export function createElement(type, props = {}, registry = null) {
+  props = deepClone(props);
   const defaults = (registry && registry.elementDefaults && registry.elementDefaults[type]) || TYPE_DEFAULTS[type];
   // Unknown types keep their payload as labeled placeholder elements, so
   // documents saved with plugins reload losslessly and regain behavior when

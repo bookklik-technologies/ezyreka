@@ -6,7 +6,8 @@ export { Editor };
 export const version =
   typeof __EZREKA_VERSION__ === 'string' ? __EZREKA_VERSION__ : '0.1.2';
 
-function autoInit() {
+export function autoInit() {
+  if (typeof document === 'undefined') return;
   document.querySelectorAll('[data-ezr-editor]').forEach((node) => {
     if (node.__ezyreka) return;
     const editor = new Editor({

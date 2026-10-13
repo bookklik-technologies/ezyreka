@@ -31,6 +31,15 @@ assert.deepStrictEqual(undone, s1, 'undo restores');
 assert.ok(hist.canRedo(), 'canRedo');
 const redone = hist.redo(s1);
 assert.deepStrictEqual(redone, s2, 'redo restores');
+assert.ok(hist.canUndo(), 'redo retains an undoable baseline');
+hist.reset();
+for (const p of [0, 1, 2, 3]) hist.push({ p });
+assert.deepStrictEqual(hist.undo({ p: 3 }), { p: 2 });
+assert.deepStrictEqual(hist.undo({ p: 2 }), { p: 1 });
+assert.deepStrictEqual(hist.redo({ p: 1 }), { p: 2 });
+hist.push({ p: 4 });
+assert.ok(!hist.canRedo(), 'a new edit replaces the redo branch');
+assert.deepStrictEqual(hist.undo({ p: 4 }), { p: 2 });
 
 const rect = createElement('rect', { x: 10, y: 20, w: 100, h: 50 });
 assert.strictEqual(rect.type, 'rect');

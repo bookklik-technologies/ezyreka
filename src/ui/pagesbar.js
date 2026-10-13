@@ -23,7 +23,8 @@ export class PagesBar {
     this.root.innerHTML = '';
     ed.doc.pages.forEach((page, i) => {
       const chip = el('button', 'ez-page-chip' + (i === ed.pageIndex ? ' ez-active' : ''), this.root);
-      chip.innerHTML = `<span class="ez-page-num">${i + 1}</span><span class="ez-page-dim">${page.width}×${page.height}</span>`;
+      el('span', 'ez-page-num', chip).textContent = String(i + 1);
+      el('span', 'ez-page-dim', chip).textContent = `${page.width}×${page.height}`;
       chip.title = 'Page ' + (i + 1) + ' — drag to reorder';
       chip.draggable = true;
       chip.dataset.index = i;

@@ -392,4 +392,5 @@ export class Editor {
 
 export declare const version: string;
 export declare function autoInit(): void;
-export default { Editor, version };
+declare const Ezyreka: { Editor: typeof Editor; version: typeof version; autoInit: typeof autoInit };
+export default Ezyreka;

@@ -40,6 +40,17 @@ export class Editor extends Emitter {
     if (target.__ezyreka) return target.__ezyreka;
     target.__ezyreka = this;
 
+    try {
+      this._initialize(options, target);
+    } catch (error) {
+      try { this.destroy(); } catch { /* initialization may be incomplete */ }
+      target.__ezyreka = null;
+      throw error;
+    }
+  }
+
+  _initialize(options, target) {
+
     this.options = {
       width: 1080,
       height: 1080,
@@ -166,6 +177,7 @@ export class Editor extends Emitter {
 
   _buildDOM(target) {
     target.classList.add('ez-editor');
+    target.setAttribute('data-ezyreka-root', '');
     target.innerHTML = '';
     this.container = target;
     this.topbarEl = el('div', 'ez-topbar', target);
@@ -648,12 +660,14 @@ export class Editor extends Emitter {
   }
 
   undo() {
+    if (this._editing) this.commitTextEdit();
     const snap = this.history.undo(deepClone(this.doc));
     if (!snap) return;
     this._applySnapshot(snap);
   }
 
   redo() {
+    if (this._editing) this.commitTextEdit();
     const snap = this.history.redo(deepClone(this.doc));
     if (!snap) return;
     this._applySnapshot(snap);
@@ -683,17 +697,31 @@ export class Editor extends Emitter {
     if (!doc || !Array.isArray(doc.pages) || !doc.pages.length) {
       throw new Error('Invalid design document');
     }
-    this.doc = {
+    if (doc.version !== undefined && doc.version !== 1) throw new Error('Unsupported design document version');
+    const next = {
       version: 1,
-      pages: doc.pages.map((p) => ({
-        id: uid('page'),
-        width: p.width || this.options.width,
-        height: p.height || this.options.height,
-        background: p.background || { type: 'solid', color: '#ffffff' },
-        elements: (p.elements || [])
-          .map((e2) => createElement(e2.type, e2, this.registry))
-      }))
+      pages: doc.pages.map((p) => {
+        if (!p || typeof p !== 'object' || (p.elements !== undefined && !Array.isArray(p.elements))) throw new Error('Invalid design page');
+        const width = p.width ?? this.options.width;
+        const height = p.height ?? this.options.height;
+        if (![width, height].every(value => Number.isInteger(value) && value >= 1 && value <= 10000)) {
+          throw new RangeError('Canvas dimensions must be whole numbers from 1 to 10000 pixels.');
+        }
+        return {
+          id: uid('page'),
+          width,
+          height,
+          background: deepClone(p.background || { type: 'solid', color: '#ffffff' }),
+          elements: (p.elements || [])
+            .map((e2) => {
+              if (!e2 || typeof e2 !== 'object' || typeof e2.type !== 'string' || !e2.type) throw new Error('Invalid design element');
+              return createElement(e2.type, e2, this.registry);
+            })
+        };
+      })
     };
+    if (this._editing) this.commitTextEdit();
+    this.doc = next;
     if (typeof doc.name === 'string' && doc.name) this.setFileName(doc.name);
     this.pageIndex = 0;
     this.selection = new Set();
@@ -1242,9 +1270,12 @@ export class Editor extends Emitter {
       this._ownsChrome = false;
       releaseChrome();
     }
-    this.container.__ezyreka = null;
-    this.container.classList.remove('ez-editor');
-    this.container.innerHTML = '';
+    if (this.container) {
+      this.container.__ezyreka = null;
+      this.container.classList.remove('ez-editor');
+      this.container.removeAttribute('data-ezyreka-root');
+      this.container.innerHTML = '';
+    }
     this._listeners.clear();
   }
 }
