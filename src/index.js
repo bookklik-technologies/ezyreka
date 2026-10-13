@@ -4,7 +4,7 @@ export { Editor };
 // Injected at build time from package.json (scripts/build.js); the fallback
 // only applies when importing src/ directly without the build pipeline.
 export const version =
-  typeof __EZREKA_VERSION__ === 'string' ? __EZREKA_VERSION__ : '0.1.2';
+  typeof __EZREKA_VERSION__ === 'string' ? __EZREKA_VERSION__ : '0.1.3';
 
 export function autoInit() {
   if (typeof document === 'undefined') return;
