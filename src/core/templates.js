@@ -1,4 +1,5 @@
 // Native artwork and system fonts keep every template editable and self-contained.
+import { BUSINESS_TEMPLATES } from './business-templates.js';
 const text = (value, x, y, w, size, color, props = {}) => {
   const style = { fontSize: size, fontFamily: 'Arial', fontWeight: 400, lineHeight: 1.15, ...props };
   return {
@@ -514,5 +515,6 @@ export const TEMPLATES = [
     label('[MEETUP / ACTIVITY]', 125, 1020, 830, '#354d69', { ...centered, fontSize: 24 }),
     text('[Date & time]  /  [Meeting place]', 125, 1088, 830, 27, '#354d69', centered),
     text('Say hello: [Contact]', 125, 1170, 830, 26, '#354d69', centered)
-  ])
+  ]),
+  ...BUSINESS_TEMPLATES
 ];

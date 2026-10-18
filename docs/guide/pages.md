@@ -80,5 +80,10 @@ editor.resizeCanvas(1080, 1920)
 ```
 
 - Resizing preserves element sizes and positions and supports undo/redo
+- After resizing, the view fits the page and all visible artwork, within the existing zoom limits
+- Objects outside the page stay visible in the surrounding workspace. Select, edit, or drag them back onto the page; use scrolling or panning to reach distant artwork
+- The page boundary defines the exported area. Outside artwork is cropped from image exports, while saved JSON retains every element
+- **Fit to screen** continues to fit the page itself
+- If extremely distant artwork exceeds the minimum zoom, the page stays in view and the remaining artwork is reachable by scrolling
 - Dimensions are whole pixels from 1 to 10,000 per side
 - Saved designs and image exports use the updated dimensions

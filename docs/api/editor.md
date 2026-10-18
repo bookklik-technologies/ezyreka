@@ -32,7 +32,7 @@ See [Editor options](/guide/editor-options) for the constructor options.
 | --- | --- |
 | `getJSON()` | Deep clone of the design document |
 | `loadJSON(doc)` | Replace the design (normalizes & assigns fresh ids) |
-| `applyTemplate(tpl)` | Apply a built-in or custom template |
+| `applyTemplate(tpl)` | Replace the document with a template's `page` or non-empty `pages` array; undoable |
 
 ## Elements
 

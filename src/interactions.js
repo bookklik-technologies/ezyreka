@@ -39,13 +39,18 @@ export class Interactions {
         ed.viewport.classList.remove('ez-panning');
       }
     };
-    ed.canvas.addEventListener('pointerdown', (e) => this.onPointerDown(e));
-    ed.overlay.addEventListener('pointerdown', (e) => {
-      if (e.target === ed.overlay) this.onPointerDown(e);
-    });
+    this._onWorkspacePointerDown = (e) => {
+      if (this.isWorkspaceEvent(e)) this.onPointerDown(e);
+    };
+    this._onWorkspaceDblClick = (e) => {
+      if (this.isWorkspaceEvent(e)) this.onDblClick(e);
+    };
+    ed.viewport.addEventListener('pointerdown', this._onWorkspacePointerDown);
+    ed.viewport.addEventListener('dblclick', this._onWorkspaceDblClick);
     window.addEventListener('pointermove', this._onPointerMove);
     window.addEventListener('pointerup', this._onPointerUp);
-    ed.viewport.addEventListener('wheel', (e) => this.onWheel(e), { passive: false });
+    this._onWheel = (e) => this.onWheel(e);
+    ed.viewport.addEventListener('wheel', this._onWheel, { passive: false });
     window.addEventListener('keydown', this._onKeyDown);
     window.addEventListener('keyup', this._onKeyUp);
     document.addEventListener('pointerdown', this._onDocPointerDown, true);
@@ -60,9 +65,10 @@ export class Interactions {
       this._cancelDrag();
     };
     window.addEventListener('pointercancel', this._onPointerCancel);
-    ed.canvas.addEventListener('dblclick', (e) => this.onDblClick(e));
-    ed.viewport.addEventListener('dragover', (e) => e.preventDefault());
-    ed.viewport.addEventListener('drop', (e) => this.onDrop(e));
+    this._onDragOver = (e) => e.preventDefault();
+    this._onDrop = (e) => this.onDrop(e);
+    ed.viewport.addEventListener('dragover', this._onDragOver);
+    ed.viewport.addEventListener('drop', this._onDrop);
   }
 
   destroy() {
@@ -73,6 +79,11 @@ export class Interactions {
     window.removeEventListener('keydown', this._onKeyDown);
     window.removeEventListener('keyup', this._onKeyUp);
     document.removeEventListener('pointerdown', this._onDocPointerDown, true);
+    ed.viewport.removeEventListener('pointerdown', this._onWorkspacePointerDown);
+    ed.viewport.removeEventListener('dblclick', this._onWorkspaceDblClick);
+    ed.viewport.removeEventListener('wheel', this._onWheel);
+    ed.viewport.removeEventListener('dragover', this._onDragOver);
+    ed.viewport.removeEventListener('drop', this._onDrop);
     ed.viewport.classList.remove('ez-panning');
     this.drag = null;
     this._pointers.clear();
@@ -148,6 +159,17 @@ export class Interactions {
   }
 
   // ---- Pointer handling -----------------------------------------------------
+
+  isWorkspaceEvent(e) {
+    if (e.target?.closest('input, textarea, select, button, [contenteditable], .ez-handle, .ez-rotate-handle')) return false;
+    const viewport = this.editor.viewport;
+    if (e.target === viewport && viewport.clientWidth && viewport.clientHeight) {
+      const rect = viewport.getBoundingClientRect();
+      if (e.clientX >= rect.left + viewport.clientLeft + viewport.clientWidth ||
+          e.clientY >= rect.top + viewport.clientTop + viewport.clientHeight) return false;
+    }
+    return true;
+  }
 
   clientToWorld(e) {
     const rect = this.editor.canvas.getBoundingClientRect();

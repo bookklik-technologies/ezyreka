@@ -124,12 +124,14 @@ export interface DesignDocument {
   pages: DesignPage[];
 }
 
-export interface EditorTemplate {
+export type EditorTemplate = {
   name: string;
   category?: string;
   format?: string;
-  page: DesignPage;
-}
+} & (
+  | { page: DesignPage; pages?: never }
+  | { pages: DesignPage[]; page?: never }
+);
 
 export interface EditorOptions {
   target: string | HTMLElement;
@@ -304,7 +306,7 @@ export class Editor {
 
   getJSON(): DesignDocument;
   loadJSON(doc: DesignDocument): void;
-  applyTemplate(tpl: { name: string; page: DesignPage }): void;
+  applyTemplate(tpl: EditorTemplate): void;
 
   getElements(): DesignElement[];
   getSelected(): DesignElement[];

@@ -6,6 +6,7 @@ import { createElement } from '../core/elements.js';
 import { ChartPanel } from './chartpanel.js';
 import { colorField } from './colorfield.js';
 import { GRADIENT_FALLBACKS } from '../core/constants.js';
+import { templatePages } from '../core/template-utils.js';
 
 // Accepts a flat color array or { label, colors } brand-kit groups.
 function normalizePalette(palette) {
@@ -87,6 +88,12 @@ export class Sidepanel {
   // Custom panel renders may return a cleanup function; it runs before the
   // content is cleared on rerender, tab replacement and destruction.
   _runTabCleanup() {
+    const dialog = this.templateDialog;
+    this.templateDialog = null;
+    if (dialog) {
+      dialog.close();
+      dialog.remove();
+    }
     const cleanup = this._tabCleanup;
     this._tabCleanup = null;
     if (typeof cleanup === 'function') {
@@ -254,26 +261,30 @@ export class Sidepanel {
         empty.textContent = 'No templates found. Try another search or category.';
       }
       for (const tpl of matches) {
+        const pages = templatePages(tpl);
+        const page = pages[0];
         const card = el('button', 'ez-panel-card ez-template-card', grid);
         card.type = 'button';
-        card.setAttribute('aria-label', `Use ${tpl.name}, ${tpl.format}, ${tpl.page.width} by ${tpl.page.height} pixels`);
+        const pageCount = `${pages.length} ${pages.length === 1 ? 'page' : 'pages'}`;
+        card.setAttribute('aria-label', `Use ${tpl.name}, ${tpl.format || tpl.category || 'Template'}, ${pageCount}, ${page.width} by ${page.height} pixels`);
         const preview = el('div', 'ez-template-preview', card);
         const canvas = document.createElement('canvas');
-        const pw = tpl.page.width;
-        const ph = tpl.page.height;
+        const pw = page.width;
+        const ph = page.height;
         const scale = 380 / Math.max(pw, ph);
         canvas.width = Math.round(pw * scale);
         canvas.height = Math.round(ph * scale);
         canvas.setAttribute('aria-hidden', 'true');
         const ctx = canvas.getContext('2d');
         ctx.scale(scale, scale);
-        renderPage(ctx, { ...tpl.page, elements: tpl.page.elements.map((e) => createElement(e.type, e, this.editor.registry)) }, { registry: this.editor.registry });
+        renderPage(ctx, { ...page, elements: page.elements.map((e) => createElement(e.type, e, this.editor.registry)) }, { registry: this.editor.registry });
         preview.appendChild(canvas);
+        if (pages.length > 1) el('span', 'ez-template-page-count', preview).textContent = pageCount;
         const label = el('div', 'ez-template-name', card);
         label.textContent = tpl.name;
         const meta = el('div', 'ez-template-meta', card);
-        meta.textContent = `${tpl.format} · ${pw} × ${ph}`;
-        card.onclick = () => this.editor.applyTemplate(tpl);
+        meta.textContent = `${tpl.format || tpl.category || 'Template'} · ${pageCount} · ${pw} × ${ph}`;
+        card.onclick = () => this.confirmTemplate(tpl, card);
       }
     };
     search.addEventListener('input', () => {
@@ -281,6 +292,41 @@ export class Sidepanel {
       update();
     });
     update();
+  }
+
+  confirmTemplate(template, trigger) {
+    if (this.templateDialog) return;
+    const dialog = el('dialog', 'ez-template-dialog', this.editor.container);
+    this.templateDialog = dialog;
+    const title = el('h2', '', dialog);
+    title.id = uid('template-title');
+    title.textContent = 'Replace current design?';
+    const message = el('p', '', dialog);
+    message.id = uid('template-warning');
+    message.textContent = `Applying “${template.name}” will overwrite all pages and content in your current design. Save your design first if you want to keep a copy. You can undo the replacement.`;
+    dialog.setAttribute('aria-labelledby', title.id);
+    dialog.setAttribute('aria-describedby', message.id);
+    const actions = el('div', 'ez-template-dialog-actions', dialog);
+    const cancel = el('button', 'ez-btn ez-btn-ghost', actions);
+    cancel.type = 'button';
+    cancel.textContent = 'Cancel';
+    cancel.autofocus = true;
+    cancel.onclick = () => dialog.close();
+    const replace = el('button', 'ez-btn ez-btn-primary', actions);
+    replace.type = 'button';
+    replace.textContent = 'Replace design';
+    replace.onclick = () => {
+      this.editor.applyTemplate(template);
+      dialog.close();
+    };
+    dialog.addEventListener('keydown', event => event.stopPropagation());
+    dialog.addEventListener('close', () => {
+      dialog.remove();
+      if (this.templateDialog === dialog) this.templateDialog = null;
+      if (trigger.isConnected) trigger.focus();
+    });
+    dialog.showModal();
+    cancel.focus();
   }
 
   renderElements() {

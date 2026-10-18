@@ -66,7 +66,8 @@ function clampNum(v, min, max) {
 export class ContextMenu {
   constructor(editor) {
     this.editor = editor;
-    editor.canvas.addEventListener('contextmenu', (e) => {
+    this._onContextMenu = (e) => {
+      if (!editor.interactions.isWorkspaceEvent(e)) return;
       e.preventDefault();
       const p = editor.interactions.clientToWorld(e);
       const els = editor.getElements();
@@ -107,6 +108,12 @@ export class ContextMenu {
         );
       }
       showMenu(editor, e.clientX, e.clientY, items);
-    });
+    };
+    editor.viewport.addEventListener('contextmenu', this._onContextMenu);
+  }
+
+  destroy() {
+    this.editor.viewport.removeEventListener('contextmenu', this._onContextMenu);
+    closeMenus(this.editor);
   }
 }

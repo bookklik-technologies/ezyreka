@@ -70,6 +70,7 @@ export class Toolbar {
     this.root.innerHTML = '';
     this._size = null;
     this.fillControls = null;
+    this.colorFields = new Map();
     const first = sel[0];
     // Control groups come from each type's capability manifest; a group shows
     // only when every selected element's type supports it.
@@ -123,6 +124,7 @@ export class Toolbar {
     if (common.includes('fill')) {
       this.fillInput();
       if (first.stroke !== undefined && first.type !== 'image') {
+        el('span', 'ez-toolbar-divider', this.root).setAttribute('aria-hidden', 'true');
         this.colorInput('Stroke', first.stroke || '#000000', 'stroke');
         this.numInput('Stroke', first.strokeWidth || 0, 0, 100, (v) => ({ strokeWidth: v }));
       }
@@ -191,13 +193,8 @@ export class Toolbar {
       if (prop === 'stroke') v = v || '#000000';
       if (prop === 'iconStyle') v = v || 'solid';
       if (prop === 'opacity') v = Math.round((v ?? 1) * 100);
-      if (document.activeElement !== input) input.value = v ?? '';
-    });
-    // Keep hex companions of bound color inputs in sync with the same values.
-    this.root.querySelectorAll('input[data-hex-for]').forEach((hex) => {
-      if (document.activeElement === hex) return;
-      const target = this.root.querySelector(`[data-bind="${hex.dataset.hexFor}"]`);
-      if (target) hex.value = target.value;
+      if (input.type === 'color') this.colorFields.get(prop)?.set(hexOr(v, '#000000'));
+      else if (document.activeElement !== input) input.value = v ?? '';
     });
   }
 
@@ -266,11 +263,10 @@ export class Toolbar {
     const { mode, colors, angleWrap, angle } = this.fillControls;
     const gradient = fill?.type === 'gradient';
     mode.value = gradient ? 'gradient' : fill === 'none' ? 'none' : 'solid';
-    for (const [key, { label, input, field }] of Object.entries(colors)) {
+    for (const [key, { label, field }] of Object.entries(colors)) {
       label.style.display = (key === 'solid' ? !gradient && fill !== 'none' : gradient) ? '' : 'none';
       const color = key === 'solid' ? fill : fill?.[key] || GRADIENT_FALLBACKS[key];
-      if (document.activeElement !== input) input.value = hexOr(color, '#000000');
-      if (document.activeElement !== field.hex) field.hex.value = hexOr(color, '#000000');
+      field.set(hexOr(color, '#000000'));
     }
     angleWrap.style.display = gradient ? '' : 'none';
     if (document.activeElement !== angle) angle.value = gradient ? fill.angle ?? 135 : 135;
@@ -286,6 +282,7 @@ export class Toolbar {
     });
     field.input.dataset.bind = prop;
     field.hex.dataset.hexFor = prop;
+    this.colorFields.set(prop, field);
   }
 
   numInput(label, value, min, max, mapper) {

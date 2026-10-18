@@ -10,7 +10,7 @@ No frameworks. No runtime dependencies. One script tag.
 - **Full transform system** — move, 8-handle resize, rotate (with 15° snapping), flip, multi-select (shift-click + rubber band), group move.
 - **Smart snapping** — edge/center alignment guides against other elements and the page, with pink guide lines.
 - **Editable charts** — Bar, Row, Grouped bar, Line, Multi-line, Pie, Donut, Area and Stacked area charts, with spreadsheet paste and a full style editor.
-- **Templates** — 32 fully editable built-in templates across six categories, plus your own.
+- **Templates** — 36 fully editable built-in templates across six categories, including four six-page business collections, plus your own.
 - **Registry-based customization** — templates, fonts, palettes, shapes, icons, panels, element types, chart types and background painters can all be registered at runtime.
 - **Headless capable** — run the canvas engine without any UI, or replace individual UI modules.
 

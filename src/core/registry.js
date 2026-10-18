@@ -12,12 +12,15 @@ import {
   GOOGLE_FONT_FAMILIES,
   TEMPLATES
 } from './assets.js';
+import { templatePages } from './template-utils.js';
 
 const asArray = (value, fallback) => (Array.isArray(value) ? value : fallback);
 
 export function createRegistry(options = {}) {
+  const templates = [...TEMPLATES, ...asArray(options.templates, [])];
+  templates.forEach(templatePages);
   return {
-    templates: [...TEMPLATES, ...deepList(options.templates)],
+    templates: deepList(templates),
     fonts: [...new Set([...FONTS, ...asArray(options.fonts, [])])],
     googleFonts: [...GOOGLE_FONT_FAMILIES, ...asArray(options.googleFonts, [])],
     palette: asArray(options.palette, [...PALETTE]),

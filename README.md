@@ -17,7 +17,7 @@ No frameworks. No runtime dependencies. One script tag.
 
 - Canvas engine with a DOM overlay for handles and guides
 - Elements: text, images, shapes, lines and icons with full transform, snapping and inline text editing
-- Editable charts (data + style), multi-page documents, 32 editable templates
+- Editable charts (data + style), multi-page documents, 36 editable templates including four six-page business collections
 - Layers panel, undo/redo, copy/paste, zoom & pan, context menu, keyboard shortcuts
 - PNG/JPEG/JSON export, themes, headless mode, customizable UI
 - Extensible: custom element types, renderers, chart types, sidebar panels and **community plugins**

@@ -1,5 +1,7 @@
 import { Emitter, uid, deepClone, clamp, el, readAsDataURL, downloadDataURL, downloadBlob, fileBase } from './utils.js';
 import { History } from './history.js';
+import { templatePages } from './template-utils.js';
+import { measureWorkspace, workspaceLayout, unionBounds } from './workspace.js';
 import { setChartColors, chartPreset, registerChartPreset } from './charts.js';
 import { createRegistry } from './registry.js';
 import { PluginManager, normalizePluginEntries } from './plugins.js';
@@ -7,6 +9,7 @@ import {
   createElement,
   hitTest,
   elementCenter,
+  rectsIntersect,
   selectionBBox,
   elementName,
   manifestFor,
@@ -15,7 +18,7 @@ import {
   registerElementType as registerElementDefaults,
   registerElementManifest
 } from './elements.js';
-import { renderPage, whenImagesReady, measureTextElement, registerElementRenderer } from './renderer.js';
+import { renderPage, whenImagesReady, onImagesChanged, measureTextElement, fontString, registerElementRenderer } from './renderer.js';
 import { registerChartRenderer } from './chart-renderer.js';
 import { registerBackgroundPainter } from './renderer.js';
 import { SHAPE_PATHS, ICONS, ICON_OUTLINES } from './assets.js';
@@ -105,6 +108,7 @@ export class Editor extends Emitter {
     this._chrome = injectStyles();
     this._fontStylesheet = injectFonts(this.registry.googleFonts);
     this._buildDOM(target);
+    this._imagesOff = onImagesChanged(() => this.markDirty());
     this.setTheme(this._themeChoice);
     // Custom history strategies (e.g. server-backed or memory-pruned) can be
     // injected as long as they implement the same snapshot interface.
@@ -154,7 +158,7 @@ export class Editor extends Emitter {
     this.zoomFit();
     if (options.initialDoc) this.loadJSON(options.initialDoc);
     this._resizeObserver = new ResizeObserver(() => {
-      if (this._needsFit) this.zoomFit();
+      if (this._needsFit) this._needsContentFit ? this._fitContent() : this.zoomFit();
       else this.markDirty();
     });
     this._resizeObserver.observe(this.viewport);
@@ -188,12 +192,24 @@ export class Editor extends Emitter {
     el('div', 'ez-sidepanel-content', this.sidepanelEl);
     const canvasWrap = el('div', 'ez-canvas-wrap', body);
     this.viewport = el('div', 'ez-viewport', canvasWrap);
-    const stageWrap = el('div', 'ez-stage-wrap', this.viewport);
-    this.stage = el('div', 'ez-stage', stageWrap);
+    this.overflowCanvas = el('canvas', 'ez-overflow-canvas', this.viewport);
+    this.overflowCanvas.setAttribute('aria-hidden', 'true');
+    this._overflowCtx = this.overflowCanvas.getContext('2d');
+    this.stageWrap = el('div', 'ez-stage-wrap', this.viewport);
+    this.stage = el('div', 'ez-stage', this.stageWrap);
     this.canvas = document.createElement('canvas');
     this.stage.appendChild(this.canvas);
     this.ctx = this.canvas.getContext('2d');
     this.overlay = el('div', 'ez-overlay', this.stage);
+    this._onViewportScroll = () => {
+      if (this._viewportRaf) return;
+      this._viewportRaf = requestAnimationFrame(() => {
+        this._viewportRaf = 0;
+        this._drawOverflow();
+        this.ui?.toolbar?.update();
+      });
+    };
+    this.viewport.addEventListener('scroll', this._onViewportScroll);
     this.pagesBarEl = el('div', 'ez-pagesbar', canvasWrap);
     this.toolbarEl = el('div', 'ez-floating-toolbar', target);
 
@@ -234,6 +250,22 @@ export class Editor extends Emitter {
     const dpr = window.devicePixelRatio || 1;
     const cssW = pw * this.zoom;
     const cssH = ph * this.zoom;
+    const previous = this._workspaceLayout;
+    const pageChanged = this._renderedPageId !== this.page.id;
+    const scrollLeft = this.viewport.scrollLeft;
+    const scrollTop = this.viewport.scrollTop;
+    const measured = measureWorkspace(this.page, this._measureCtx);
+    const dragging = this._editing || ['move', 'resize', 'rotate', 'band'].includes(this.interactions?.drag?.mode);
+    const bounds = dragging && !pageChanged && this._workspaceBounds
+      ? unionBounds(this._workspaceBounds, measured.bounds) : measured.bounds;
+    const rect = this.viewport.getBoundingClientRect();
+    const layout = workspaceLayout(this.page, bounds, this.zoom, this.viewport.clientWidth || rect.width, this.viewport.clientHeight || rect.height);
+    this._workspaceBounds = bounds;
+    this._workspaceElements = measured.elements;
+    this._workspaceLayout = layout;
+    this._renderedPageId = this.page.id;
+    Object.assign(this.stageWrap.style, { width: layout.width + 'px', height: layout.height + 'px' });
+    Object.assign(this.stage.style, { left: layout.left + 'px', top: layout.top + 'px' });
     this.stage.style.width = cssW + 'px';
     this.stage.style.height = cssH + 'px';
     const bw = Math.max(1, Math.round(cssW * dpr));
@@ -241,13 +273,70 @@ export class Editor extends Emitter {
     if (this.canvas.width !== bw || this.canvas.height !== bh) {
       this.canvas.width = bw;
       this.canvas.height = bh;
-      this.canvas.style.width = cssW + 'px';
-      this.canvas.style.height = cssH + 'px';
+    }
+    this.canvas.style.width = cssW + 'px';
+    this.canvas.style.height = cssH + 'px';
+    if (previous && !pageChanged) {
+      this.viewport.scrollLeft = scrollLeft + layout.left - previous.left;
+      this.viewport.scrollTop = scrollTop + layout.top - previous.top;
+    } else {
+      this._centerView({ x: 0, y: 0, w: pw, h: ph });
     }
     this.ctx.setTransform(this.zoom * dpr, 0, 0, this.zoom * dpr, 0, 0);
-    renderPage(this.ctx, this.page, { registry: this.registry });
+    renderPage(this.ctx, this.page, { registry: this.registry, editingId: this.editingId });
+    this._drawOverflow();
+    if (this._editing) this._layoutTextEditor();
     if (!this._editing && this.interactions?.drag?.mode !== 'band') this.updateOverlay();
     this.ui?.toolbar?.update();
+  }
+
+  _drawOverflow() {
+    if (!this._workspaceElements || !this.viewport.isConnected) return;
+    const view = this.viewport.getBoundingClientRect();
+    const width = this.viewport.clientWidth || view.width;
+    const height = this.viewport.clientHeight || view.height;
+    const canvas = this.overflowCanvas;
+    const ctx = this._overflowCtx;
+    const dpr = window.devicePixelRatio || 1;
+    const z = this.zoom;
+    const origin = this.canvas.getBoundingClientRect();
+    const dx = origin.left - view.left - this.viewport.clientLeft;
+    const dy = origin.top - view.top - this.viewport.clientTop;
+    const visible = { x: -dx / z, y: -dy / z, w: width / z, h: height / z };
+    const pw = this.page.width, ph = this.page.height;
+    const elements = this._workspaceElements.filter(({ bounds: b }) =>
+      (b.x < 0 || b.y < 0 || b.x + b.w > pw || b.y + b.h > ph) && rectsIntersect(b, visible)
+    ).map(item => item.element);
+    canvas.hidden = !elements.length;
+    if (!elements.length || !width || !height) return;
+    const bw = Math.max(1, Math.round(width * dpr));
+    const bh = Math.max(1, Math.round(height * dpr));
+    if (canvas.width !== bw || canvas.height !== bh) {
+      canvas.width = bw;
+      canvas.height = bh;
+    }
+    Object.assign(canvas.style, { left: this.viewport.scrollLeft + 'px', top: this.viewport.scrollTop + 'px', width: width + 'px', height: height + 'px' });
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, bw, bh);
+    ctx.save();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.beginPath();
+    ctx.rect(0, 0, width, height);
+    ctx.rect(dx, dy, pw * z, ph * z);
+    ctx.clip('evenodd');
+    ctx.setTransform(z * dpr, 0, 0, z * dpr, dx * dpr, dy * dpr);
+    renderPage(ctx, { ...this.page, elements }, { transparent: true, registry: this.registry, editingId: this.editingId });
+    ctx.restore();
+  }
+
+  _centerView(bounds) {
+    const layout = this._workspaceLayout;
+    if (!layout) return;
+    const rect = this.viewport.getBoundingClientRect();
+    const width = this.viewport.clientWidth || rect.width;
+    const height = this.viewport.clientHeight || rect.height;
+    this.viewport.scrollLeft = layout.left + (bounds.x + bounds.w / 2) * this.zoom - width / 2;
+    this.viewport.scrollTop = layout.top + (bounds.y + bounds.h / 2) * this.zoom - height / 2;
   }
 
   updateOverlay() {
@@ -525,29 +614,51 @@ export class Editor extends Emitter {
     const rect2 = this.canvas.getBoundingClientRect();
     this.viewport.scrollLeft += rect2.left + wx * z - a.x;
     this.viewport.scrollTop += rect2.top + wy * z - a.y;
+    this._drawOverflow();
     this.emit('zoom', z);
   }
 
   zoomFit() {
-    const pw = this.page.width;
-    const ph = this.page.height;
+    this._fitBounds({ x: 0, y: 0, w: this.page.width, h: this.page.height });
+  }
+
+  _fitContent() {
+    this._fitBounds(measureWorkspace(this.page, this._measureCtx).bounds, true);
+  }
+
+  _fitBounds(bounds, content = false) {
     const vRect = this.viewport.getBoundingClientRect();
     if (!vRect.width || !vRect.height) {
       // Hidden container (e.g. mounted in an inactive tab): retry the fit once
       // the viewport gains real dimensions (see the ResizeObserver).
       this._needsFit = true;
+      this._needsContentFit = content;
       this.zoom = 1;
       this.render();
       this.emit('zoom', this.zoom);
       return;
     }
     this._needsFit = false;
-    const z = clamp(Math.min((vRect.width - 96) / pw, (vRect.height - 96) / ph), 0.05, 2);
-    this.zoom = z;
+    this._needsContentFit = false;
+    const fitZoom = () => clamp(Math.min(
+      ((this.viewport.clientWidth || vRect.width) - 96) / bounds.w,
+      ((this.viewport.clientHeight || vRect.height) - 96) / bounds.h
+    ), 0.05, 2);
+    this.zoom = fitZoom();
     this.render();
-    this.viewport.scrollLeft = (this.viewport.scrollWidth - this.viewport.clientWidth) / 2;
-    this.viewport.scrollTop = (this.viewport.scrollHeight - this.viewport.clientHeight) / 2;
-    this.emit('zoom', z);
+    // Scrollbars can change the usable viewport after the workspace grows.
+    const settled = fitZoom();
+    if (settled !== this.zoom) {
+      this.zoom = settled;
+      this.render();
+    }
+    const limited = content && (bounds.w * this.zoom > (this.viewport.clientWidth || vRect.width) - 96 ||
+      bounds.h * this.zoom > (this.viewport.clientHeight || vRect.height) - 96);
+    // At the minimum zoom, keep the page in view rather than centering empty
+    // space between it and extremely distant artwork. Everything is scrollable.
+    this._centerView(limited ? { x: 0, y: 0, w: this.page.width, h: this.page.height } : bounds);
+    this._drawOverflow();
+    this.emit('zoom', this.zoom);
   }
 
   fitTextHeight(elx) {
@@ -561,7 +672,9 @@ export class Editor extends Emitter {
     if (this._editing) this.commitTextEdit();
     this._editing = true;
     this.editingId = elx.id;
-    const ed = el('div', 'ez-text-editor', this.overlay);
+    this.overlay.innerHTML = '';
+    this._textEditorFrame = el('div', 'ez-text-editor-frame', this.overlay);
+    const ed = el('div', 'ez-text-editor', this._textEditorFrame);
     ed.contentEditable = 'true';
     ed.innerText = elx.text || '';
     Object.assign(ed.style, {
@@ -571,8 +684,7 @@ export class Editor extends Emitter {
       textDecoration: elx.underline ? 'underline' : 'none',
       lineHeight: String(elx.lineHeight),
       color: elx.color,
-      textAlign: elx.align,
-      transformOrigin: '50% 50%'
+      textAlign: elx.align
     });
     this._textEditorEl = ed;
     // Track the pre-edit state so an unchanged edit session doesn't push a
@@ -581,8 +693,11 @@ export class Editor extends Emitter {
     // Keep the overlay glued to the element when the zoom changes mid-edit.
     this._layoutTextEditor();
     this._textEditorZoomOff = this.on('zoom', () => this._layoutTextEditor());
+    // Replace the canvas copy immediately, even before the first input event.
+    this.render();
     ed.addEventListener('input', () => {
       elx.text = ed.innerText.replace(/\n$/, '');
+      this.fitTextHeight(elx);
       this.markDirty();
     });
     ed.addEventListener('keydown', (e) => {
@@ -594,7 +709,7 @@ export class Editor extends Emitter {
     });
     ed.addEventListener('blur', () => this.commitTextEdit());
     this.ui.toolbar?.update();
-    ed.focus();
+    ed.focus({ preventScroll: true });
     if (elx.__fresh) {
       const range = document.createRange();
       range.selectNodeContents(ed);
@@ -617,23 +732,64 @@ export class Editor extends Emitter {
   _layoutTextEditor() {
     if (!this._editing) return;
     const ed = this._textEditorEl;
+    const frame = this._textEditorFrame;
     const elx = this.getElements().find((e2) => e2.id === this.editingId);
-    if (!ed || !elx) return;
+    if (!ed || !frame || !elx) return;
     const z = this.zoom;
-    Object.assign(ed.style, {
+    Object.assign(frame.style, {
       left: elx.x * z + 'px',
       top: elx.y * z + 'px',
       width: elx.w * z + 'px',
-      minHeight: elx.h * z + 'px',
-      fontSize: elx.fontSize * z + 'px',
-      letterSpacing: (elx.letterSpacing || 0) * z + 'px',
-      transform: `rotate(${elx.rotation || 0}deg)`
+      height: elx.h * z + 'px',
+      opacity: String(elx.opacity ?? 1),
+      transform: `rotate(${elx.rotation || 0}deg) scale(${elx.flipX ? -1 : 1}, ${elx.flipY ? -1 : 1})`
     });
+    Object.assign(ed.style, {
+      top: this._textEditorBaselineOffset(elx) * z + 'px',
+      width: elx.w + 'px',
+      minHeight: elx.h + 'px',
+      fontSize: elx.fontSize + 'px',
+      letterSpacing: (elx.letterSpacing || 0) + 'px',
+      transform: `scale(${z})`
+    });
+  }
+
+  _textEditorBaselineOffset(elx) {
+    const ctx = this._measureCtx;
+    const font = fontString(elx);
+    ctx.save();
+    ctx.font = font;
+    ctx.textBaseline = 'alphabetic';
+    const ascent = ctx.measureText('M').actualBoundingBoxAscent;
+    ctx.textBaseline = 'top';
+    const topAscent = ctx.measureText('M').actualBoundingBoxAscent;
+    ctx.restore();
+    const baseline = elx.fontSize * (elx.lineHeight - 1) / 2 + ascent - topAscent;
+    if (!Number.isFinite(baseline)) return 0;
+    const key = `${font}/${elx.lineHeight}/${baseline}`;
+    if (this._textEditorMetrics?.key === key) return this._textEditorMetrics.offset;
+
+    // CSS line boxes use the font's ascent/descent; canvas uses a top baseline.
+    // A zero-height inline block marks the CSS baseline without touching the
+    // editable content or its selection. Cache until the font metrics change.
+    const probe = el('div', '', this.container);
+    Object.assign(probe.style, {
+      position: 'absolute', visibility: 'hidden', pointerEvents: 'none',
+      font, lineHeight: String(elx.lineHeight), whiteSpace: 'nowrap',
+      padding: '0', margin: '0', border: '0'
+    });
+    probe.textContent = 'M';
+    const marker = el('span', '', probe);
+    Object.assign(marker.style, { display: 'inline-block', width: '0', height: '0' });
+    const cssBaseline = marker.getBoundingClientRect().top - probe.getBoundingClientRect().top;
+    probe.remove();
+    const offset = baseline - cssBaseline;
+    this._textEditorMetrics = { key, offset };
+    return offset;
   }
 
   commitTextEdit() {
     if (!this._editing) return;
-    const ed = this._textEditorEl;
     const elx = this.getElements().find((e2) => e2.id === this.editingId);
     const before = this._textEditState;
     this._editing = false;
@@ -642,7 +798,9 @@ export class Editor extends Emitter {
     this._textEditState = null;
     this._textEditorZoomOff?.();
     this._textEditorZoomOff = null;
-    if (ed) ed.remove();
+    this._textEditorFrame?.remove();
+    this._textEditorFrame = null;
+    this._textEditorMetrics = null;
     let changed = false;
     if (elx) {
       elx.text = (elx.text || '').replace(/\n+$/, '');
@@ -675,11 +833,13 @@ export class Editor extends Emitter {
 
   _applySnapshot(snap) {
     if (this._editing) this.commitTextEdit();
+    const previousSize = { width: this.page.width, height: this.page.height };
     this.doc = snap;
     this.pageIndex = clamp(this.pageIndex, 0, this.doc.pages.length - 1);
     this.selection = new Set();
     this.emit('selection', []);
-    this.markDirty();
+    if (this.page.width !== previousSize.width || this.page.height !== previousSize.height) this._fitContent();
+    else this.markDirty();
     this.emit('change', { doc: this.doc, selection: [] });
   }
 
@@ -733,24 +893,18 @@ export class Editor extends Emitter {
   }
 
   applyTemplate(tpl) {
-    if (!tpl || typeof tpl !== 'object' || !tpl.page ||
-        !Number.isFinite(tpl.page.width) || !Number.isFinite(tpl.page.height) ||
-        !Array.isArray(tpl.page.elements)) {
-      throw new Error('ezyreka: templates need { name, page: { width, height, elements } }');
-    }
-    if (this._editing) this.commitTextEdit();
-    this.doc = {
+    const next = {
       version: 1,
-      pages: [
-        {
-          id: uid('page'),
-          width: tpl.page.width,
-          height: tpl.page.height,
-          background: deepClone(tpl.page.background),
-          elements: tpl.page.elements.map((e2) => createElement(e2.type, e2, this.registry))
-        }
-      ]
+      pages: templatePages(tpl).map(page => ({
+        id: uid('page'),
+        width: page.width,
+        height: page.height,
+        background: deepClone(page.background || { type: 'solid', color: '#ffffff' }),
+        elements: page.elements.map(element => createElement(element.type, { ...element, id: uid(element.type) }, this.registry))
+      }))
     };
+    if (this._editing) this.commitTextEdit();
+    this.doc = next;
     this.pageIndex = 0;
     this.selection = new Set();
     this.emit('selection', []);
@@ -766,7 +920,7 @@ export class Editor extends Emitter {
     if (this._editing) this.commitTextEdit();
     this.page.width = width;
     this.page.height = height;
-    this.zoomFit();
+    this._fitContent();
     this.commit();
   }
 
@@ -807,13 +961,7 @@ export class Editor extends Emitter {
 
   registerTemplates(templates) {
     const list = Array.isArray(templates) ? templates : [templates];
-    for (const tpl of list) {
-      if (!tpl || typeof tpl !== 'object' || !tpl.page ||
-          !Number.isFinite(tpl.page.width) || !Number.isFinite(tpl.page.height) ||
-          !Array.isArray(tpl.page.elements)) {
-        throw new Error('ezyreka: templates need { name, page: { width, height, elements } }');
-      }
-    }
+    list.forEach(templatePages);
     this.registry.templates.push(...list.map((tpl) => deepClone(tpl)));
     this._refreshPanels('templates');
   }
@@ -1256,12 +1404,17 @@ export class Editor extends Emitter {
     for (const module of Object.values(this.ui || {})) module?.destroy?.();
     if (this._editing) {
       this._editing = false;
-      this._textEditorEl?.remove();
+      this._textEditorFrame?.remove();
+      this._textEditorFrame = null;
+      this._textEditorMetrics = null;
       this._textEditorEl = null;
     }
     this._textEditorZoomOff?.();
     this._textEditorZoomOff = null;
     this._resizeObserver?.disconnect();
+    this._imagesOff?.();
+    this.viewport?.removeEventListener('scroll', this._onViewportScroll);
+    if (this._viewportRaf) cancelAnimationFrame(this._viewportRaf);
     if (this._raf) cancelAnimationFrame(this._raf);
     this._textEditorZoomOff?.();
     this._textEditorZoomOff = null;

@@ -1,6 +1,6 @@
 {
   "name": "@bookklik/ezyreka",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Embeddable, dependency-free JavaScript library for adding a Canva-style design editor to web apps, with JS API and data-ezr-editor auto-init.",
   "author": "a-hakim",
   "main": "dist/ezyreka.umd.js",

@@ -29,6 +29,12 @@ global.DOMMatrix = global.DOMMatrix || class {
   scale() { return this; }
 };
 
+dom.window.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
+dom.window.HTMLDialogElement.prototype.close = function () {
+  this.open = false;
+  this.dispatchEvent(new dom.window.Event('close'));
+};
+
 const gradient = { addColorStop() {} };
 dom.window.HTMLCanvasElement.prototype.getContext = function () {
   return new Proxy(
@@ -207,6 +213,159 @@ assert.throws(() => editor.applyTemplate({ page: { width: 'big' } }), /templates
 assert.throws(() => editor.applyTemplate(null), /templates need/, 'applyTemplate rejects null');
 editor.applyTemplate({ name: 'ok', page: { width: 400, height: 300, background: { type: 'solid', color: '#fff' }, elements: [] } });
 assert.equal(editor.getPage().width, 400, 'valid template still applies');
+
+// ---- Multipage templates: atomic validation, cloning, history and gallery ----
+{
+  const deck = {
+    name: 'Six-page custom deck', category: 'Business', format: 'Presentation',
+    pages: Array.from({ length: 6 }, (_, i) => ({
+      width: 800, height: 450,
+      elements: [{ id: 'reusable-id', type: 'rect', x: 10, y: 10, w: 100, h: 100,
+        fill: { type: 'gradient', from: '#112233', to: '#ffffff', angle: i * 30 } }]
+    }))
+  };
+  const host = container('p2-templates');
+  const templated = new Editor({ target: host, templates: [deck] });
+  const owned = templated.registry.templates.at(-1);
+  deck.pages[0].elements[0].fill.from = '#000000';
+  assert.equal(owned.pages[0].elements[0].fill.from, '#112233', 'constructor deeply owns multipage templates');
+  templated.addElement({ type: 'rect', fill: '#ff0000' });
+  templated.addPage();
+  const before = templated.getJSON();
+  templated.applyTemplate(owned);
+  assert.equal(templated.doc.pages.length, 6, 'application replaces the full document');
+  assert.equal(templated.pageIndex, 0, 'application opens the cover');
+  assert.equal(templated.getSelected().length, 0, 'application clears selection');
+  assert.deepEqual(templated.page.background, { type: 'solid', color: '#ffffff' }, 'omitted backgrounds default to white');
+  assert.equal(host.querySelectorAll('.ez-page-chip').length, 6, 'page bar lists every template page');
+  const firstIds = templated.doc.pages.flatMap(page => [page.id, ...page.elements.map(el => el.id)]);
+  assert.equal(new Set(firstIds).size, 12, 'all page and element ids are fresh and unique');
+  assert.ok(!firstIds.includes('reusable-id'), 'source ids are not reused');
+  templated.undo();
+  assert.deepEqual(templated.getJSON(), before, 'one undo restores the previous multipage document');
+  templated.redo();
+  assert.equal(templated.doc.pages.length, 6, 'redo restores all template pages');
+  templated.page.elements[0].fill.from = '#ff0000';
+  assert.equal(owned.pages[0].elements[0].fill.from, '#112233', 'editing does not mutate the registered source');
+  assert.equal(templated.doc.pages[1].elements[0].fill.from, '#112233', 'page data is independent');
+  templated.applyTemplate(owned);
+  assert.ok(templated.doc.pages.every(page => !firstIds.includes(page.id) && page.elements.every(el => !firstIds.includes(el.id))), 'reapplication generates new identities');
+
+  const validPage = { width: 800, height: 450, elements: [] };
+  const invalid = [
+    { name: 'Empty', pages: [] },
+    { name: 'Neither' },
+    { name: 'Both', page: validPage, pages: [validPage] },
+    ...[0, -1, 10001, 1.5, Infinity, '800'].map(width => ({ name: 'Dimensions', pages: [validPage, { ...validPage, width }] })),
+    { name: 'Element', pages: [validPage, { ...validPage, elements: [null] }] },
+    { name: 'Geometry', pages: [{ ...validPage, elements: [{ type: 'rect', x: NaN }] }] },
+    { name: 'Type', pages: [{ ...validPage, elements: [{ type: '' }] }] }
+  ];
+  const stableDoc = templated.getJSON();
+  const stableCount = templated.registry.templates.length;
+  for (const candidate of invalid) {
+    assert.throws(() => templated.applyTemplate(candidate), /templates need/, 'invalid application rejected');
+    assert.deepEqual(templated.getJSON(), stableDoc, 'invalid application leaves all pages intact');
+    assert.throws(() => templated.registerTemplates([owned, candidate]), /templates need/, 'invalid registration batch rejected');
+    assert.equal(templated.registry.templates.length, stableCount, 'registration batches are atomic');
+  }
+  assert.throws(() => new Editor({ target: container('p2-invalid-template-option'), templates: [invalid[0]] }), /templates need/, 'constructor uses the same validation');
+  templated.registerTemplates(deck);
+  deck.pages[1].elements[0].fill.to = '#000000';
+  assert.equal(templated.registry.templates.at(-1).pages[1].elements[0].fill.to, '#ffffff', 'runtime registration owns nested page data');
+
+  templated.ui.sidepanel.setTab('templates');
+  const cards = [...host.querySelectorAll('.ez-template-card')];
+  const card = cards.find(node => node.getAttribute('aria-label').startsWith('Use Business presentation,'));
+  assert.ok(card.getAttribute('aria-label').includes('6 pages'), 'accessible label includes page count');
+  assert.equal(card.querySelector('.ez-template-page-count').textContent, '6 pages', 'multipage badge visible');
+  assert.ok(card.querySelector('.ez-template-meta').textContent.includes('6 pages'), 'metadata includes page count');
+  const beforeConfirmation = templated.getJSON();
+  const historyBeforeConfirmation = templated.history._undoStack.length;
+  card.click();
+  let confirmation = host.querySelector('.ez-template-dialog');
+  assert.ok(confirmation.open, 'template selection asks for confirmation');
+  assert.ok(confirmation.textContent.includes('overwrite all pages and content'), 'warning describes document-wide overwrite');
+  assert.ok(confirmation.textContent.includes('Business presentation'), 'warning names the target template');
+  assert.equal(document.activeElement.textContent, 'Cancel', 'cancel is focused by default');
+  assert.deepEqual(templated.getJSON(), beforeConfirmation, 'opening confirmation does not replace the document');
+  confirmation.querySelector('.ez-btn-ghost').click();
+  assert.equal(host.querySelector('.ez-template-dialog'), null, 'cancel removes the prompt');
+  assert.deepEqual(templated.getJSON(), beforeConfirmation, 'cancel preserves every page');
+  assert.equal(templated.history._undoStack.length, historyBeforeConfirmation, 'cancel leaves undo history intact');
+  assert.equal(document.activeElement, card, 'cancel returns focus to the template card');
+  card.click();
+  card.click();
+  assert.equal(host.querySelectorAll('.ez-template-dialog').length, 1, 'only one confirmation can be open');
+  confirmation = host.querySelector('.ez-template-dialog');
+  confirmation.querySelector('.ez-btn-primary').click();
+  assert.equal(templated.doc.pages.length, 6, 'gallery applies all six pages');
+  assert.equal(templated.page.width, 1920, 'gallery previews and applies cover dimensions');
+  const singleCard = cards.find(node => node.getAttribute('aria-label').startsWith('Use Summer Social,'));
+  assert.equal(singleCard.querySelector('.ez-template-page-count'), null, 'legacy cards have no multipage badge');
+  singleCard.click();
+  assert.equal(templated.doc.pages.length, 6, 'legacy templates also wait for confirmation');
+  host.querySelector('.ez-template-dialog .ez-btn-primary').click();
+  assert.equal(templated.doc.pages.length, 1, 'legacy cards still replace the document with one page');
+  card.click();
+  templated.ui.sidepanel.setTab('elements');
+  assert.equal(host.querySelector('.ez-template-dialog'), null, 'switching panels dismisses stale confirmations');
+  assert.equal(templated.doc.pages.length, 1, 'panel cleanup never applies a pending template');
+  templated.ui.sidepanel.confirmTemplate(owned, card);
+  templated.destroy();
+  assert.equal(document.querySelector('.ez-template-dialog'), null, 'destroy removes pending confirmations');
+
+  const pluginHost = new Editor({ target: container('p2-plugin-template'), ui: false,
+    plugins: [{ id: 'deck-plugin', version: '1.0.0', apiVersion: 1,
+      setup(ctx) { ctx.registerTemplates(deck); }
+    }] });
+  pluginHost.applyTemplate(pluginHost.registry.templates.at(-1));
+  assert.equal(pluginHost.doc.pages.length, 6, 'plugin registration accepts multipage templates');
+  pluginHost.destroy();
+}
+
+// ---- Editor-only overflow workspace and page-sized exports ----
+{
+  const overflowEditor = new Editor({ target: container('p2-overflow'), width: 800, height: 600 });
+  const outside = overflowEditor.addElement({ type: 'rect', x: -180, y: 700, w: 120, h: 90, fill: '#2855f9' });
+  overflowEditor.addElement({ type: 'ellipse', x: 900, y: -120, w: 100, h: 80, rotation: 30, strokeWidth: 8, locked: true });
+  overflowEditor.addElement({ type: 'rect', x: -100000, y: -100000, w: 20, h: 20, hidden: true });
+  const geometry = overflowEditor.getJSON().pages[0].elements;
+  overflowEditor.resizeCanvas(320, 240);
+  assert.deepEqual(overflowEditor.getJSON().pages[0].elements, geometry, 'canvas resize preserves every element property');
+  assert.ok(overflowEditor._workspaceBounds.x <= -180 && overflowEditor._workspaceBounds.y <= -120, 'workspace exposes negative coordinates');
+  assert.ok(overflowEditor._workspaceBounds.x > -1000, 'hidden distant objects are ignored');
+  assert.equal(overflowEditor.overflowCanvas.getAttribute('aria-hidden'), 'true', 'overflow bitmap is decorative');
+  assert.ok(overflowEditor.overflowCanvas.width <= 1200 && overflowEditor.overflowCanvas.height <= 800, 'overflow bitmap stays viewport-sized');
+  const pageRect = overflowEditor.canvas.getBoundingClientRect();
+  const point = { clientX: pageRect.left - 120 * overflowEditor.zoom, clientY: pageRect.top + 745 * overflowEditor.zoom, button: 0,
+    target: overflowEditor.stageWrap, preventDefault() {}, stopPropagation() {} };
+  const mapped = overflowEditor.interactions.clientToWorld(point);
+  assert.ok(Math.abs(mapped.x + 120) < 1e-6 && Math.abs(mapped.y - 745) < 1e-6, 'outside points retain page-relative coordinates');
+  overflowEditor.interactions.onPointerDown(point);
+  assert.equal(overflowEditor.getSelected()[0].id, outside.id, 'outside artwork can be selected');
+  overflowEditor.interactions.onPointerUp({});
+  const input = document.createElement('div');
+  input.contentEditable = 'true';
+  input.setAttribute('contenteditable', 'true');
+  overflowEditor.overlay.append(input);
+  assert.equal(overflowEditor.interactions.isWorkspaceEvent({ target: input }), false, 'inline editing is not intercepted');
+  const oldWidth = overflowEditor.page.width;
+  const output = await overflowEditor._renderPageToCanvas(overflowEditor.page, 1, false);
+  assert.equal(output.width, 320, 'exports use page width rather than workspace width');
+  assert.equal(output.height, 240, 'exports use page height rather than workspace height');
+  overflowEditor.undo();
+  assert.equal(overflowEditor.page.width, 800, 'undo restores the original page dimensions');
+  overflowEditor.redo();
+  assert.equal(overflowEditor.page.width, oldWidth, 'redo restores the resized page');
+  overflowEditor.addPage();
+  overflowEditor.render();
+  assert.deepEqual(overflowEditor._workspaceBounds, { x: 0, y: 0, w: 320, h: 240 }, 'page changes discard previous workspace extents');
+  overflowEditor.goToPage(0);
+  overflowEditor.render();
+  assert.ok(overflowEditor._workspaceBounds.x < 0, 'returning to the page restores its outside artwork');
+  overflowEditor.destroy();
+}
 
 // ---- Themes: registration, custom names, cssVars ----
 editor.registerTheme('ocean', { '--ez-accent': '#123456', '--ez-bg': '#223344' });

@@ -4,6 +4,7 @@ import { History } from '../src/core/history.js';
 import { createElement, hitTest, elementCorners, selectionBBox } from '../src/core/elements.js';
 import { wrapLines } from '../src/core/renderer.js';
 import { ICONS, TEMPLATES } from '../src/core/assets.js';
+import { elementPaintBounds, measureWorkspace, workspaceLayout } from '../src/core/workspace.js';
 
 assert.ok(uid('x').startsWith('x_'), 'uid prefix');
 assert.strictEqual(clamp(5, 0, 3), 3, 'clamp max');
@@ -79,11 +80,30 @@ assert.deepStrictEqual(wrapLines(ctx, 'a\n\nb', 1000), ['a', '', 'b'], 'wrapLine
 
 assert.ok(ICONS.star, 'icon path exists');
 assert.ok(Object.keys(ICONS).length >= 15, 'icon count');
-assert.ok(TEMPLATES.length >= 4, 'templates count');
+assert.equal(TEMPLATES.length, 36, 'templates count');
+assert.equal(TEMPLATES.filter(tpl => tpl.pages?.length === 6).length, 4, 'four six-page collections');
 for (const tpl of TEMPLATES) {
-  for (const el of tpl.page.elements) {
-    assert.ok(el.type, 'template element has type');
+  for (const page of tpl.pages || [tpl.page]) {
+    for (const el of page.elements) {
+      assert.ok(el.type, 'template element has type');
+    }
   }
 }
+
+const workspacePage = { width: 100, height: 80, elements: [
+  { type: 'rect', x: -20, y: -30, w: 10, h: 20, strokeWidth: 4 },
+  { type: 'ellipse', x: 120, y: 100, w: 30, h: 20, rotation: 45, locked: true },
+  { type: 'rect', x: -100000, y: -100000, w: 10, h: 10, hidden: true }
+] };
+const measuredWorkspace = measureWorkspace(workspacePage);
+assert.equal(measuredWorkspace.elements.length, 2, 'hidden elements do not enlarge the workspace');
+assert.ok(measuredWorkspace.bounds.x < -20 && measuredWorkspace.bounds.y < -30, 'negative coordinates and stroke padding are included');
+assert.ok(measuredWorkspace.bounds.x + measuredWorkspace.bounds.w > 150, 'locked and rotated artwork extends workspace bounds');
+const workspace = workspaceLayout(workspacePage, measuredWorkspace.bounds, 0.5, 800, 600);
+assert.ok(workspace.left + measuredWorkspace.bounds.x * 0.5 >= 48, 'negative artwork remains reachable with a view margin');
+assert.ok(workspace.top + measuredWorkspace.bounds.y * 0.5 >= 48, 'top artwork remains reachable with a view margin');
+assert.ok(workspace.width >= 800 && workspace.height >= 600, 'workspace is at least viewport-sized');
+const arrowBounds = elementPaintBounds({ type: 'line', x: 0, y: 0, w: 100, h: 0, arrow: true, strokeWidth: 12 });
+assert.ok(arrowBounds.y <= -20 && arrowBounds.y + arrowBounds.h >= 20, 'arrow heads are included in workspace paint bounds');
 
 console.log('All smoke tests passed.');

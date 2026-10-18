@@ -14,6 +14,12 @@ const PATH_CACHE_MAX_ENTRIES = 512;
 const imageCache = new Map();
 const pathCache = new Map();
 let imageCacheBytes = 0;
+const imageListeners = new Set();
+
+export function onImagesChanged(listener) {
+  imageListeners.add(listener);
+  return () => imageListeners.delete(listener);
+}
 
 function touchImageEntry(src, entry, isNew) {
   if (imageCache.get(src) !== entry) return;
@@ -58,6 +64,7 @@ export function getImage(src) {
 function flushImageResolvers(entry) {
   const waiters = entry.resolvers.splice(0);
   for (const resolve of waiters) resolve();
+  for (const listener of imageListeners) listener();
 }
 
 export function whenImagesReady(srcs) {
@@ -127,7 +134,7 @@ export function renderPage(ctx, page, opts = {}) {
   drawBackground(ctx, page.background, pw, ph, transparent, opts.registry || {});
   const elements = page.elements || [];
   for (const el of elements) {
-    if (!el.hidden) drawElement(ctx, el, opts);
+    if (!el.hidden && (!opts.editingId || el.id !== opts.editingId)) drawElement(ctx, el, opts);
   }
 }
 
