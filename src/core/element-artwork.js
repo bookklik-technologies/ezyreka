@@ -15,6 +15,8 @@ export const GEAR_PATH = Array.from({ length: 32 }, (_, i) => {
   return `${i ? 'L' : 'M'}${(12 + Math.cos(angle) * radius).toFixed(3)} ${(12 + Math.sin(angle) * radius).toFixed(3)}`;
 }).join(' ') + 'ZM16 12A4 4 0 1 1 8 12A4 4 0 1 1 16 12Z';
 
+import { SS_SHAPE_PATHS } from './senangstart-shapes.js';
+
 export const SHAPE_PATHS = {
   // Primitives live here too, so their geometry has a single home shared by
   // the canvas renderer, the Elements panel previews and custom registries.
@@ -43,7 +45,12 @@ export const SHAPE_PATHS = {
   ribbon: 'M0 12H100L82 50L100 88H0L18 50Z',
   chevron: 'M0 0H52L100 50L52 100H0L48 50Z',
   cross: 'M34 0H66V34H100V66H66V100H34V66H0V34H34Z',
-  'arrow-block': 'M0 32H58V0L100 50L58 100V68H0Z'
+  'arrow-block': 'M0 32H58V0L100 50L58 100V68H0Z',
+
+  // SenangStart Shapes pack (solid variants, 0-100 geometry), generated from
+  // @bookklik/senangstart-shapes — see scripts/build-ss-shapes.js. Prefixed
+  // ids keep them namespaced so they can never replace built-in geometry.
+  ...SS_SHAPE_PATHS
 };
 
 // Primitives render through the native element types; only the remaining
@@ -54,83 +61,14 @@ export const EXTRA_SHAPES = [
   { type: 'rect', label: 'Rectangle', props: { w: 280, h: 160 }, svg: '<rect x="8" y="26" width="84" height="48" />' },
   { type: 'rect', label: 'Pill', props: { w: 280, h: 140, radius: 70 }, svg: '<rect x="8" y="29" width="84" height="42" rx="21" />' },
   { type: 'ellipse', label: 'Oval', props: { w: 280, h: 160 }, svg: '<ellipse cx="50" cy="50" rx="42" ry="24" />' },
-  ...Object.keys(SHAPE_PATHS).filter(name => !PRIMITIVE_SHAPE_KEYS.includes(name)).map(name => ({
+  // The SS pack ships its own panel entries; its geometry keys stay excluded
+  // from this auto-derivation.
+  ...Object.keys(SHAPE_PATHS)
+    .filter(name => !PRIMITIVE_SHAPE_KEYS.includes(name) && !name.startsWith('ss-'))
+    .map(name => ({
     type: 'shape',
     label: name.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase()),
     props: { shape: name, ...(name === 'semicircle' ? { w: 240, h: 120 } : {}) },
     svg: `<path d="${SHAPE_PATHS[name]}" transform="${name === 'semicircle' ? 'translate(8 29) scale(.84 .42)' : 'translate(8 8) scale(.84)'}" fill-rule="evenodd" />`
   }))
 ];
-
-// Shared silhouettes keep the filled and outlined variants in proportion.
-const FLOWER_PATH = 'M8.75 6.371A3.5 3.5 0 1 1 15.25 6.371A3.5 3.5 0 1 1 18.5 12A3.5 3.5 0 1 1 15.25 17.629A3.5 3.5 0 1 1 8.75 17.629A3.5 3.5 0 1 1 5.5 12A3.5 3.5 0 1 1 8.75 6.371ZM15 12A3 3 0 1 1 9 12A3 3 0 1 1 15 12Z';
-const ROCKET_HULL = 'M8 10C11 4.5 15.5 2 21 3C22 8.5 19.5 13 14 16V19L9 21.5L10 16L8 14L2.5 15L5 10Z';
-const ROCKET_WINDOW = 'M18 8A2 2 0 1 1 14 8A2 2 0 1 1 18 8Z';
-const ROCKET_FLAME = 'M6.5 17.5C4.5 16.5 2.5 19 2.5 21.5C5 21.5 7.5 19.5 6.5 17.5Z';
-
-export const EXTRA_ICONS = {
-  bolt: 'M13 2L3 14H10L9 22L21 9H14L15 2Z',
-  sparkle: 'M12 2C13 8 16 11 22 12C16 13 13 16 12 22C11 16 8 13 2 12C8 11 11 8 12 2Z',
-  location: 'M12 2A8 8 0 0 0 4 10C4 15 12 22 12 22S20 15 20 10A8 8 0 0 0 12 2ZM12 6A3 3 0 1 1 12 12A3 3 0 1 1 12 6Z',
-  bookmark: 'M6 2H18A1 1 0 0 1 19 3V22L12 17L5 22V3A1 1 0 0 1 6 2Z',
-  flag: 'M4 2H6V3C11 0 14 6 21 3V15C14 18 11 12 6 15V22H4Z',
-  shield: 'M12 2L21 6V11C21 17 17 20 12 22C7 20 3 17 3 11V6ZM10.5 15.5L17 9L15.5 7.5L10.5 12.5L8 10L6.5 11.5Z',
-  trophy: 'M7 2H17V4H22V8A5 5 0 0 1 17 13H16.6A5 5 0 0 1 13 16V19H17V22H7V19H11V16A5 5 0 0 1 7.4 13H7A5 5 0 0 1 2 8V4H7ZM4 6V8A3 3 0 0 0 7 11V6ZM17 6V11A3 3 0 0 0 20 8V6Z',
-  crown: 'M2 6L7 10L12 3L17 10L22 6L19 18H5ZM5 20H19V22H5Z',
-  gift: 'M12 5C8-2 1 3 5 7H2V12H11V7H13V12H22V7H19C23 3 16-2 12 5ZM10 7H7C3 7 5 2 8 5ZM14 7L16 5C19 2 21 7 17 7ZM3 14H11V22H3ZM13 14H21V22H13Z',
-  bag: 'M8 7V6A4 4 0 0 1 16 6V7H20L22 22H2L4 7ZM10 7H14V6A2 2 0 0 0 10 6Z',
-  tag: 'M3 2H12L22 12L12 22L2 12V3A1 1 0 0 1 3 2ZM7 5A2 2 0 1 0 7 9A2 2 0 1 0 7 5Z',
-  play: 'M6 3Q6 2 7 2.6L21 11Q22.5 12 21 13L7 21.4Q6 22 6 21Z',
-  music: 'M10 4L21 2V17A4 3 0 1 1 19 14.4V7L12 8.3V19A4 3 0 1 1 10 16.4Z',
-  headphones: 'M2 12A10 10 0 0 1 22 12V19A3 3 0 0 1 19 22H16V12H20A8 8 0 0 0 4 12H8V22H5A3 3 0 0 1 2 19Z',
-  coffee: 'M3 6H17V7H19A4 4 0 0 1 19 15H16.5A6 6 0 0 1 11 19H9A6 6 0 0 1 3 13ZM17 9V13H19A2 2 0 0 0 19 9ZM2 20H20V22H2ZM6 2H8V5H6ZM11 2H13V5H11Z',
-  leaf: 'M3 21C-1 7 7 0 22 2C24 17 16 25 3 21ZM6 18L17 7L15.6 5.6L4.6 16.6Z',
-  flower: FLOWER_PATH,
-  globe: 'M12 2A10 10 0 1 0 12 22A10 10 0 1 0 12 2ZM11 4.5C9.8 6 9.2 8.5 9 11H11ZM13 4.5V11H15C14.8 8.5 14.2 6 13 4.5ZM4.1 11H7C7.2 8.8 7.5 6.9 8.2 5A8 8 0 0 0 4.1 11ZM15.8 5C16.5 6.9 16.8 8.8 17 11H19.9A8 8 0 0 0 15.8 5ZM4.1 13A8 8 0 0 0 8.2 19C7.5 17.1 7.2 15.2 7 13ZM9 13C9.2 15.5 9.8 18 11 19.5V13ZM13 13V19.5C14.2 18 14.8 15.5 15 13ZM17 13C16.8 15.2 16.5 17.1 15.8 19A8 8 0 0 0 19.9 13Z',
-  rocket: ROCKET_HULL + ROCKET_WINDOW + ROCKET_FLAME,
-  briefcase: 'M8 3H16A2 2 0 0 1 18 5V7H21A1 1 0 0 1 22 8V13H14V11H10V13H2V8A1 1 0 0 1 3 7H6V5A2 2 0 0 1 8 3ZM8 5V7H16V5ZM2 15H10V17H14V15H22V21H2Z'
-};
-
-// Open paths are intentional: outline icons are stroked with round caps and joins.
-export const ICON_OUTLINES = {
-  star: 'M12 2L15.1 8.3L22 9.3L17 14.2L18.2 21.1L12 17.8L5.8 21.1L7 14.2L2 9.3L8.9 8.3Z',
-  heart: 'M20.8 4.6A5.5 5.5 0 0 0 12 6A5.5 5.5 0 0 0 3.2 4.6C-2 10 6 17 12 21C18 17 26 10 20.8 4.6Z',
-  check: 'M4 12L9 17L20 6',
-  'arrow-right': 'M3 12H21M14 5L21 12L14 19',
-  sun: 'M16 12A4 4 0 1 1 8 12A4 4 0 1 1 16 12ZM12 2V4M12 20V22M2 12H4M20 12H22M5 5L6.5 6.5M17.5 17.5L19 19M5 19L6.5 17.5M17.5 6.5L19 5',
-  moon: 'M21 13.5A9 9 0 1 1 10.5 3A7 7 0 0 0 21 13.5Z',
-  cloud: 'M7 19A5 5 0 1 1 7 9A6 6 0 0 1 18.5 8.5A5.3 5.3 0 0 1 18 19Z',
-  home: 'M3 10L12 3L21 10M5 9V21H10V15H14V21H19V9',
-  mail: 'M4 4H20Q22 4 22 6V18Q22 20 20 20H4Q2 20 2 18V6Q2 4 4 4ZM2 6L12 13L22 6',
-  phone: 'M5 3H8L10 8L7.5 10A14 14 0 0 0 14 16.5L16 14L21 16V19Q21 22 18 21C10 20 4 14 3 6Q2 3 5 3Z',
-  camera: 'M8 6L10 3H14L16 6H20Q22 6 22 8V19Q22 21 20 21H4Q2 21 2 19V8Q2 6 4 6ZM16 13A4 4 0 1 1 8 13A4 4 0 1 1 16 13Z',
-  user: 'M16 7A4 4 0 1 1 8 7A4 4 0 1 1 16 7ZM4 21V19C4 12 20 12 20 19V21',
-  calendar: 'M5 4H19A2 2 0 0 1 21 6V20A2 2 0 0 1 19 22H5A2 2 0 0 1 3 20V6A2 2 0 0 1 5 4ZM8 2V6M16 2V6M3 9H21M6.5 12.5H7.5V13.5H6.5ZM11.5 12.5H12.5V13.5H11.5ZM16.5 12.5H17.5V13.5H16.5ZM6.5 17.5H7.5V18.5H6.5ZM11.5 17.5H12.5V18.5H11.5ZM16.5 17.5H17.5V18.5H16.5Z',
-  clock: 'M22 12A10 10 0 1 1 2 12A10 10 0 1 1 22 12ZM12 6V12L16 15',
-  chat: 'M5 3H19Q22 3 22 6V15Q22 18 19 18H8L3 22V6Q3 3 5 3ZM7 8H17M7 12H14',
-  search: 'M18 10A8 8 0 1 1 2 10A8 8 0 1 1 18 10ZM16 16L22 22',
-  bell: 'M18 8A6 6 0 0 0 6 8V12L3 17H21L18 12ZM9 21H15',
-  gear: GEAR_PATH,
-  trash: 'M3 6H21M8 6V3H16V6M5 6L6 21H18L19 6M10 10V17M14 10V17',
-  chart: 'M3 3V21H22M7 16V11M12 16V5M17 16V8',
-  bolt: 'M13 2L3 14H10L9 22L21 9H14L15 2Z',
-  sparkle: 'M12 2C13 8 16 11 22 12C16 13 13 16 12 22C11 16 8 13 2 12C8 11 11 8 12 2Z',
-  location: 'M20 10C20 15 12 22 12 22S4 15 4 10A8 8 0 1 1 20 10ZM15 10A3 3 0 1 1 9 10A3 3 0 1 1 15 10Z',
-  bookmark: 'M5 3H19V22L12 17L5 22Z',
-  flag: 'M4 22V3C10 0 15 6 21 3V15C15 18 10 12 4 15',
-  shield: 'M12 2L21 6V11C21 17 17 20 12 22C7 20 3 17 3 11V6ZM8 11L11 14L16 9',
-  trophy: 'M7 3H17V11A5 5 0 0 1 7 11ZM7 5H3V8Q3 12 7 12M17 5H21V8Q21 12 17 12M12 16V21M7 21H17',
-  crown: 'M2 5L7 10L12 3L17 10L22 5L19 18H5ZM5 22H19',
-  gift: 'M3 8H21V12H3ZM4 12V22H20V12M12 8V22M12 8C3 9 3 2 7 2C10 2 12 8 12 8C21 9 21 2 17 2C14 2 12 8 12 8Z',
-  bag: 'M4 7H20L22 22H2ZM8 9V6A4 4 0 0 1 16 6V9',
-  tag: 'M3 2H12L22 12L12 22L2 12V3ZM8 7A1 1 0 1 1 6 7A1 1 0 1 1 8 7Z',
-  play: 'M6 3L21 12L6 21Z',
-  music: 'M10 18V4L21 2V16M10 8L21 6M10 18A3 3 0 1 1 4 18A3 3 0 1 1 10 18ZM21 16A3 3 0 1 1 15 16A3 3 0 1 1 21 16Z',
-  headphones: 'M3 13V11A9 9 0 0 1 21 11V13M3 12H7V21H5Q3 21 3 19ZM21 12H17V21H19Q21 21 21 19Z',
-  coffee: 'M3 7H17V13A6 6 0 0 1 11 19H9A6 6 0 0 1 3 13ZM17 8H19A3 3 0 0 1 19 14H17M2 22H20M7 2V4M12 2V4',
-  leaf: 'M3 21C-1 7 7 0 22 2C24 17 16 25 3 21ZM3 21L16 8',
-  flower: FLOWER_PATH,
-  globe: 'M22 12A10 10 0 1 1 2 12A10 10 0 1 1 22 12ZM2 12H22M12 2C6 7 6 17 12 22C18 17 18 7 12 2Z',
-  rocket: ROCKET_HULL + ROCKET_WINDOW + ROCKET_FLAME + 'M8 10L14 16',
-  briefcase: 'M3 7H21Q22 7 22 8V20Q22 21 21 21H3Q2 21 2 20V8Q2 7 3 7ZM8 7V3H16V7M2 13H10M14 13H22M10 11H14V16H10Z'
-};

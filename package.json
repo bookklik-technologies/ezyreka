@@ -1,6 +1,6 @@
 {
   "name": "@bookklik/ezyreka",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Embeddable, dependency-free JavaScript library for adding a Canva-style design editor to web apps, with JS API and data-ezr-editor auto-init.",
   "author": "a-hakim",
   "main": "dist/ezyreka.umd.js",
@@ -19,12 +19,14 @@
   },
   "scripts": {
     "build": "npm run typecheck && node scripts/build.js",
+    "build:ss-shapes": "node scripts/build-ss-shapes.js",
+    "build:ss-icons": "node scripts/build-ss-icons.js",
     "dev": "node scripts/dev.js",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
     "prepublishOnly": "npm test && npm run build",
-    "test": "node tests/smoke.test.mjs && node tests/charts.test.mjs && node tests/registry.test.mjs && node tests/extensibility.test.mjs && node tests/plugins.test.mjs && node tests/platform.test.mjs && node tests/dom.test.mjs && node tests/audit.test.mjs",
+    "test": "node tests/smoke.test.mjs && node tests/charts.test.mjs && node tests/registry.test.mjs && node tests/extensibility.test.mjs && node tests/plugins.test.mjs && node tests/platform.test.mjs && node tests/dom.test.mjs && node tests/audit.test.mjs && node tests/icons.test.mjs",
     "typecheck": "tsc -p tsconfig.types.json"
   },
   "engines": {
@@ -64,5 +66,9 @@
     "vite": "6.4.4",
     "esbuild": "$esbuild",
     "source-map-js": "1.2.2"
+  },
+  "dependencies": {
+    "@bookklik/senangstart-icons": "^1.0.17",
+    "@bookklik/senangstart-shapes": "^0.1.1"
   }
 }

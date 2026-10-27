@@ -15,6 +15,7 @@ const circle = (x, y, size, fill, props = {}) => ({ type: 'ellipse', x, y, w: si
 const oval = (x, y, w, h, fill, props = {}) => ({ type: 'ellipse', x, y, w, h, fill, ...props });
 const rule = (x, y, w, color) => box(x, y, w, 2, color);
 const icon = (name, x, y, size, fill, props = {}) => ({ type: 'icon', icon: name, x, y, w: size, h: size, fill, ...props });
+const shape = (name, x, y, w, h, fill, props = {}) => ({ type: 'shape', shape: name, x, y, w, h, fill, ...props });
 const gradient = (from, to, angle = 135) => ({ type: 'gradient', from, to, angle });
 const serif = { fontFamily: 'Georgia' };
 const bold = { fontWeight: 700 };
@@ -34,8 +35,8 @@ export const TEMPLATES = [
     rule(70, 123, 940, '#43251e'),
     text('SUNNY', 60, 166, 950, 220, '#fff7cc', display),
     text('SIDE UP.', 65, 392, 950, 180, '#43251e', display),
-    circle(718, 630, 250, '#ffde58'),
-    icon('sun', 749, 661, 188, '#43251e'),
+    shape('ss-hand-cut-sunburst', 703, 615, 280, 280, '#ffde58'),
+    icon('sun', 773, 685, 140, '#43251e'),
     text('Long days.\nLittle adventures.', 75, 690, 590, 48, '#43251e', serif),
     box(75, 887, 505, 74, '#43251e', { radius: 37 }),
     label('MAKE A LITTLE SUNSHINE', 98, 912, 460, '#fff7cc', { ...centered, fontSize: 18 }),
@@ -50,13 +51,14 @@ export const TEMPLATES = [
     text('A small reminder for a full life.', 195, 785, 740, 30, '#655e70'),
     rule(85, 933, 910, '#c9c3d1'),
     label('[AUTHOR / YOUR NAME]', 85, 969, 760, '#53466f', { fontSize: 17 }),
-    icon('star', 932, 960, 40, '#7460b0')
+    shape('ss-fine-four-point-spark', 859, 179, 105, 105, '#bcaed7'),
+    icon('bookmark', 932, 960, 40, '#7460b0')
   ]),
   template('New Collection', 'Social', 'Portrait story', 1080, 1920, '#efe9df', [
     label('[YOUR STUDIO]', 75, 84, 700, '#373a31'),
     label('VOL. 01', 805, 84, 200, '#373a31', right),
     text('Everyday\nobjects.', 72, 208, 936, 144, '#373a31', { ...serif, lineHeight: 1.05 }),
-    box(75, 565, 930, 795, '#b8c3aa', { radius: 430 }),
+    shape('arch', 75, 565, 930, 795, '#b8c3aa'),
     circle(623, 634, 235, '#e5d3a2'),
     oval(220, 1170, 660, 100, '#8c9d80'),
     box(305, 939, 270, 272, '#a5513e', { radius: 55 }),
@@ -65,7 +67,7 @@ export const TEMPLATES = [
     box(659, 865, 100, 334, '#f4e7c9', { radius: 40 }),
     oval(629, 820, 160, 125, '#f4e7c9'),
     box(703, 746, 10, 118, '#465941', { rotation: 12 }),
-    oval(712, 751, 105, 42, '#465941', { rotation: -25 }),
+    shape('ss-leafy-sprig', 694, 710, 125, 170, '#465941'),
     label('THE NEW COLLECTION', 78, 1443, 920, '#675b4b'),
     text('Considered shapes.\nMade for your everyday.', 75, 1510, 930, 46, '#373a31', serif),
     rule(75, 1690, 930, '#a7aa98'),
@@ -80,19 +82,17 @@ export const TEMPLATES = [
     text('conversations', 83, 420, 930, 84, '#fff3de', serif),
     ...[70, 145, 220, 110, 270, 170, 95, 210, 140, 60].map((h, i) =>
       box(95 + i * 52, 705 - h / 2, 26, h, '#baf2d1', { radius: 13 })),
-    circle(725, 580, 220, '#f18a65'),
-    icon('chat', 780, 635, 110, '#102d36'),
+    shape('ss-soft-nova', 710, 565, 250, 250, '#f18a65'),
+    icon('microphone', 780, 635, 110, '#102d36'),
     rule(85, 892, 910, '#5e7b80'),
     text('Ideas worth listening to.', 85, 932, 680, 30, '#fff3de'),
     label('[HOST NAME]', 735, 936, 245, '#baf2d1', { ...right, fontSize: 18 })
   ]),
   template('Studio Pitch', 'Business', 'Presentation', 1920, 1080, '#f4f2ec', [
     box(1250, 0, 670, 1080, '#203fba'),
-    box(1345, 130, 475, 475, 'none', { stroke: '#c8d1ff', strokeWidth: 3 }),
-    circle(1345, 130, 475, '#c8d1ff'),
-    box(1582, 368, 238, 237, '#203fba'),
+    shape('ss-quarter-turn-swirl', 1345, 130, 475, 475, '#c8d1ff'),
     box(1345, 650, 475, 210, '#b6e9c0'),
-    text('N', 1390, 661, 390, 155, '#203fba', { ...display, ...centered }),
+    icon('arrow-trending-up', 1480, 674, 160, '#203fba'),
     label('[YOUR STUDIO]', 95, 88, 1030, '#203fba', { fontSize: 26 }),
     text('Ideas into\nimpact.', 88, 250, 1110, 164, '#202633', { ...serif, lineHeight: 1.05 }),
     text('A clear vision for your next chapter.', 98, 650, 1030, 39, '#5c626d'),
@@ -103,8 +103,8 @@ export const TEMPLATES = [
   ]),
   template('Studio Business Card', 'Business', 'Business card', 1050, 600, '#202b27', [
     box(32, 32, 986, 536, 'none', { stroke: '#728b77', strokeWidth: 2 }),
-    circle(68, 65, 92, '#d6eea6'),
-    icon('star', 90, 87, 48, '#202b27'),
+    shape('ss-four-leaf-cushion', 68, 65, 92, 92, '#d6eea6'),
+    icon('sparkles', 94, 91, 40, '#202b27'),
     label('[YOUR STUDIO]', 195, 97, 760, '#d6eea6', { fontSize: 17 }),
     text('[Your Name]', 65, 222, 920, 74, '#f8f4e9', serif),
     text('[Your role / specialty]', 70, 328, 880, 26, '#a8b9aa'),
@@ -119,9 +119,9 @@ export const TEMPLATES = [
     text('A plan for\nwhat’s next.', 82, 449, 1080, 132, '#172c49', { ...serif, lineHeight: 1.07 }),
     text('[Project title]', 90, 795, 1060, 42, '#52617a'),
     box(90, 953, 1060, 309, '#345fea'),
-    box(125, 988, 240, 239, '#9fb7ff'),
-    box(385, 1080, 300, 147, '#dce5ff'),
-    box(705, 1160, 410, 67, '#ffffff'),
+    shape('ss-rising-stair', 130, 992, 250, 232, '#9fb7ff'),
+    shape('ss-double-right-triangles', 448, 1000, 250, 215, '#dce5ff'),
+    icon('flag', 823, 1024, 160, '#ffffff'),
     label('PROJECT PROPOSAL', 90, 1365, 1060, '#345fea'),
     rule(90, 1430, 1060, '#aab4c4'),
     label('PREPARED FOR', 90, 1480, 510, '#52617a', { fontSize: 17 }),
@@ -134,10 +134,10 @@ export const TEMPLATES = [
     box(0, 0, 215, 1130, '#233c36'),
     rule(275, 65, 1250, '#b69a57'),
     box(275, 1020, 1250, 3, '#b69a57'),
-    circle(44, 390, 128, '#b69a57'),
-    icon('star', 77, 423, 62, '#faf7ed'),
     box(74, 510, 27, 145, '#b69a57'),
     box(118, 510, 27, 145, '#b69a57'),
+    shape('ss-ten-lobe-rosette', 33, 379, 150, 150, '#b69a57'),
+    icon('trophy', 77, 423, 62, '#233c36'),
     label('[ISSUING ORGANIZATION]', 300, 125, 1190, '#233c36', { ...centered, fontSize: 23 }),
     text('Certificate', 290, 237, 1220, 120, '#233c36', { ...serif, ...centered }),
     label('OF COMPLETION', 300, 397, 1190, '#8a713a', { ...centered, fontSize: 23 }),
@@ -156,8 +156,10 @@ export const TEMPLATES = [
     text('WEEKEND', 55, 182, 980, 163, '#252525', display),
     text('SALE', 52, 354, 976, 325, '#e14432', display),
     box(65, 745, 950, 216, '#e14432'),
+    shape('ss-compact-ten-point-burst', 830, 774, 145, 145, '#fff8e4'),
+    icon('ticket', 872, 816, 61, '#e14432'),
     label('YOUR OFFER', 95, 779, 700, '#fff8e4'),
-    text('[Discount / deal]', 94, 827, 880, 69, '#fff8e4', bold),
+    text('[Discount / deal]', 94, 827, 710, 60, '#fff8e4', bold),
     text('Good finds. A fresh reason to shop.', 65, 1020, 950, 34, '#252525', serif),
     rule(65, 1125, 950, '#252525'),
     text('[Start date] — [End date]\n[Store address / website]', 65, 1171, 820, 28, '#252525', { lineHeight: 1.5 }),
@@ -165,12 +167,13 @@ export const TEMPLATES = [
   ]),
   template('After Hours', 'Events', 'Music flyer', 1080, 1350, '#151320', [
     label('[PROMOTER] PRESENTS', 65, 65, 800, '#f9b7dc'),
-    ...[0, 1, 2, 3, 4].map(i => oval(130 + i * 67, 185 + i * 50, 700 - i * 90, 480 - i * 52, 'none', { stroke: ['#6254ed', '#8577ff', '#c298ff', '#edabec', '#ffd5b4'][i], strokeWidth: 22, rotation: -22 })),
+    shape('ss-nested-orbit', 200, 177, 650, 490, '#8577ff', { rotation: -18 }),
+    shape('ss-orbital-four-point-spark', 765, 240, 150, 150, '#ffd5b4'),
     text('AFTER', 62, 732, 950, 176, '#fcebd9', display),
     text('HOURS', 63, 905, 950, 176, '#f9b7dc', display),
     rule(65, 1133, 950, '#8577ff'),
     text('[Artist / lineup]\n[Date] / [Time] / [Venue]', 65, 1170, 810, 29, '#fcebd9', { lineHeight: 1.5 }),
-    icon('star', 927, 1178, 72, '#f9b7dc')
+    icon('musical-note', 927, 1178, 72, '#f9b7dc')
   ]),
   template('Make Something', 'Events', 'Workshop invite', 1080, 1350, '#f7eecf', [
     box(0, 0, 1080, 105, '#2b4791'),
@@ -178,16 +181,17 @@ export const TEMPLATES = [
     text('MAKE', 63, 174, 950, 202, '#2b4791', display),
     text('something', 65, 414, 950, 116, '#d95137', { ...serif, italic: true }),
     text('YOUR OWN.', 65, 564, 950, 137, '#2b4791', display),
-    box(80, 778, 200, 200, '#e7b730', { rotation: -8 }),
-    icon('star', 369, 770, 230, '#d95137'),
-    circle(715, 786, 195, '#2b4791'),
-    circle(775, 846, 75, '#f7eecf'),
+    shape('ss-checker-bowtie', 80, 778, 200, 200, '#e7b730', { rotation: -8 }),
+    shape('ss-rounded-asterisk', 369, 770, 230, 230, '#d95137'),
+    shape('ss-open-center-bloom', 715, 786, 195, 195, '#2b4791'),
     rule(65, 1065, 950, '#2b4791'),
     text('[Workshop title]', 65, 1102, 950, 37, '#2b4791', bold),
     text('[Date & time]  /  [Venue]\nReserve your spot: [Website / email]', 65, 1175, 950, 27, '#2b4791', { lineHeight: 1.5 })
   ]),
   template('Together Forever', 'Events', 'Wedding invitation', 1080, 1500, '#ede8df', [
     box(65, 65, 950, 1370, '#f9f6ee', { radius: 440 }),
+    shape('ss-slender-botanical-sprig', 160, 600, 115, 310, '#c2c9b6', { rotation: -12 }),
+    shape('ss-slender-botanical-sprig', 805, 600, 115, 310, '#c2c9b6', { rotation: 12, flipX: true }),
     oval(470, 140, 140, 190, 'none', { stroke: '#8a7756', strokeWidth: 3 }),
     icon('heart', 510, 205, 60, '#8a7756'),
     label('TOGETHER WITH THEIR FAMILIES', 160, 402, 760, '#675e4d', { ...centered, fontSize: 17 }),
@@ -206,6 +210,8 @@ export const TEMPLATES = [
     text('Coffee first.', 68, 180, 940, 125, '#743c29', { ...serif, ...centered }),
     text('Good company always.', 85, 344, 910, 38, '#743c29', { ...serif, ...centered, italic: true }),
     oval(239, 760, 600, 90, '#d2ad7c'),
+    shape('ss-brush-curve-top-hook', 457, 421, 50, 65, '#b1845f'),
+    shape('ss-brush-curve-top-hook', 557, 411, 50, 75, '#b1845f'),
     circle(683, 550, 180, 'none', { stroke: '#466056', strokeWidth: 38 }),
     box(292, 530, 438, 261, '#466056', { radius: 90 }),
     oval(292, 504, 438, 92, '#658073'),
@@ -219,6 +225,8 @@ export const TEMPLATES = [
     label('[YOUR RESTAURANT]', 85, 84, 910, '#354e3c', centered),
     text('Seasonal\ntable', 85, 173, 910, 107, '#354e3c', { ...serif, ...centered, lineHeight: 1.03 }),
     rule(85, 455, 910, '#354e3c'),
+    shape('ss-leafy-sprig', 110, 210, 100, 180, '#b5c1a2', { rotation: -15 }),
+    shape('ss-leafy-sprig', 870, 210, 100, 180, '#b5c1a2', { rotation: 15, flipX: true }),
     ...[
       ['TO START', 'Garden salad', 'Roasted tomato soup'],
       ['THE MAIN EVENT', 'Wild mushroom pasta', 'Herb-roasted vegetables'],
@@ -236,9 +244,10 @@ export const TEMPLATES = [
   template('A Moment of Calm', 'Lifestyle', 'Wellness post', 1080, 1080, '#dce5dd', [
     box(580, 45, 455, 990, '#a9bdac', { radius: 225 }),
     circle(657, 161, 300, '#f1e6c9'),
-    oval(640, 790, 335, 118, '#45665d'),
-    oval(683, 688, 250, 117, '#739080'),
-    oval(729, 601, 159, 100, '#cad2b9'),
+    shape('ss-river-pebble', 640, 790, 335, 118, '#45665d'),
+    shape('ss-hand-cut-half-pebble', 683, 685, 250, 117, '#739080'),
+    shape('ss-river-pebble', 729, 585, 159, 100, '#cad2b9'),
+    shape('ss-slender-botanical-sprig', 854, 405, 95, 200, '#45665d'),
     label('[YOUR WELLNESS STUDIO]', 65, 73, 930, '#304e46', { fontSize: 18 }),
     text('A softer\nstart.', 62, 281, 640, 111, '#304e46', { ...serif, lineHeight: 1.08 }),
     text('Pause. Breathe.\nCome back to yourself.', 67, 596, 480, 33, '#304e46', { lineHeight: 1.4 }),
@@ -252,6 +261,7 @@ export const TEMPLATES = [
     text('ROUTE', 65, 309, 950, 216, '#284c46', { ...display, ...centered }),
     box(65, 590, 950, 470, '#b2c9bb'),
     circle(717, 630, 155, '#ec8c46'),
+    shape('ss-cloud', 170, 625, 210, 85, '#f6e3bb'),
     { type: 'triangle', x: 75, y: 670, w: 640, h: 390, fill: '#668876' },
     { type: 'triangle', x: 425, y: 756, w: 570, h: 304, fill: '#284c46' },
     box(65, 990, 950, 70, '#284c46'),
@@ -266,9 +276,8 @@ export const TEMPLATES = [
     box(778, 60, 232, 52, '#d7ff85', { radius: 26 }),
     label('JUST DROPPED', 788, 77, 212, '#28254b', { ...centered, fontSize: 15 }),
     text('Meet your\nnext favourite.', 65, 204, 940, 104, '#ffffff', { ...bold, lineHeight: 1.08 }),
-    circle(665, 565, 300, 'none', { stroke: '#d7ff85', strokeWidth: 3 }),
-    circle(715, 615, 200, '#d7ff85'),
-    icon('star', 759, 659, 112, '#4134b6'),
+    shape('ss-tilted-orbit', 665, 565, 300, 300, '#d7ff85'),
+    icon('rocket', 759, 659, 112, '#ffffff'),
     label('INTRODUCING', 70, 603, 555, '#e7d8ff'),
     text('[Product\nname]', 65, 656, 590, 75, '#ffffff', serif),
     rule(70, 905, 940, '#d1a7df'),
@@ -278,7 +287,9 @@ export const TEMPLATES = [
   template('Customer Spotlight', 'Social', 'Customer testimonial', 1080, 1080, '#f8f7f2', [
     label('[YOUR BRAND]', 80, 70, 920, '#353b37'),
     rule(80, 132, 920, '#c4cbc3'),
-    label('CUSTOMER SPOTLIGHT', 80, 204, 920, '#527961'),
+    label('CUSTOMER SPOTLIGHT', 80, 204, 780, '#527961'),
+    shape('ss-five-petal-seal', 881, 181, 104, 104, '#dce7d7'),
+    icon('chat-bubble-left-ellipsis', 908, 208, 50, '#527961'),
     text('“', 65, 278, 250, 194, '#adc7ae', serif),
     text('[Share a short\ncustomer quote\nhere.]', 85, 435, 910, 72, '#353b37', { ...serif, lineHeight: 1.16 }),
     box(80, 808, 8, 120, '#527961'),
@@ -288,7 +299,7 @@ export const TEMPLATES = [
   ]),
   template('We’re Hiring', 'Business', 'Recruitment poster', 1080, 1350, '#e5edff', [
     label('[YOUR COMPANY]', 65, 67, 760, '#17316b'),
-    icon('arrow-right', 904, 60, 100, '#335ee8', { rotation: -45 }),
+    shape('ss-curved-ascent', 904, 60, 100, 100, '#335ee8'),
     text('GOOD PEOPLE.\nBIG IDEAS.', 60, 222, 960, 109, '#17316b', display),
     box(65, 540, 950, 142, '#335ee8'),
     text('WE’RE HIRING', 90, 563, 900, 82, '#ffffff', display),
@@ -305,7 +316,8 @@ export const TEMPLATES = [
     text('[A short introduction to your services]', 75, 462, 930, 28, '#75695c'),
     ...['01', '02', '03'].flatMap((n, i) => {
       const y = 570 + i * 232;
-      return [rule(75, y, 930, '#baad9b'), label(n, 75, y + 42, 90, '#9a6546'),
+      return [rule(75, y, 930, '#baad9b'), icon(['light-bulb', 'puzzle', 'rocket'][i], 93, y + 33, 48, '#9a6546'),
+        label(n, 75, y + 103, 90, '#9a6546', { ...centered, fontSize: 16 }),
         text('[Service name]', 195, y + 34, 555, 39, '#443b33', serif),
         text('[Price]', 780, y + 43, 225, 31, '#443b33', right),
         text('[What’s included in this service]', 195, y + 111, 790, 27, '#75695c')];
@@ -316,6 +328,7 @@ export const TEMPLATES = [
   ]),
   template('Simple Invoice', 'Business', 'Invoice document', 1240, 1754, '#ffffff', [
     box(75, 75, 60, 60, '#242424'),
+    icon('document-text', 89, 89, 32, '#ffffff'),
     label('[YOUR BUSINESS]', 165, 95, 940, '#242424', { fontSize: 26 }),
     text('INVOICE', 75, 235, 1090, 112, '#242424', bold),
     rule(75, 403, 1090, '#242424'),
@@ -345,7 +358,8 @@ export const TEMPLATES = [
   template('Birthday Celebration', 'Events', 'Birthday invitation', 1080, 1500, '#f8c8d5', [
     ...[[95, 145, -20], [900, 228, 23], [90, 1050, 15], [923, 956, -15]].map(([x, y, rotation]) => box(x, y, 22, 72, '#bb443d', { rotation })),
     circle(845, 520, 65, '#f4a92f'), circle(138, 660, 40, '#6d4aa1'),
-    icon('star', 825, 750, 96, '#6d4aa1', { rotation: 18 }),
+    shape('ss-six-petal-daisy', 825, 750, 96, 96, '#6d4aa1', { rotation: 18 }),
+    shape('ss-hand-cut-four-point-spark', 147, 770, 65, 65, '#bb443d'),
     label('YOU’RE INVITED', 155, 90, 770, '#65394e', centered),
     text('Let’s\ncelebrate!', 135, 213, 810, 110, '#65394e', { ...serif, ...centered, lineHeight: 1.06 }),
     text('[Age]', 195, 530, 690, 244, '#bb443d', { ...display, ...centered }),
@@ -367,7 +381,8 @@ export const TEMPLATES = [
     label('YOUR SPEAKER', 65, 730, 740, '#b7f28f'),
     text('[Speaker name]', 65, 785, 760, 54, '#f0f4fc', serif),
     text('[Role / organization]', 65, 865, 760, 29, '#aebed7'),
-    icon('chat', 869, 776, 116, '#b7f28f', { iconStyle: 'outline' }),
+    shape('ss-soft-double-arch', 850, 722, 145, 198, '#24374d'),
+    icon('microphone', 880, 779, 85, '#b7f28f'),
     label('ON THE AGENDA', 65, 993, 950, '#b7f28f'),
     text('[Topic one]  /  [Topic two]  /  Q&A', 65, 1048, 950, 29, '#f0f4fc'),
     text('[Date]  /  [Time & timezone]', 65, 1166, 950, 32, '#f0f4fc'),
@@ -380,7 +395,8 @@ export const TEMPLATES = [
     label('FROM THE KITCHEN OF [NAME]', 70, 70, 940, '#6f492f', { fontSize: 18 }),
     text('[Recipe\nname]', 65, 175, 930, 110, '#6f492f', { ...serif, lineHeight: 1.06 }),
     rule(70, 476, 940, '#b99b76'),
-    text('Prep: [Time]   /   Cook: [Time]   /   Serves: [#]', 70, 515, 940, 25, '#6f492f'),
+    icon('clock', 70, 514, 32, '#a7613f'),
+    text('Prep: [Time]   /   Cook: [Time]   /   Serves: [#]', 119, 515, 891, 25, '#6f492f'),
     box(70, 619, 352, 594, '#ebdfbf', { radius: 12 }),
     label('INGREDIENTS', 97, 656, 295, '#6f492f', { fontSize: 17 }),
     ...[0, 1, 2, 3, 4].flatMap(i => [circle(99, 735 + i * 82, 8, '#8c703c'), text('[Qty / ingredient]', 122, 723 + i * 82, 273, 24, '#6f492f')]),
@@ -392,7 +408,8 @@ export const TEMPLATES = [
   ]),
   template('Weekly Planner', 'Lifestyle', 'Weekly planner', 1600, 1130, '#f5f3ed', [
     text('A little room for everything.', 60, 60, 1480, 71, '#3d514d', serif),
-    label('WEEK OF [DATE]', 65, 181, 1465, '#73847a', { fontSize: 22 }),
+    icon('calendar-days', 65, 176, 34, '#73847a'),
+    label('WEEK OF [DATE]', 114, 181, 1416, '#73847a', { fontSize: 22 }),
     ...['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].flatMap((day, i) => {
       const x = 65 + i * 211;
       return [box(x, 275, 195, 535, '#ffffff', { radius: 10 }), box(x, 275, 195, 64, i > 4 ? '#d8dfca' : '#dbe7e1', { radius: 10 }),
@@ -407,7 +424,8 @@ export const TEMPLATES = [
   ]),
   template('Fitness Tracker', 'Lifestyle', 'Weekly fitness tracker', 1600, 1130, '#edf1e8', [
     box(0, 0, 1600, 250, '#253e36'),
-    text('SHOW UP FOR YOU.', 60, 48, 1480, 99, '#d5f589', display),
+    text('SHOW UP FOR YOU.', 60, 48, 1350, 99, '#d5f589', display),
+    icon('trophy', 1440, 64, 80, '#d5f589'),
     label('WEEK OF [DATE] / YOUR PACE. YOUR PROGRESS.', 65, 183, 1470, '#edf1e8', { fontSize: 21 }),
     box(65, 314, 1470, 62, '#d5f589'),
     label('ACTIVITY', 90, 335, 450, '#253e36', { fontSize: 18 }),
@@ -424,7 +442,8 @@ export const TEMPLATES = [
   template('Lesson Plan', 'Education', 'Lesson plan worksheet', 1240, 1754, '#fbfaf6', [
     box(0, 0, 1240, 245, '#294c68'),
     label('[SCHOOL / TEACHER]', 75, 62, 1090, '#d8ebeb', { fontSize: 22 }),
-    text('Lesson plan', 70, 117, 1100, 80, '#ffffff', serif),
+    text('Lesson plan', 70, 117, 960, 80, '#ffffff', serif),
+    icon('book-open', 1059, 125, 80, '#d8ebeb'),
     text('Subject: [Subject]   /   Grade: [Grade]', 75, 304, 1090, 29, '#294c68'),
     text('Date: [Date]   /   Duration: [Time]', 75, 365, 1090, 29, '#294c68'),
     ...[
@@ -442,7 +461,8 @@ export const TEMPLATES = [
     text('Make room\nto learn.', 70, 174, 1090, 115, '#40334f', { ...serif, lineHeight: 1.05 }),
     text('Week of [Date]  /  [Subject or course]', 75, 486, 1090, 30, '#75628e'),
     box(75, 584, 1090, 186, '#dcd4ed', { radius: 16 }),
-    label('MY TOP PRIORITY', 110, 622, 1020, '#40334f'),
+    icon('bookmark', 1080, 615, 45, '#75628e'),
+    label('MY TOP PRIORITY', 110, 622, 930, '#40334f'),
     text('[What do you want to understand?]', 110, 682, 1020, 33, '#40334f'),
     label('WHEN', 95, 843, 255, '#75628e'),
     label('SUBJECT / TASK', 382, 843, 575, '#75628e'),
@@ -461,11 +481,11 @@ export const TEMPLATES = [
     label('[CLASS / SCHOOL NAME]', 65, 65, 950, '#243d68', centered),
     text('OUR CLASS,\nOUR KIND OF COOL.', 65, 159, 950, 90, '#243d68', { ...display, ...centered, lineHeight: 1.1 }),
     ...[
-      ['Listen with care', 'Let others finish their thoughts.', 'chat', '#f6d776'],
+      ['Listen with care', 'Let others finish their thoughts.', 'chat-bubble-left-right', '#f6d776'],
       ['Be kind', 'Use words that help and include.', 'heart', '#f2b9b0'],
-      ['Stay curious', 'Ask questions. Try new things.', 'star', '#bfccec'],
+      ['Stay curious', 'Ask questions. Try new things.', 'light-bulb', '#bfccec'],
       ['Look after our space', 'Leave it ready for the next person.', 'home', '#c2dabb'],
-      ['Give it a go', 'Progress starts with trying.', 'check', '#f0cd9d']
+      ['Give it a go', 'Progress starts with trying.', 'rocket', '#f0cd9d']
     ].flatMap(([title, detail, symbol, color], i) => {
       const y = 455 + i * 150;
       return [box(65, y, 950, 128, color, { radius: 16 }), text(`0${i + 1}`, 89, y + 38, 90, 38, '#243d68', bold),
@@ -480,7 +500,9 @@ export const TEMPLATES = [
     box(75, 691, 230, 163, '#e1b14f', { radius: 70 }),
     box(425, 666, 230, 188, '#89ab94', { radius: 70 }),
     box(775, 691, 230, 163, '#d88c6e', { radius: 70 }),
-    icon('heart', 492, 710, 95, '#31584c'),
+    icon('user-group', 492, 710, 95, '#31584c'),
+    shape('ss-hand-cut-four-point-spark', 327, 563, 70, 70, '#31584c'),
+    shape('ss-hand-cut-four-point-spark', 690, 563, 70, 70, '#31584c'),
     box(65, 910, 950, 85, '#31584c'),
     label('VOLUNTEERS WELCOME', 90, 940, 900, '#f2efdf', { ...centered, fontSize: 23 }),
     text('[Activity / cause]', 65, 1036, 950, 41, '#31584c', serif),
@@ -495,7 +517,8 @@ export const TEMPLATES = [
     box(65, 704, 950, 213, '#ffe9d3', { radius: 16 }),
     label('OUR FUNDRAISING GOAL', 100, 742, 800, '#922f3f', { fontSize: 19 }),
     text('[Goal amount]', 100, 793, 715, 64, '#922f3f', bold),
-    icon('heart', 859, 788, 90, '#922f3f'),
+    shape('ss-five-petal-seal', 835, 762, 140, 140, '#efd0b9'),
+    icon('heart', 870, 797, 70, '#922f3f'),
     text('[How contributions will be used]', 65, 976, 950, 30, '#ffe9d3'),
     text('[Event date / campaign deadline]', 65, 1050, 950, 28, '#f0b7ac'),
     rule(65, 1150, 950, '#c7797d'),
@@ -505,7 +528,7 @@ export const TEMPLATES = [
   template('Neighborhood Meetup', 'Community', 'Neighborhood meetup notice', 1080, 1350, '#d4dfed', [
     box(53, 66, 974, 1218, '#b4c2d3', { rotation: -2 }),
     box(65, 65, 950, 1218, '#fff8e7'),
-    box(400, 43, 280, 55, '#e2b168', { rotation: -3 }),
+    shape('ss-brush-vertical-soft', 400, 43, 280, 55, '#e2b168', { rotation: -3 }),
     label('[NEIGHBORHOOD NAME]', 110, 155, 860, '#354d69', centered),
     text('Hello,\nneighbour!', 110, 267, 860, 112, '#354d69', { ...serif, ...centered, lineHeight: 1.06 }),
     ...[0, 1, 2].flatMap(i => [box(273 + i * 180, 693, 130, 140, ['#d98668', '#83a38f', '#e1b168'][i]),

@@ -21,6 +21,8 @@ Included template types cover announcements, invitations, pricing sheets, invoic
 
 All four use native editable artwork and Arial, with no remote assets. The presentation and report include editable charts with clearly labeled example data. Use the [page controls](/guide/pages#pages) to navigate, duplicate, delete, or reorder pages.
 
+Built-in designs use SenangStart shapes and outline icons as editable layers: sunbursts and rosettes for announcements, botanical accents for lifestyle designs, and coordinated geometric marks for business collections. Planners, menus, and worksheets keep their writing space clear. Shapes, icon colors, text, and charts can all be changed independently in the editor; no artwork is flattened into images.
+
 ## Applying templates programmatically
 
 The gallery handles confirmation. When building a custom UI, confirm with the user before calling `applyTemplate()`, which applies the template directly.

@@ -72,6 +72,9 @@ editor.registerShapes([
 ])
 ```
 
+The Elements panel also ships the **SenangStart Shapes** pack — 177 curated silhouettes (stars, florals, ribbons, tiles, arrows, …) from [`@bookklik/senangstart-shapes`](https://bookklik-technologies.github.io/senangstart-shapes/guide/getting-started). Their ids are prefixed `ss-` so custom registrations can never replace their geometry.
+
+
 Each entry may also include:
 
 | Property | Description |
@@ -85,11 +88,11 @@ Registered shapes render on the canvas through the same per-editor registry, so 
 
 ## Icons
 
-Icon packs are **24×24 viewBox path data**. Outline falls back to solid when missing:
+Icon packs are **24×24 viewBox stroke path data** — line glyphs rendered with round caps and joins in a single (outline) style. A `{ solid, outline }` pair is still accepted; the outline path wins when both are given:
 
 ```js
 editor.registerIcons({
-  'logo-mark': { solid: 'M12 2L22 22H2Z' },
+  'logo-mark': 'M12 2L22 22H2Z',
   'badge': { solid: 'M…', outline: 'M…' }
 })
 ```
@@ -142,13 +145,13 @@ editor.on('ready', () => {
     x: 80, y: 80, w: 160, h: 160, fill: '#477cf5'
   });
   editor.addElement({
-    type: 'icon', icon: 'brand-triangle', iconStyle: 'outline',
+    type: 'icon', icon: 'brand-triangle',
     x: 280, y: 80, w: 96, h: 96, fill: '#0f172a'
   });
 });
 ```
 
-The icon falls back to its solid path because no outline was supplied. The shape path uses 0–100 coordinates; the icon uses 24×24 coordinates. When a shape entry includes custom `props`, include `props.shape` explicitly: it replaces the default insertion props rather than merging with them.
+The shape path uses 0–100 coordinates and the icon 24×24 stroke coordinates; icons render in one style (stroke outline), so no variant selection is needed. When a shape entry includes custom `props`, include `props.shape` explicitly: it replaces the default insertion props rather than merging with them.
 
 Saved designs contain the asset identifiers and background data. Load the same registrations when reopening them. Check the gallery insertion, resized geometry, preview and image export.
 

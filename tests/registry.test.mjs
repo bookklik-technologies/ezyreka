@@ -73,7 +73,7 @@ assert.equal(registry.fonts.filter((f) => f === 'Poppins').length, 1, 'option fo
 assert.ok(registry.googleFonts.includes('Brand+Sans:wght@400;700'), 'option google fonts appended');
 assert.deepEqual(registry.palette, ['#111111', '#222222'], 'palette replaced');
 assert.equal(registry.gradients[0].from, '#000000', 'gradients replaced');
-assert.ok(registry.icons.star && registry.iconOutlines.star && registry.shapePaths.pentagon, 'built-in artwork copied');
+assert.ok(registry.icons.star && registry.shapePaths.pentagon, 'built-in artwork copied');
 
 const defaultRegistry = createRegistry();
 assert.ok(defaultRegistry.palette.length > 10, 'default palette intact');
@@ -131,10 +131,8 @@ assert.equal(editor.registry.fonts.filter((f) => f === 'Poppins').length, 1, 'fo
 assert.throws(() => editor.registerFont('   '), /family/, 'blank fonts rejected');
 
 editor.registerIcons({ bolt2: 'M12 2L2 22H22Z', duo: { solid: 'M1 1H23V23H1Z', outline: 'M2 2H22V22H2Z' } });
-assert.equal(editor.registry.icons.bolt2, 'M12 2L2 22H22Z', 'solid icon registered');
-assert.equal(editor.registry.iconOutlines.bolt2, 'M12 2L2 22H22Z', 'missing outline falls back to solid');
-assert.equal(editor.registry.iconOutlines.duo, 'M2 2H22V22H2Z', 'explicit outline registered');
-assert.throws(() => editor.registerIcons({ broken: null }), /path/, 'malformed icons rejected');
+assert.equal(editor.registry.icons.bolt2, 'M12 2L2 22H22Z', 'stroke icon registered');
+assert.equal(editor.registry.icons.duo, 'M2 2H22V22H2Z', 'outline path wins in a pair');assert.throws(() => editor.registerIcons({ broken: null }), /path/, 'malformed icons rejected');
 
 editor.registerShapes([
   { label: 'Star Twelve', path: 'M50 2L98 50L50 98L2 50Z' },

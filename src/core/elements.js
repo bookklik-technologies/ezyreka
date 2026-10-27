@@ -39,7 +39,7 @@ const TYPE_DEFAULTS = {
   heart: { fill: '#ef4444', stroke: '', strokeWidth: 0 },
   line: { stroke: '#111827', strokeWidth: 4, arrow: false, w: 220, h: 0 },
   image: { src: '' },
-  icon: { icon: 'star', iconStyle: 'solid', fill: '#111827', w: 120, h: 120 },
+  icon: { icon: 'star', fill: '#111827', w: 120, h: 120 },
   shape: { shape: 'pentagon', fill: ACCENT, stroke: '', strokeWidth: 0 },
   chart: { w: 600, h: 400 }
 };
@@ -89,7 +89,7 @@ export const ELEMENT_MANIFESTS = {
   image: { name: 'Image', layerIcon: 'image', toolbar: ['opacity'], preloadProps: ['src'] },
   icon: {
     name: (el) => 'Icon (' + el.icon + ')',
-    toolbar: ['fill', 'iconStyle', 'opacity']
+    toolbar: ['fill', 'opacity']
   },
   shape: {
     name: (el) => (el.shape || 'Shape').replace(/-/g, ' ').replace(/^./, c => c.toUpperCase()),

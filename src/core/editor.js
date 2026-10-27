@@ -21,7 +21,7 @@ import {
 import { renderPage, whenImagesReady, onImagesChanged, measureTextElement, fontString, registerElementRenderer } from './renderer.js';
 import { registerChartRenderer } from './chart-renderer.js';
 import { registerBackgroundPainter } from './renderer.js';
-import { SHAPE_PATHS, ICONS, ICON_OUTLINES } from './assets.js';
+import { SHAPE_PATHS, ICONS } from './assets.js';
 import { Interactions } from '../interactions.js';
 import { Topbar } from '../ui/topbar.js';
 import { Sidepanel } from '../ui/sidepanel.js';
@@ -990,14 +990,17 @@ export class Editor extends Emitter {
     if (!icons || typeof icons !== 'object') {
       throw new Error('ezyreka: registerIcons needs { name: pathOrPathPair }');
     }
+    // Icons are stroke-based line glyphs: the registered path is stroked on
+    // the canvas. A { solid, outline } pair still works; the outline path
+    // wins because it is the drawable line art shape.
     for (const [name, def] of Object.entries(icons)) {
       const solid = typeof def === 'string' ? def : def?.solid;
       const outline = typeof def === 'string' ? def : def?.outline;
-      if (typeof solid !== 'string') {
+      const path = typeof outline === 'string' ? outline : solid;
+      if (typeof path !== 'string') {
         throw new Error(`ezyreka: icon "${name}" needs an SVG path string`);
       }
-      this.registry.icons[name] = solid;
-      this.registry.iconOutlines[name] = typeof outline === 'string' ? outline : solid;
+      this.registry.icons[name] = path;
     }
     this._refreshPanels('elements');
   }
@@ -1313,9 +1316,7 @@ export class Editor extends Emitter {
         issues.push(`shape "${el.shape}"`);
       }
       if (el.type === 'icon' && el.icon) {
-        const paths = el.iconStyle === 'outline'
-          ? (registry.iconOutlines || ICON_OUTLINES)
-          : (registry.icons || ICONS);
+        const paths = registry.icons || ICONS;
         if (paths[el.icon] === undefined) issues.push(`icon "${el.icon}"`);
       }
       if (el.type === 'chart' && el.chart?.type && !chartPreset(el.chart.type, registry)) {

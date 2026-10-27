@@ -7,7 +7,6 @@ import {
   GRADIENTS,
   SHAPES,
   ICONS,
-  ICON_OUTLINES,
   SHAPE_PATHS,
   GOOGLE_FONT_FAMILIES,
   TEMPLATES
@@ -27,7 +26,6 @@ export function createRegistry(options = {}) {
     gradients: asArray(options.gradients, [...GRADIENTS]),
     shapes: [...SHAPES],
     icons: { ...ICONS },
-    iconOutlines: { ...ICON_OUTLINES },
     shapePaths: { ...SHAPE_PATHS },
     // Per-instance renderer overrides, consulted by renderer.js before the
     // module-level registries.

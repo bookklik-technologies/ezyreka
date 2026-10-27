@@ -119,7 +119,7 @@ All registration methods are per-editor unless noted otherwise:
 | --- | --- |
 | `registerTemplates(tpl \| tpl[])` | Add templates to the Templates panel |
 | `registerFont(name, opts?)` | Register a font family; `{ google: 'Fam:wght@400;700' }` loads it from Google Fonts |
-| `registerIcons(icons)` | Register icons as 24×24 viewBox path data |
+| `registerIcons(icons)` | Register icons as 24×24 viewBox stroke path data (stroked, single style) |
 | `registerShapes(shapes)` | Register Elements-panel entries |
 | `registerPalette(palette)` | Replace this editor's color swatches |
 | `registerTheme(name, vars)` | Register a named theme (CSS variables) |

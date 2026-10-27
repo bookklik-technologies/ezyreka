@@ -16,7 +16,7 @@ Everything on the canvas is an element. Ezyreka supports text, basic shapes, vec
 | `heart` | Hearts |
 | `line` | Lines and arrows |
 | `image` | Raster images (uploads, data URLs, remote sources) |
-| `icon` | SVG icons from the built-in icon library (41 icons, solid & outline) |
+| `icon` | SVG stroke icons from the SenangStart Icons library (357 icons, single outline style) |
 | `shape` | Vector shapes (33 presets — pentagon, burst, ring, blob, speech-bubble…) |
 | `chart` | Editable data charts — see [Charts](/guide/charts) |
 
@@ -137,23 +137,22 @@ Lines and arrows use `stroke` and `strokeWidth`.
 
 ## Icons
 
-The Elements panel ships 41 icons in solid and outline styles. Switch styles in the panel before insertion, or in the toolbar for selected icons. Icons use `fill` as their color in both styles.
+Icons are stroke-based line glyphs from the [SenangStart Icons](https://bookklik-technologies.github.io/senangstart-icons/guide/getting-started.html) pack — 357 icons, always drawn as outlines with round caps and joins. There is no solid/outline switch. `fill` is the stroke color.
 
 ```js
 editor.addElement({
   type: 'icon',
   icon: 'star',
-  iconStyle: 'outline', // solid | outline
   fill: '#FACC15',
   x: 200, y: 200, w: 64, h: 64
 })
 ```
 
-Documents created before `iconStyle` existed keep their solid appearance.
+Older documents with an `iconStyle` field keep loading; the field is ignored.
 
 ## Vector shapes
 
-`type: 'shape'` elements reference the built-in vector library (33 presets):
+`type: 'shape'` elements reference the built-in vector library plus the bundled [SenangStart Shapes](https://bookklik-technologies.github.io/senangstart-shapes/guide/getting-started.html) pack (`ss-` prefixed ids, 177 silhouettes):
 
 ```js
 editor.addElement({ type: 'shape', shape: 'speech-bubble', x: 100, y: 400, w: 260, h: 160 })

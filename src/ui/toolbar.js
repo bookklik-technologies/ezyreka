@@ -74,7 +74,7 @@ export class Toolbar {
     const first = sel[0];
     // Control groups come from each type's capability manifest; a group shows
     // only when every selected element's type supports it.
-    const groups = ['chartEdit', 'text', 'fill', 'line', 'iconStyle', 'opacity'];
+    const groups = ['chartEdit', 'text', 'fill', 'line', 'opacity'];
     const common = groups.filter((group) =>
       sel.every((s) => manifestFor(s.type, ed.registry).toolbar?.includes(group)));
     if (common.includes('chartEdit') && sel.length === 1) {
@@ -141,13 +141,6 @@ export class Toolbar {
       arrowBtn.dataset.prop = 'arrow';
       arrowBtn.onclick = () => ed.updateSelected({ arrow: !first.arrow });
     }
-    if (common.includes('iconStyle')) {
-      const style = el('select', 'ez-input', this.root);
-      style.setAttribute('aria-label', 'Icon style');
-      style.innerHTML = '<option value="solid">Solid</option><option value="outline">Outline</option>';
-      style.value = first.iconStyle || 'solid';
-      this.bind(style, 'iconStyle');
-    }
     if (common.includes('opacity')) {
       this.numInput('Opacity', Math.round((first.opacity ?? 1) * 100), 0, 100, (v) => ({ opacity: v / 100 }));
     }
@@ -191,7 +184,6 @@ export class Toolbar {
       const prop = input.dataset.bind;
       let v = first[prop];
       if (prop === 'stroke') v = v || '#000000';
-      if (prop === 'iconStyle') v = v || 'solid';
       if (prop === 'opacity') v = Math.round((v ?? 1) * 100);
       if (input.type === 'color') this.colorFields.get(prop)?.set(hexOr(v, '#000000'));
       else if (document.activeElement !== input) input.value = v ?? '';

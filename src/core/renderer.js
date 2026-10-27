@@ -1,6 +1,6 @@
 import { deg2rad, clamp, hexOr } from './utils.js';
 import { drawChart } from './chart-renderer.js';
-import { ICONS, ICON_OUTLINES, SHAPE_PATHS } from './assets.js';
+import { ICONS, SHAPE_PATHS } from './assets.js';
 import { DEFAULT_FONT, GRADIENT_FALLBACKS } from './constants.js';
 
 // Module-level caches are shared across editors (same src renders once) but
@@ -361,28 +361,22 @@ function drawImage(ctx, el) {
 }
 
 function drawIcon(ctx, el, registry = {}) {
-  const outline = el.iconStyle === 'outline';
-  const paths = outline ? (registry.iconOutlines || ICON_OUTLINES) : (registry.icons || ICONS);
+  const paths = registry.icons || ICONS;
   const d = paths[el.icon];
   if (d === undefined) {
     drawPlaceholder(ctx, el, `Icon "${el.icon || ''}" unavailable`);
     return;
   }
-  // Create the paint in element coordinates before scaling the icon geometry.
-  const fill = el.fill === 'none' ? null : resolveFill(ctx, el.fill, el.w, el.h, '#111827');
+  // Stroke icons keep round caps and joins at the pack's 2-unit weight,
+  // scaled with the element so the line stays proportional to glyph size.
   ctx.save();
   ctx.scale(el.w / 24, el.h / 24);
   if (el.fill !== 'none') {
-    if (outline) {
-      ctx.strokeStyle = fill;
-      ctx.lineWidth = 1.75;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.stroke(getPath(d));
-    } else {
-      ctx.fillStyle = fill;
-      ctx.fill(getPath(d), 'evenodd');
-    }
+    ctx.strokeStyle = resolveFill(ctx, el.fill, el.w, el.h, '#111827');
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke(getPath(d));
   }
   ctx.restore();
 }

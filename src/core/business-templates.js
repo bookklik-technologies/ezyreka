@@ -6,14 +6,16 @@ const text = (value, x, y, w, size, color, props = {}) => ({
 });
 const box = (x, y, w, h, fill, props = {}) => ({ type: 'rect', x, y, w, h, fill, ...props });
 const circle = (x, y, size, fill) => ({ type: 'ellipse', x, y, w: size, h: size, fill });
+const shape = (name, x, y, w, h, fill) => ({ type: 'shape', shape: name, x, y, w, h, fill });
+const icon = (name, x, y, size, fill) => ({ type: 'icon', icon: name, x, y, w: size, h: size, fill });
 const bold = { fontWeight: 700 };
 const tag = (value, x, y, w, color) => text(value, x, y, w, 20, color, { ...bold, letterSpacing: 1.6 });
 const page = (width, height, color, elements) => ({ width, height, background: { type: 'solid', color }, elements });
 const palettes = {
-  deck: { ink: '#13233f', accent: '#2855f9', paper: '#f5f7fc', soft: '#e3eaff', muted: '#59677f' },
-  proposal: { ink: '#292722', accent: '#b76a0a', paper: '#fbf7ee', soft: '#f3e3c3', muted: '#71685b' },
-  report: { ink: '#142c40', accent: '#087f8c', paper: '#ffffff', soft: '#e1f3f1', muted: '#5b6f7c' },
-  profile: { ink: '#213e34', accent: '#557459', paper: '#faf8f1', soft: '#dce5d4', muted: '#647268' }
+  deck: { ink: '#13233f', accent: '#2855f9', paper: '#f5f7fc', soft: '#e3eaff', muted: '#59677f', mark: 'ss-curved-ascent' },
+  proposal: { ink: '#292722', accent: '#b76a0a', paper: '#fbf7ee', soft: '#f3e3c3', muted: '#71685b', mark: 'ss-twin-link-halo' },
+  report: { ink: '#142c40', accent: '#087f8c', paper: '#ffffff', soft: '#e1f3f1', muted: '#5b6f7c', mark: 'ss-rising-stair' },
+  profile: { ink: '#213e34', accent: '#557459', paper: '#faf8f1', soft: '#dce5d4', muted: '#647268', mark: 'ss-four-leaf-cushion' }
 };
 const footer = (p, n, width, height, dark = false) => [
   box(90, height - 104, width - 180, 1, dark ? '#66768b' : p.soft),
@@ -22,6 +24,7 @@ const footer = (p, n, width, height, dark = false) => [
 ];
 const documentPage = (p, n, section, title, elements) => page(1240, 1754, p.paper, [
   tag('[COMPANY NAME]', 90, 64, 850, p.accent),
+  shape(p.mark, 1102, 58, 48, 48, p.accent),
   box(90, 128, 1060, 2, p.soft),
   tag(section, 90, 169, 1060, p.accent),
   text(title, 90, 224, 1060, 64, p.ink, bold),
@@ -29,13 +32,15 @@ const documentPage = (p, n, section, title, elements) => page(1240, 1754, p.pape
 ]);
 const slide = (p, n, section, title, elements) => page(1920, 1080, p.paper, [
   tag('[COMPANY NAME]', 96, 64, 1500, p.accent),
+  shape(p.mark, 1776, 56, 48, 48, p.accent),
   tag(section, 96, 143, 1600, p.muted),
   text(title, 96, 199, 1728, 76, p.ink, bold),
   ...elements, ...footer(p, n, 1920, 1080)
 ]);
-const card = (p, x, y, w, h, number, title, copy) => [
+const card = (p, x, y, w, h, number, title, copy, symbol) => [
   box(x, y, w, h, p.soft, { radius: 12 }),
-  tag(number, x + 30, y + 28, w - 60, p.accent),
+  tag(number, x + 30, y + 28, w - 140, p.accent),
+  icon(symbol, x + w - 78, y + 24, 42, p.accent),
   text(title, x + 30, y + 80, w - 60, 36, p.ink, bold),
   text(copy, x + 30, y + 143, w - 60, 27, p.muted)
 ];
@@ -56,7 +61,7 @@ function businessPresentation() {
         text('Business\nin motion.', 90, 245, 1160, 142, '#ffffff', bold),
         text('A clear direction for the next chapter.', 96, 656, 1100, 36, '#c1cee7'),
         tag('BUSINESS PRESENTATION / [YEAR]', 96, 842, 1120, '#a8bbff'),
-        circle(1320, 190, 420, p.accent),
+        shape(p.mark, 1335, 155, 420, 420, p.accent),
         box(1260, 615, 165, 270, '#a8bbff'), box(1450, 490, 165, 395, '#6b8bff'),
         box(1640, 340, 165, 545, p.accent),
         ...footer(p, 1, 1920, 1080, true)
@@ -76,7 +81,7 @@ function businessPresentation() {
           ['Disconnected tools', 'Teams lose time switching\nbetween systems and sources.'],
           ['Unclear priorities', 'Competing demands make it\nhard to focus on what matters.'],
           ['Slow decisions', 'Limited visibility turns\nsimple decisions into delays.']
-        ].flatMap(([title, copy], i) => card(p, 96 + i * 582, 365, 552, 370, `0${i + 1}`, title, copy)),
+        ].flatMap(([title, copy], i) => card(p, 96 + i * 582, 365, 552, 370, `0${i + 1}`, title, copy, ['puzzle', 'flag', 'clock'][i])),
         box(96, 800, 1716, 112, p.ink, { radius: 10 }),
         text('The opportunity: turn complexity into a clear, repeatable way forward.', 126, 829, 1656, 34, '#ffffff', bold)
       ]),
@@ -128,6 +133,7 @@ function businessProposal() {
         box(1150, 0, 90, 1650, p.accent), tag('[COMPANY NAME]', 90, 70, 1000, p.accent),
         tag('PROJECT PROPOSAL', 90, 259, 1000, p.muted),
         text('A clear plan.\nA stronger\npartnership.', 82, 357, 1040, 104, p.ink, bold),
+        shape(p.mark, 950, 990, 100, 100, p.accent),
         box(90, 835, 140, 12, p.accent),
         text('[Project title]', 90, 914, 1000, 42, p.muted),
         box(90, 1120, 1000, 300, p.soft, { radius: 12 }),
@@ -156,7 +162,7 @@ function businessProposal() {
           ['Implementation', 'Build, review, and refine\nthe agreed deliverables.'],
           ['Handover', 'Documentation, training,\nand team enablement.'],
           ['Support', 'A defined review period\nand a plan for next steps.']
-        ].flatMap(([title, copy], i) => card(p, 90 + (i % 2) * 550, 420 + Math.floor(i / 2) * 365, 510, 320, `0${i + 1}`, title, copy))
+        ].flatMap(([title, copy], i) => card(p, 90 + (i % 2) * 550, 420 + Math.floor(i / 2) * 365, 510, 320, `0${i + 1}`, title, copy, ['magnifying-glass', 'flag', 'sparkles', 'cog-6-tooth', 'book-open', 'chat-bubble-left-right'][i]))
       ]),
       documentPage(p, 4, '03 / DELIVERY TIMELINE', 'A shared route to launch', [
         box(130, 462, 3, 830, p.accent),
@@ -215,6 +221,7 @@ function quarterlyReport() {
         ...[160, 260, 370, 485, 615].map((h, i) => box(570 + i * 115, 1460 - h, 85, h, i === 4 ? p.accent : p.soft)),
         text('Q[X]\n[Year]', 90, 1090, 440, 84, p.accent, bold),
         text('Prepared for [Audience]\n[Publication date]', 90, 1479, 1060, 26, p.muted),
+        icon('chart-line', 90, 896, 110, p.accent),
         ...footer(p, 1, 1240, 1754)
       ]),
       documentPage(p, 2, '01 / HIGHLIGHTS', 'The quarter at a glance', [
@@ -293,8 +300,8 @@ function companyProfile() {
         tag('COMPANY PROFILE', 90, 268, 1060, '#c8d7bc'),
         text('Good people.\nClear purpose.\nLasting impact.', 82, 365, 1070, 98, p.paper, bold),
         text('[A short description of what your company does.]', 90, 849, 1060, 30, '#c8d7bc', { h: 90 }),
-        circle(704, 1050, 410, '#557459'), circle(514, 1235, 225, '#c8d7bc'),
-        box(909, 1255, 205, 205, p.ink),
+        shape('ss-four-leaf-diagonal-rosette', 704, 1050, 410, 410, p.accent),
+        shape('ss-twin-link-halo', 514, 1235, 225, 225, '#c8d7bc'),
         text('[Website]\n[Year / Edition]', 90, 1430, 900, 26, p.paper),
         ...footer(p, 1, 1240, 1754, true)
       ]),
@@ -314,7 +321,7 @@ function companyProfile() {
           ['Design', 'Thoughtful experiences,\nclear communication, and\ncarefully considered details.'],
           ['Delivery', 'The people and processes\nto turn shared plans into\nwork that makes a difference.'],
           ['Support', 'Ongoing partnership,\ncontinuous improvement,\nand help when it matters.']
-        ].flatMap(([title, copy], i) => card(p, 90 + (i % 2) * 550, 420 + Math.floor(i / 2) * 490, 510, 440, `0${i + 1}`, title, copy)),
+        ].flatMap(([title, copy], i) => card(p, 90 + (i % 2) * 550, 420 + Math.floor(i / 2) * 490, 510, 440, `0${i + 1}`, title, copy, ['light-bulb', 'sparkles', 'rocket', 'chat-bubble-left-right'][i])),
         text('[Add your sector focus, specialty, or service promise.]', 90, 1470, 1060, 28, p.muted)
       ]),
       documentPage(p, 4, '03 / OUR PEOPLE', 'Meet the team behind the work', [
@@ -346,7 +353,8 @@ function companyProfile() {
         text('Good work\nstarts together.', 132, 487, 976, 76, p.paper, bold),
         text('Tell us what you have in mind.\nWe would love to explore what is possible.', 132, 740, 976, 30, '#c8d7bc'),
         ...[['EMAIL', '[Email address]'], ['PHONE', '[Phone number]'], ['VISIT', '[Website / Office address]']].flatMap(([label, value], i) => [
-          tag(label, 90, 1040 + i * 165, 230, p.accent),
+          icon(['envelope', 'phone', 'globe-alt'][i], 90, 1034 + i * 165, 36, p.accent),
+          tag(label, 148, 1040 + i * 165, 172, p.accent),
           text(value, 340, 1030 + i * 165, 810, 34, p.ink),
           box(90, 1127 + i * 165, 1060, 1, p.soft)
         ])

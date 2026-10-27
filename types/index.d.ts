@@ -96,7 +96,6 @@ export interface DesignElement {
   arrow?: boolean;
   src?: string;
   icon?: string;
-  iconStyle?: 'solid' | 'outline';
   shape?: string;
 }
 
@@ -362,7 +361,7 @@ export class Editor {
   registerTemplates(templates: EditorTemplate | EditorTemplate[]): void;
   /** Registers a font family; pass `{ google: "Familia:wght@400;700" }` (or a css2 spec string, or `true`) to load it from Google Fonts. */
   registerFont(name: string, opts?: { google?: string | boolean }): string;
-  /** Registers icons as 24×24 viewBox path data: `{ name: 'M…' }` or `{ name: { solid: 'M…', outline: 'M…' } }`. */
+  /** Registers icons as 24×24 viewBox stroke path data: `{ name: 'M…' }` or `{ name: { solid: 'M…', outline: 'M…' } }` (the outline path wins when both are given). */
   registerIcons(icons: Record<string, string | { solid: string; outline?: string }>): void;
   /** Registers Elements-panel entries; `path` is 0–100 viewBox geometry rendered as a vector shape. */
   registerShapes(shapes: { label: string; type?: string; props?: Partial<DesignElement>; svg?: string; path?: string; shape?: string } | { label: string; type?: string; props?: Partial<DesignElement>; svg?: string; path?: string; shape?: string }[]): void;

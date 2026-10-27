@@ -125,10 +125,9 @@ Angles run clockwise: `0` is left to right, `90` is top to bottom.
 | Field | Type | Notes |
 | --- | --- | --- |
 | `icon` | `string` | Icon registry name |
-| `iconStyle` | `'solid' \| 'outline'` | Outline falls back to solid when missing |
-| `fill` | `string` | Icon color in both styles |
+| `fill` | `string` | Stroke color |
 
-Documents without `iconStyle` keep their solid appearance.
+Icons are stroke-rendered outlines; a legacy `iconStyle` field is ignored on load.
 
 ## Vector shape fields
 

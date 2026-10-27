@@ -367,7 +367,6 @@ export class Sidepanel {
     const update = () => {
       const category = this.elementCategory || 'All';
       const query = (this.elementQuery || '').trim().toLowerCase();
-      const style = this.elementIconStyle || 'solid';
       for (const button of filters.children) {
         const active = button.textContent === category;
         button.classList.toggle('ez-active', active);
@@ -392,31 +391,13 @@ export class Sidepanel {
         }
       }
       if (icons.length) {
-        const heading = el('div', 'ez-element-heading', results);
-        this.sectionTitle('Icons', heading);
-        const styles = el('div', 'ez-icon-styles', heading);
-        styles.setAttribute('role', 'group');
-        styles.setAttribute('aria-label', 'Icon style');
-        for (const variant of ['solid', 'outline']) {
-          const button = el('button', 'ez-icon-style' + (style === variant ? ' ez-active' : ''), styles);
-          button.type = 'button';
-          button.textContent = variant === 'solid' ? 'Solid' : 'Outline';
-          button.setAttribute('aria-pressed', String(style === variant));
-          button.onclick = () => {
-            this.elementIconStyle = variant;
-            update();
-            results.querySelector(`.ez-icon-style.ez-active`).focus({ preventScroll: true });
-          };
-        }
+        this.sectionTitle('Icons', results);
         const grid = el('div', 'ez-element-grid', results);
         for (const name of icons) {
           const label = name.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase());
-          const attrs = style === 'outline'
-            ? 'fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"'
-            : 'fill="currentColor" fill-rule="evenodd"';
           addCard(grid, label,
-            `<svg viewBox="0 0 24 24" ${attrs} aria-hidden="true" focusable="false"><path d="${style === 'outline' ? this.editor.registry.iconOutlines[name] : this.editor.registry.icons[name]}" /></svg>`,
-            { type: 'icon', icon: name, iconStyle: style, w: 160, h: 160 });
+            `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="${this.editor.registry.icons[name]}" /></svg>`,
+            { type: 'icon', icon: name, w: 160, h: 160 });
         }
       }
     };
